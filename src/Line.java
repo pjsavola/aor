@@ -4,7 +4,7 @@ public class Line {
 
     final Point p1;
     final Point p2;
-    private final boolean water;
+    final boolean water;
     static final int tolerance = 8;
 
     public Line(Point p1, Point p2, boolean water) {

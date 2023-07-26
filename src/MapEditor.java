@@ -4,13 +4,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class MapEditor extends JPanel {
 
+    private final JFrame frame;
     private final List<Line> lines = new ArrayList<>();
     private final double scale;
     private final int mapWidth;
@@ -22,7 +22,8 @@ public class MapEditor extends JPanel {
     private Point p;
     private Point cursor;
 
-    MapEditor() {
+    MapEditor(JFrame frame) {
+        this.frame = frame;
         final ImageIcon icon = new ImageIcon("map.jpg");
         final Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         scale = Math.min((double) rect.width / icon.getIconWidth(), (double) rect.height / icon.getIconHeight());
@@ -86,6 +87,52 @@ public class MapEditor extends JPanel {
                 }
             }
         });
+    }
+
+    public void save() {
+        final JFileChooser fileChooser = new JFileChooser();
+        if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            final File file = fileChooser.getSelectedFile();
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
+                for (Line line : lines) {
+                    final int x1 = (int) (line.p1.x / scale + 0.5);
+                    final int y1 = (int) (line.p1.y / scale + 0.5);
+                    final int x2 = (int) (line.p2.x / scale + 0.5);
+                    final int y2 = (int) (line.p2.y / scale + 0.5);
+                    writer.println(x1 + " " + y1 + " " + x2 + " " + y2 + " " + (line.water ? 1 : 0));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.err.println("Wrote to " + file.getAbsolutePath());
+        }
+    }
+
+    public void load() {
+        final JFileChooser fileChooser = new JFileChooser();
+        if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            final File file = fileChooser.getSelectedFile();
+            final List<Line> result = new ArrayList<>();
+            try (Scanner scanner = new Scanner(new FileInputStream(file))) {
+                String str;
+                while (scanner.hasNextLine()) {
+                    str = scanner.nextLine();
+                    final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
+                    final Line line = new Line(new Point(scale(s[0]), scale(s[1])), new Point(scale(s[2]), scale(s[3])), s[4] == 1);
+                    result.add(line);
+                }
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            lines.clear();
+            lines.addAll(result);
+            repaint();
+            System.err.println("Loaded from " + file.getAbsolutePath());
+        }
+    }
+
+    private int scale(int c) {
+        return (int) (scale * c + 0.5);
     }
 
     public void esc() {

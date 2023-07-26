@@ -9,7 +9,7 @@ public class AoR {
         final JFrame frame = new JFrame();
         frame.setTitle("Age of Renaissance");
 
-        final MapEditor editor = new MapEditor();
+        final MapEditor editor = new MapEditor(frame);
         frame.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -24,6 +24,16 @@ public class AoR {
             public void keyReleased(KeyEvent e) {
             }
         });
+        final MenuBar menuBar = new MenuBar();
+        final Menu fileMenu = new Menu("File");
+        final MenuItem saveItem = new MenuItem("Save");
+        final MenuItem loadItem = new MenuItem("Load");
+        saveItem.addActionListener(l -> editor.save());
+        loadItem.addActionListener(l -> editor.load());
+        fileMenu.add(saveItem);
+        fileMenu.add(loadItem);
+        menuBar.add(fileMenu);
+        frame.setMenuBar(menuBar);
 
         frame.setContentPane(editor);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
