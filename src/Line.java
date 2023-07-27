@@ -20,7 +20,11 @@ public class Line {
     }
 
     public void draw(Graphics g) {
-        g.setColor(water ? Color.BLUE : Color.BLACK);
+        Graphics2D g2d = (Graphics2D) g;
+        final Stroke oldStroke = g2d.getStroke();
+        g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+        g.setColor(water ? Color.WHITE : Color.RED);
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
+        g2d.setStroke(oldStroke);
     }
 }

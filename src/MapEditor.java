@@ -12,6 +12,7 @@ public class MapEditor extends JPanel {
 
     private final JFrame frame;
     private final List<Line> lines = new ArrayList<>();
+    private final List<Node> nodes = new ArrayList<>();
     private final double scale;
     private final int mapWidth;
     private final int mapHeight;
@@ -53,7 +54,16 @@ public class MapEditor extends JPanel {
                 final boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
                 if (p == null) {
                     if (rightClick) {
-                        lines.removeIf(l -> l.p1 == c || l.p2 == c);
+                        if (!lines.removeIf(l -> l.p1 == c || l.p2 == c)) {
+                            for (Line line : lines) {
+                                final int x = (line.p1.x + line.p2.x) / 2;
+                                final int y = (line.p1.y + line.p2.y) / 2;
+                                if (Line.nearby(c, new Point(x, y))) {
+                                    lines.remove(line);
+                                    break;
+                                }
+                            }
+                        }
                     } else {
                         p = c;
                     }
@@ -101,6 +111,10 @@ public class MapEditor extends JPanel {
                     final int y2 = (int) (line.p2.y / scale + 0.5);
                     writer.println(x1 + " " + y1 + " " + x2 + " " + y2 + " " + (line.water ? 1 : 0));
                 }
+                writer.println("---");
+                for (Node node : nodes) {
+                    writer.println(node.serialize(lines, nodes));
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -112,20 +126,37 @@ public class MapEditor extends JPanel {
         final JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             final File file = fileChooser.getSelectedFile();
-            final List<Line> result = new ArrayList<>();
+            final List<Line> newLines = new ArrayList<>();
+            final List<Node> newNodes = new ArrayList<>();
+            final List<String> nodeData = new ArrayList<>();
             try (Scanner scanner = new Scanner(new FileInputStream(file))) {
+                boolean readingNodes = false;
                 String str;
                 while (scanner.hasNextLine()) {
                     str = scanner.nextLine();
-                    final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
-                    final Line line = new Line(new Point(scale(s[0]), scale(s[1])), new Point(scale(s[2]), scale(s[3])), s[4] == 1);
-                    result.add(line);
+                    if ("---".equals(str)) {
+                        readingNodes = true;
+                        continue;
+                    }
+                    if (readingNodes) {
+                        newNodes.add(new Node());
+                        nodeData.add(str);
+                    } else {
+                        final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
+                        final Line line = new Line(new Point(scale(s[0]), scale(s[1])), new Point(scale(s[2]), scale(s[3])), s[4] == 1);
+                        newLines.add(line);
+                    }
                 }
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
+            for (int i = 0; i < newNodes.size(); ++i) {
+                Node.initFromString(newNodes.get(i), nodeData.get(i), newLines, newNodes);
+            }
             lines.clear();
-            lines.addAll(result);
+            lines.addAll(newLines);
+            nodes.clear();
+            nodes.addAll(newNodes);
             repaint();
             System.err.println("Loaded from " + file.getAbsolutePath());
         }
@@ -146,7 +177,9 @@ public class MapEditor extends JPanel {
         Set<Point> renderedPoints = new HashSet<>();
         for (Line line : lines) {
             line.draw(g);
-            g.setColor(Color.GREEN.darker());
+        }
+        g.setColor(Color.GREEN.darker());
+        for (Line line : lines) {
             final int size = Line.tolerance;
             if (renderedPoints.add(line.p1)) g.fillOval(line.p1.x - size / 2, line.p1.y - size / 2, size, size);
             if (renderedPoints.add(line.p2)) g.fillOval(line.p2.x - size / 2, line.p2.y - size / 2, size, size);
