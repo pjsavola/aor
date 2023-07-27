@@ -66,7 +66,7 @@ public class MapEditor extends JPanel {
                 final Point c = snap(e.getPoint());
                 for (Node node : nodes) {
                     if (node.contains(c)) {
-                        System.err.println(node.serialize(lines, nodes));
+                        System.err.println(node);
                         return;
                     }
                 }

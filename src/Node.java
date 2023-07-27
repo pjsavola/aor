@@ -65,6 +65,11 @@ public class Node {
         return polygon.contains(p);
     }
 
+    @Override
+    public String toString() {
+        return name + " (" + size + ") " + commodity + " " + (capital == null ? "" : capital);
+    }
+
     public String serialize(List<Line> allLines, List<Node> allNodes) {
         final List<String> s = new ArrayList<>();
         s.add(String.valueOf(borders.size()));
@@ -75,12 +80,12 @@ public class Node {
         s.add(String.valueOf(capital == null ? 0 : capital.ordinal() + 1));
         s.add(String.valueOf(supports.size()));
         for (Node support : supports) s.add(String.valueOf(allNodes.indexOf(support)));
-        return String.join(" ", s);
+        return String.join(",", s);
     }
 
     public static void initFromString(Node node, String str, List<Line> allLines, List<Node> allNodes) {
         int idx = 0;
-        final String[] s = str.split(" ");
+        final String[] s = str.split(",");
         int borderCount = Integer.parseInt(s[idx++]);
         final List<Line> borders = new ArrayList<>(borderCount);
         while (borderCount-- > 0) borders.add(allLines.get(Integer.parseInt(s[idx++])));
