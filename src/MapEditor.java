@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -63,6 +64,12 @@ public class MapEditor extends JPanel {
             public void mousePressed(MouseEvent e) {
                 Line match = null;
                 final Point c = snap(e.getPoint());
+                for (Node node : nodes) {
+                    if (node.contains(c)) {
+                        System.err.println(node.serialize(lines, nodes));
+                        return;
+                    }
+                }
                 final boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
                 if (p == null) {
                     if (rightClick) {
@@ -91,7 +98,64 @@ public class MapEditor extends JPanel {
                     if (match == null) {
                         lines.add(new Line(p, c, rightClick));
                     } else {
-                        borders.add(match);
+                        boolean duplicate = false;
+                        for (Line line : borders) {
+                            if ((line.p1 == c && line.p2 == p) || (line.p2 == c && line.p1 == p)) {
+                                duplicate = true;
+                                break;
+                            }
+                        }
+                        if (!duplicate) {
+                            borders.add(match);
+                            if (borders.size() > 2) {
+                                final Line l1 = borders.get(0);
+                                final Line l2 = borders.get(borders.size() - 1);
+                                if (l1.p1 == l2.p1 || l1.p1 == l2.p2 || l1.p2 == l2.p1 || l1.p2 == l2.p2) {
+                                    final JDialog dialog = new JDialog(frame);
+                                    final JPanel panel = new JPanel();
+                                    panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                                    panel.setLayout(new GridLayout(5, 2));
+                                    panel.add(new JLabel("Name"));
+                                    final JTextField nameField = new JTextField();
+                                    panel.add(nameField);
+                                    panel.add(new JLabel("Size"));
+                                    final JTextField sizeField = new JTextField();
+                                    panel.add(sizeField);
+                                    panel.add(new JLabel("Commodity"));
+                                    final Node.Commodity[] commodityChoices = new Node.Commodity[Node.Commodity.values().length + 1];
+                                    System.arraycopy(Node.Commodity.values(), 0, commodityChoices, 1, Node.Commodity.values().length);
+                                    final JComboBox<Node.Commodity> commoditySelector = new JComboBox<>(commodityChoices);
+                                    panel.add(commoditySelector);
+                                    panel.add(new JLabel("Capital"));
+                                    final Node.CityState[] capitalChoices = new Node.CityState[Node.CityState.values().length + 1];
+                                    System.arraycopy(Node.CityState.values(), 0, capitalChoices, 1, Node.CityState.values().length);
+                                    final JComboBox<Node.CityState> capitalSelector = new JComboBox<>(capitalChoices);
+                                    panel.add(capitalSelector);
+                                    final JButton cancelButton = new JButton("Cancel");
+                                    final JButton okButton = new JButton("Ok");
+                                    cancelButton.addActionListener(l -> dialog.setVisible(false));
+                                    okButton.addActionListener(l -> {
+                                        final Node node = new Node();
+                                        final String name = nameField.getText();
+                                        final String size = sizeField.getText();
+                                        node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), (Node.Commodity) commoditySelector.getSelectedItem());
+                                        node.addCapital((Node.CityState) capitalSelector.getSelectedItem());
+                                        nodes.add(node);
+                                        p = null;
+                                        dialog.setVisible(false);
+                                    });
+                                    panel.add(cancelButton);
+                                    panel.add(okButton);
+                                    dialog.setContentPane(panel);
+                                    dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                                    dialog.setLocationRelativeTo(frame);
+                                    dialog.pack();
+                                    dialog.setModal(true);
+                                    dialog.setVisible(true);
+                                    borders.clear();
+                                }
+                            }
+                        }
                     }
                     p = c;
                 }

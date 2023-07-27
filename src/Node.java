@@ -1,3 +1,5 @@
+import java.awt.*;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +11,7 @@ public class Node {
     public enum CityState { VENICE, GENOA, BARCELONA, PARIS, LONDON, HAMBURG };
 
     private List<Line> borders;
+    private Polygon polygon;
     private String name;
     private int size;
     private Commodity commodity;
@@ -16,10 +19,22 @@ public class Node {
     private final Set<Node> supports = new HashSet<>();
 
     public void init(List<Line> borders, String name, int size, Commodity commodity) {
-        this.borders = borders;
+        this.borders = new ArrayList<>(borders);
         this.name = name;
         this.size = size;
         this.commodity = commodity;
+        initPolygon();
+    }
+
+    private void initPolygon() {
+        final int corners = borders.size();
+        final int[] xPoints = new int[corners];
+        final int[] yPoints = new int[corners];
+        for (int i = 0; i < corners; ++i) {
+            xPoints[i] = borders.get(i).p1.x;
+            yPoints[i] = borders.get(i).p1.y;
+        }
+        polygon = new Polygon(xPoints, yPoints, corners);
     }
 
     public void addCapital(CityState capital) {
@@ -44,6 +59,10 @@ public class Node {
 
     public CityState getCapital() {
         return capital;
+    }
+
+    public boolean contains(Point p) {
+        return polygon.contains(p);
     }
 
     public String serialize(List<Line> allLines, List<Node> allNodes) {
@@ -72,6 +91,7 @@ public class Node {
         final int capitalIdx = Integer.parseInt(s[idx++]);
         final CityState capital = capitalIdx == 0 ? null : CityState.values()[capitalIdx - 1];
         node.init(borders, name, size, commodity);
+        node.addCapital(capital);
         int supportCount = Integer.parseInt(s[idx++]);
         while (supportCount-- > 0) node.addSupport(allNodes.get(Integer.parseInt(s[idx++])));
     }
