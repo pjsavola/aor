@@ -22,6 +22,17 @@ public class MapEditor extends JPanel {
 
     private Point p;
     private Point cursor;
+    private List<Line> borders = new ArrayList<>();
+
+    private static final Set<Point> pointCache = new HashSet<>();
+
+    private Point p(int x, int y) {
+        final Point p = new Point(x, y);
+        if (pointCache.add(p)) {
+            return p;
+        }
+        return pointCache.stream().filter(a -> a.equals(p)).findAny().orElse(null);
+    }
 
     MapEditor(JFrame frame) {
         this.frame = frame;
@@ -50,6 +61,7 @@ public class MapEditor extends JPanel {
             }
             @Override
             public void mousePressed(MouseEvent e) {
+                Line match = null;
                 final Point c = snap(e.getPoint());
                 final boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
                 if (p == null) {
@@ -70,8 +82,21 @@ public class MapEditor extends JPanel {
                 } else if (p == c) {
                     p = null;
                 } else {
-                    lines.add(new Line(p, c, rightClick));
+                    for (Line line : lines) {
+                        if ((line.p1 == c && line.p2 == p) || (line.p2 == c && line.p1 == p)) {
+                            match = line;
+                            break;
+                        }
+                    }
+                    if (match == null) {
+                        lines.add(new Line(p, c, rightClick));
+                    } else {
+                        borders.add(match);
+                    }
                     p = c;
+                }
+                if (match == null) {
+                    borders.clear();
                 }
                 repaint();
             }
@@ -143,7 +168,7 @@ public class MapEditor extends JPanel {
                         nodeData.add(str);
                     } else {
                         final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
-                        final Line line = new Line(new Point(scale(s[0]), scale(s[1])), new Point(scale(s[2]), scale(s[3])), s[4] == 1);
+                        final Line line = new Line(p(scale(s[0]), scale(s[1])), p(scale(s[2]), scale(s[3])), s[4] == 1);
                         newLines.add(line);
                     }
                 }
@@ -168,6 +193,7 @@ public class MapEditor extends JPanel {
 
     public void esc() {
         p = null;
+        borders.clear();
         repaint();
     }
 
@@ -176,7 +202,7 @@ public class MapEditor extends JPanel {
         g.drawImage(mapImage, 0, 0, null);
         Set<Point> renderedPoints = new HashSet<>();
         for (Line line : lines) {
-            line.draw(g);
+            line.draw(g, borders.contains(line));
         }
         g.setColor(Color.GREEN.darker());
         for (Line line : lines) {

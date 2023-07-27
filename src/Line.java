@@ -19,11 +19,11 @@ public class Line {
         return dx * dx + dy * dy < tolerance * tolerance;
     }
 
-    public void draw(Graphics g) {
+    public void draw(Graphics g, boolean selected) {
         Graphics2D g2d = (Graphics2D) g;
         final Stroke oldStroke = g2d.getStroke();
         g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-        g.setColor(water ? Color.WHITE : Color.RED);
+        g.setColor(selected ? Color.YELLOW : (water ? Color.WHITE : Color.RED));
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
         g2d.setStroke(oldStroke);
     }
