@@ -16,9 +16,10 @@ public class Node {
     private int size;
     private Commodity commodity;
     private CityState capital;
+    private int region;
     private final Set<Node> supports = new HashSet<>();
 
-    public void init(List<Line> borders, String name, int size, Commodity commodity) {
+    public void init(List<Line> borders, String name, int size, Commodity commodity, CityState capital, int region) {
         this.borders = new ArrayList<>(borders);
         this.name = name;
         this.size = size;
@@ -37,12 +38,6 @@ public class Node {
         polygon = new Polygon(xPoints, yPoints, corners);
     }
 
-    public void addCapital(CityState capital) {
-        if (size > 1) {
-            this.capital = capital;
-        }
-    }
-
     public void addSupport(Node node) {
         if (size == 1) {
             supports.add(node);
@@ -57,17 +52,13 @@ public class Node {
         return supports.contains(node);
     }
 
-    public CityState getCapital() {
-        return capital;
-    }
-
     public boolean contains(Point p) {
         return polygon.contains(p);
     }
 
     @Override
     public String toString() {
-        return name + " (" + size + ") " + commodity + " " + (capital == null ? "" : capital);
+        return name + " (" + size + ") " + commodity + " " + (capital == null ? "" : capital + " Region " + region);
     }
 
     public String serialize(List<Line> allLines, List<Node> allNodes) {
@@ -78,6 +69,7 @@ public class Node {
         s.add(String.valueOf(size));
         s.add(String.valueOf(commodity == null ? 0 : commodity.ordinal() + 1));
         s.add(String.valueOf(capital == null ? 0 : capital.ordinal() + 1));
+        s.add(String.valueOf(region));
         s.add(String.valueOf(supports.size()));
         for (Node support : supports) s.add(String.valueOf(allNodes.indexOf(support)));
         return String.join(",", s);
@@ -95,8 +87,8 @@ public class Node {
         final Commodity commodity = commodityIdx == 0 ? null : Commodity.values()[commodityIdx - 1];
         final int capitalIdx = Integer.parseInt(s[idx++]);
         final CityState capital = capitalIdx == 0 ? null : CityState.values()[capitalIdx - 1];
-        node.init(borders, name, size, commodity);
-        node.addCapital(capital);
+        final int region = Integer.parseInt(s[idx++]);
+        node.init(borders, name, size, commodity, capital, region);
         int supportCount = Integer.parseInt(s[idx++]);
         while (supportCount-- > 0) node.addSupport(allNodes.get(Integer.parseInt(s[idx++])));
     }

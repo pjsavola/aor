@@ -114,7 +114,7 @@ public class MapEditor extends JPanel {
                                     final JDialog dialog = new JDialog(frame);
                                     final JPanel panel = new JPanel();
                                     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                                    panel.setLayout(new GridLayout(5, 2));
+                                    panel.setLayout(new GridLayout(6, 2));
                                     panel.add(new JLabel("Name"));
                                     final JTextField nameField = new JTextField();
                                     panel.add(nameField);
@@ -131,6 +131,9 @@ public class MapEditor extends JPanel {
                                     System.arraycopy(Node.CityState.values(), 0, capitalChoices, 1, Node.CityState.values().length);
                                     final JComboBox<Node.CityState> capitalSelector = new JComboBox<>(capitalChoices);
                                     panel.add(capitalSelector);
+                                    panel.add(new JLabel("Region"));
+                                    final JTextField regionField = new JTextField();
+                                    panel.add(regionField);
                                     final JButton cancelButton = new JButton("Cancel");
                                     final JButton okButton = new JButton("Ok");
                                     cancelButton.addActionListener(l -> dialog.setVisible(false));
@@ -138,8 +141,10 @@ public class MapEditor extends JPanel {
                                         final Node node = new Node();
                                         final String name = nameField.getText();
                                         final String size = sizeField.getText();
-                                        node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), (Node.Commodity) commoditySelector.getSelectedItem());
-                                        node.addCapital((Node.CityState) capitalSelector.getSelectedItem());
+                                        final String region = regionField.getText();
+                                        final Node.Commodity commodity = (Node.Commodity) commoditySelector.getSelectedItem();
+                                        final Node.CityState capital = (Node.CityState) capitalSelector.getSelectedItem();
+                                        node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), commodity, capital, region.isEmpty() ? 0 : Integer.parseInt(region));
                                         nodes.add(node);
                                         p = null;
                                         dialog.setVisible(false);
