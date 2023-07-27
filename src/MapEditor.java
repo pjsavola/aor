@@ -24,6 +24,7 @@ public class MapEditor extends JPanel {
     private Point p;
     private Point cursor;
     private List<Line> borders = new ArrayList<>();
+    private Node selected;
 
     private static final Set<Point> pointCache = new HashSet<>();
 
@@ -66,11 +67,30 @@ public class MapEditor extends JPanel {
                 Line match = null;
                 final Point a = e.getPoint();
                 final Point c = snap(a);
-                if (a == c && !rightClick) {
-                    for (Node node : nodes) {
-                        if (node.contains(c)) {
-                            System.err.println(node);
-                            return;
+                if (a == c && p == null) {
+                    if (rightClick) {
+                        if (selected != null) {
+                            for (Node node : nodes) {
+                                if (node.contains(c)) {
+                                    if (!selected.supports(node)) {
+                                        selected.addSupport(node);
+                                        repaint();
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (Node node : nodes) {
+                            if (node.contains(c)) {
+                                if (node == selected) {
+                                    selected = null;
+                                } else {
+                                    selected = node;
+                                }
+                                repaint();
+                                return;
+                            }
                         }
                     }
                 }
@@ -285,9 +305,18 @@ public class MapEditor extends JPanel {
             if (renderedPoints.add(line.p1)) g.fillOval(line.p1.x - size / 2, line.p1.y - size / 2, size, size);
             if (renderedPoints.add(line.p2)) g.fillOval(line.p2.x - size / 2, line.p2.y - size / 2, size, size);
         }
+        if (selected != null) {
+            selected.draw(g);
+            for (Node node : nodes) {
+                if (selected.supports(node)) {
+                    node.draw(g);
+                }
+            }
+        }
+        /*
         for (Node node : nodes) {
             node.draw(g);
-        }
+        }*/
         if (p != null) {
             g.setColor(Color.RED);
             g.drawLine(p.x, p.y, cursor.x, cursor.y);
