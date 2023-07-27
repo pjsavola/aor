@@ -24,6 +24,8 @@ public class Node {
         this.name = name;
         this.size = size;
         this.commodity = commodity;
+        this.capital = capital;
+        this.region = region;
         initPolygon();
     }
 
@@ -32,10 +34,33 @@ public class Node {
         final int[] xPoints = new int[corners];
         final int[] yPoints = new int[corners];
         for (int i = 0; i < corners; ++i) {
-            xPoints[i] = borders.get(i).p1.x;
-            yPoints[i] = borders.get(i).p1.y;
+            final Point p1 = borders.get(i).p1;
+            final Point p2 = borders.get(i).p2;
+            final Point p;
+            if (i == 0) {
+                final Point n1 = borders.get(borders.size() - 1).p1;
+                final Point n2 = borders.get(borders.size() - 1).p2;
+                if (p1 == n1 || p1 == n2) {
+                    p = p2;
+                } else {
+                    p = p1;
+                }
+            } else if (xPoints[i - 1] == p1.x && yPoints[i - 1] == p1.y) {
+                p = p2;
+            } else {
+                p = p1;
+            }
+            xPoints[i] = p.x;
+            yPoints[i] = p.y;
         }
         polygon = new Polygon(xPoints, yPoints, corners);
+    }
+
+    public boolean needsRemoval(Line line) {
+        for (Line border : borders) {
+            if (border == line) return true;
+        }
+        return false;
     }
 
     public void addSupport(Node node) {
@@ -56,9 +81,14 @@ public class Node {
         return polygon.contains(p);
     }
 
+    public void draw(Graphics g) {
+        g.setColor(new Color(0x44FFFFFF, true));
+        g.fillPolygon(polygon);
+    }
+
     @Override
     public String toString() {
-        return name + " (" + size + ") " + commodity + " " + (capital == null ? "" : capital + " Region " + region);
+        return name + " (" + size + ") " + commodity + " " + (capital == null ? "" : capital) + " Region " + region;
     }
 
     public String serialize(List<Line> allLines, List<Node> allNodes) {

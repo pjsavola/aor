@@ -62,15 +62,18 @@ public class MapEditor extends JPanel {
             }
             @Override
             public void mousePressed(MouseEvent e) {
+                final boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
                 Line match = null;
-                final Point c = snap(e.getPoint());
-                for (Node node : nodes) {
-                    if (node.contains(c)) {
-                        System.err.println(node);
-                        return;
+                final Point a = e.getPoint();
+                final Point c = snap(a);
+                if (a == c && !rightClick) {
+                    for (Node node : nodes) {
+                        if (node.contains(c)) {
+                            System.err.println(node);
+                            return;
+                        }
                     }
                 }
-                final boolean rightClick = e.getButton() == MouseEvent.BUTTON3;
                 if (p == null) {
                     if (rightClick) {
                         if (!lines.removeIf(l -> l.p1 == c || l.p2 == c)) {
@@ -78,6 +81,7 @@ public class MapEditor extends JPanel {
                                 final int x = (line.p1.x + line.p2.x) / 2;
                                 final int y = (line.p1.y + line.p2.y) / 2;
                                 if (Line.nearby(c, new Point(x, y))) {
+                                    nodes.removeIf(n -> n.needsRemoval(line));
                                     lines.remove(line);
                                     break;
                                 }
@@ -146,7 +150,6 @@ public class MapEditor extends JPanel {
                                         final Node.CityState capital = (Node.CityState) capitalSelector.getSelectedItem();
                                         node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), commodity, capital, region.isEmpty() ? 0 : Integer.parseInt(region));
                                         nodes.add(node);
-                                        p = null;
                                         dialog.setVisible(false);
                                     });
                                     panel.add(cancelButton);
@@ -158,6 +161,9 @@ public class MapEditor extends JPanel {
                                     dialog.setModal(true);
                                     dialog.setVisible(true);
                                     borders.clear();
+                                    p = null;
+                                    repaint();
+                                    return;
                                 }
                             }
                         }
@@ -278,6 +284,9 @@ public class MapEditor extends JPanel {
             final int size = Line.tolerance;
             if (renderedPoints.add(line.p1)) g.fillOval(line.p1.x - size / 2, line.p1.y - size / 2, size, size);
             if (renderedPoints.add(line.p2)) g.fillOval(line.p2.x - size / 2, line.p2.y - size / 2, size, size);
+        }
+        for (Node node : nodes) {
+            node.draw(g);
         }
         if (p != null) {
             g.setColor(Color.RED);
