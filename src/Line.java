@@ -1,10 +1,14 @@
 import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Line {
 
     final Point p1;
     final Point p2;
     final boolean water;
+    final Set<Node> nodes = new HashSet<>();
     static final int tolerance = 8;
 
     public Line(Point p1, Point p2, boolean water) {
@@ -26,5 +30,10 @@ public class Line {
         g.setColor(selected ? Color.YELLOW : (water ? Color.WHITE : Color.RED));
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
         g2d.setStroke(oldStroke);
+    }
+
+    @Override
+    public String toString() {
+        return nodes.stream().map(Node::getName).collect(Collectors.joining("-"));
     }
 }

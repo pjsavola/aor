@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 public class AoR {
     public static void main(String[] args) {
@@ -10,6 +11,7 @@ public class AoR {
         frame.setTitle("Age of Renaissance");
 
         final MapEditor editor = new MapEditor(frame);
+        editor.load(new File("/Users/petri/src/AoR/map.dat"));
         frame.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {

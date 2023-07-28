@@ -242,43 +242,47 @@ public class MapEditor extends JPanel {
         }
     }
 
+    public void load(File file) {
+        final List<Line> newLines = new ArrayList<>();
+        final List<Node> newNodes = new ArrayList<>();
+        final List<String> nodeData = new ArrayList<>();
+        try (Scanner scanner = new Scanner(new FileInputStream(file))) {
+            boolean readingNodes = false;
+            String str;
+            while (scanner.hasNextLine()) {
+                str = scanner.nextLine();
+                if ("---".equals(str)) {
+                    readingNodes = true;
+                    continue;
+                }
+                if (readingNodes) {
+                    newNodes.add(new Node());
+                    nodeData.add(str);
+                } else {
+                    final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
+                    final Line line = new Line(p(scale(s[0]), scale(s[1])), p(scale(s[2]), scale(s[3])), s[4] == 1);
+                    newLines.add(line);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        for (int i = 0; i < newNodes.size(); ++i) {
+            Node.initFromString(newNodes.get(i), nodeData.get(i), newLines, newNodes);
+        }
+        lines.clear();
+        lines.addAll(newLines);
+        nodes.clear();
+        nodes.addAll(newNodes);
+        repaint();
+        System.err.println("Loaded from " + file.getAbsolutePath());
+    }
+
     public void load() {
         final JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             final File file = fileChooser.getSelectedFile();
-            final List<Line> newLines = new ArrayList<>();
-            final List<Node> newNodes = new ArrayList<>();
-            final List<String> nodeData = new ArrayList<>();
-            try (Scanner scanner = new Scanner(new FileInputStream(file))) {
-                boolean readingNodes = false;
-                String str;
-                while (scanner.hasNextLine()) {
-                    str = scanner.nextLine();
-                    if ("---".equals(str)) {
-                        readingNodes = true;
-                        continue;
-                    }
-                    if (readingNodes) {
-                        newNodes.add(new Node());
-                        nodeData.add(str);
-                    } else {
-                        final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
-                        final Line line = new Line(p(scale(s[0]), scale(s[1])), p(scale(s[2]), scale(s[3])), s[4] == 1);
-                        newLines.add(line);
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            for (int i = 0; i < newNodes.size(); ++i) {
-                Node.initFromString(newNodes.get(i), nodeData.get(i), newLines, newNodes);
-            }
-            lines.clear();
-            lines.addAll(newLines);
-            nodes.clear();
-            nodes.addAll(newNodes);
-            repaint();
-            System.err.println("Loaded from " + file.getAbsolutePath());
+            load(file);
         }
     }
 
@@ -307,11 +311,16 @@ public class MapEditor extends JPanel {
         }
         if (selected != null) {
             selected.draw(g);
+            final Set<Node> reachable = selected.getReachableNodes(4, true, true);
+            for (Node node : reachable) {
+                node.draw(g);
+            }
+            /*
             for (Node node : nodes) {
                 if (selected.supports(node)) {
                     node.draw(g);
                 }
-            }
+            }*/
         }
         /*
         for (Node node : nodes) {

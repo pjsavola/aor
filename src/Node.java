@@ -1,9 +1,7 @@
 import java.awt.*;
 import java.sql.Array;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Node {
@@ -27,6 +25,7 @@ public class Node {
         this.capital = capital;
         this.region = region;
         initPolygon();
+        for (Line line : borders) line.nodes.add(this);
     }
 
     private void initPolygon() {
@@ -56,6 +55,10 @@ public class Node {
         polygon = new Polygon(xPoints, yPoints, corners);
     }
 
+    public String getName() {
+        return name;
+    }
+
     public boolean needsRemoval(Line line) {
         for (Line border : borders) {
             if (border == line) return true;
@@ -79,6 +82,85 @@ public class Node {
 
     public boolean contains(Point p) {
         return polygon.contains(p);
+    }
+
+    private static class Work {
+        private final Node node;
+        private final int distance;
+        private final Line border;
+        private final boolean heavensUsed;
+        private Work(Node node, int distance, Line border, boolean heavensUsed) {
+            this.node = node;
+            this.distance = distance;
+            this.border = border;
+            this.heavensUsed = heavensUsed;
+        }
+    }
+
+    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens) {
+        final Map<Line, Integer> borderDistances = new HashMap<>();
+        final Map<Line, Integer> borderDistancesWithHeavens = new HashMap<>();
+        final Deque<Work> work = new ArrayDeque<>();
+        final Set<Node> result = new HashSet<>();
+        work.addLast(new Work(this, 0, null, false));
+        while (!work.isEmpty()) {
+            final Work w = work.removeFirst();
+            final Node node = w.node;
+            final int distance = w.distance;
+            final Line source = w.border;
+            final int size = node.borders.size();
+            for (int i = 0; i < size; ++i) {
+                final Line border = node.borders.get(i);
+                if (border == source) continue;
+                if (border.water != useShips) continue;
+
+                if (source != null) {
+                    boolean reachable = false;
+                    for (int j = i + 1; j < i + size; ++j) {
+                        final Line otherBorder = node.borders.get(j % size);
+                        if (!otherBorder.water) {
+                            break;
+                        }
+                        if (otherBorder == source) {
+                            reachable = true;
+                            break;
+                        }
+                    }
+                    if (!reachable) {
+                        for (int j = i - 1; j > i - size; --j) {
+                            final Line otherBorder = node.borders.get((j + size) % size);
+                            if (!otherBorder.water) {
+                                break;
+                            }
+                            if (otherBorder == source) {
+                                reachable = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!reachable) {
+                        continue;
+                    }
+                }
+                for (Node neighbor : border.nodes) {
+                    if (neighbor == node) continue;
+                    boolean heavensUsed = w.heavensUsed;
+                    if (neighbor.commodity == null && neighbor.size == 0) {
+                        if (!useHeavens || w.heavensUsed) continue;
+                        heavensUsed = true;
+                    }
+                    if (!borderDistances.containsKey(border) && (!heavensUsed || !borderDistancesWithHeavens.containsKey(border))) {
+                        final Map<Line, Integer> map = heavensUsed ? borderDistancesWithHeavens : borderDistances;
+                        map.put(border, distance + 1);
+                        if (range > distance) {
+                            work.add(new Work(neighbor, distance + 1, useShips ? border : null, heavensUsed));
+                            result.add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public void draw(Graphics g) {
