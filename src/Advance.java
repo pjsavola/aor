@@ -1,6 +1,5 @@
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Advance {
@@ -52,16 +51,14 @@ public class Advance {
         this.prerequisites = prerequisites;
     }
 
-    public void research(Player player) {
+    public int getCost(Game game, Player player) {
         final Set<Advance> advances = new HashSet<>(player.getAdvances());
-        if (advances.contains(this)) return;
-        if (!advances.containsAll(prerequisites)) return;
+        if (advances.contains(this)) return Integer.MAX_VALUE;
+        if (!advances.containsAll(prerequisites)) return Integer.MAX_VALUE;
 
         int cost = this.cost;
         if (advances.contains(institutionalResearch) && category != Category.CIVICS && category != Category.RELIGION) cost -= 10;
-        cost -= advances.stream().filter(a -> a.category == category).map(a -> a.credits).mapToInt(Integer::intValue).sum();
-        if (cost < 0) cost = 0;
-        player.research(this, cost);
-        if (this == humanBody || this == improvedAgriculture) player.miseryRelief(1);
+        cost -= Math.min(cost, advances.stream().filter(a -> a.category == category).map(a -> a.credits).mapToInt(Integer::intValue).sum());
+        return cost;
     }
 }

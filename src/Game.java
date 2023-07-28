@@ -1,13 +1,14 @@
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 public class Game {
+
+    final List<LeaderCard> patronageQueue = new ArrayList<>();
 
     private final Deque<Card> phase1 = new ArrayDeque<>();
     private final Deque<Card> phase2 = new ArrayDeque<>();
     private final Deque<Card> phase3 = new ArrayDeque<>();
+
+    private final Set<Card> removedCards = new HashSet<>();
 
     public Game() {
         phase1.add(new CommodityCard(Commodity.STONE));
@@ -109,4 +110,21 @@ public class Game {
         return false;
     }
 
+    public LeaderCard getBestLeaderCard(Advance advance, Player player) {
+        int maxDiscount = 0;
+        LeaderCard bestCard = null;
+        for (LeaderCard card : patronageQueue) {
+            for (Advance discount : card.advances) {
+                if (advance == discount) {
+                    if (card.amount > maxDiscount) {
+                        if (card.canUse(player)) {
+                            maxDiscount = card.amount;
+                            bestCard = card;
+                        }
+                    }
+                }
+            }
+        }
+        return bestCard;
+    }
 }

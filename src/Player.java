@@ -2,6 +2,7 @@ import java.util.*;
 
 public class Player {
 
+    private final Game game = null;
     private static final int maxTokenCount = 36;
     private int cash;
     private int misery;
@@ -25,10 +26,20 @@ public class Player {
         return advances;
     }
 
-    public void research(Advance advance, int cost) {
-        if (cash >= cost) {
+    public void research(Advance advance) {
+        final int cost = advance.getCost(game, this);
+        final LeaderCard card = game.getBestLeaderCard(advance, this);
+        final int discount = card == null ? 0 : card.amount;
+        final int finalCost = Math.max(0, cost - discount);
+        if (cash >= finalCost) {
+            if (cost > 0 && discount > 0) {
+                card.use(this);
+            }
             newAdvances.add(advance);
-            cash -= cost;
+            cash -= finalCost;
+            if (advance == Advance.humanBody || advance == Advance.improvedAgriculture) {
+                miseryRelief(1);
+            }
         }
     }
 
