@@ -311,7 +311,7 @@ public class MapEditor extends JPanel {
         }
         if (selected != null) {
             selected.draw(g);
-            final Set<Node> reachable = selected.getReachableNodes(4, true, true);
+            final Set<Node> reachable = selected.getReachableNodes(2, false, false);
             for (Node node : reachable) {
                 node.draw(g);
             }
