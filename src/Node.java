@@ -1,11 +1,9 @@
 import java.awt.*;
-import java.sql.Array;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Node {
-    public enum Commodity { STONE, WOOL, TIMBER, GRAIN, CLOTH, WINE, METAL, FUR, SILK, SPICE, GOLD, IVORY };
+    ;
     public enum CityState { VENICE, GENOA, BARCELONA, PARIS, LONDON, HAMBURG };
 
     private List<Line> borders;

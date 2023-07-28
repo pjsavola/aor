@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -146,9 +145,9 @@ public class MapEditor extends JPanel {
                                     final JTextField sizeField = new JTextField();
                                     panel.add(sizeField);
                                     panel.add(new JLabel("Commodity"));
-                                    final Node.Commodity[] commodityChoices = new Node.Commodity[Node.Commodity.values().length + 1];
-                                    System.arraycopy(Node.Commodity.values(), 0, commodityChoices, 1, Node.Commodity.values().length);
-                                    final JComboBox<Node.Commodity> commoditySelector = new JComboBox<>(commodityChoices);
+                                    final Commodity[] commodityChoices = new Commodity[Commodity.values().length + 1];
+                                    System.arraycopy(Commodity.values(), 0, commodityChoices, 1, Commodity.values().length);
+                                    final JComboBox<Commodity> commoditySelector = new JComboBox<>(commodityChoices);
                                     panel.add(commoditySelector);
                                     panel.add(new JLabel("Capital"));
                                     final Node.CityState[] capitalChoices = new Node.CityState[Node.CityState.values().length + 1];
@@ -166,7 +165,7 @@ public class MapEditor extends JPanel {
                                         final String name = nameField.getText();
                                         final String size = sizeField.getText();
                                         final String region = regionField.getText();
-                                        final Node.Commodity commodity = (Node.Commodity) commoditySelector.getSelectedItem();
+                                        final Commodity commodity = (Commodity) commoditySelector.getSelectedItem();
                                         final Node.CityState capital = (Node.CityState) capitalSelector.getSelectedItem();
                                         node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), commodity, capital, region.isEmpty() ? 0 : Integer.parseInt(region));
                                         nodes.add(node);

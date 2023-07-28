@@ -1,17 +1,24 @@
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Player {
 
-    private int tokens = 36;
-    private int money;
+    private static final int maxTokenCount = 36;
+    private int cash;
     private int misery;
     private List<Advance> advances = new ArrayList<>();
     private List<Advance> newAdvances = new ArrayList<>();
 
+    private List<Node> cities = new ArrayList<>();
+    private List<Node> newCities = new ArrayList<>();
+
+    private Map<Node, Integer> tokens = new HashMap<>();
+    private Map<Node, Integer> newTokens = new HashMap<>();
+
     public int getIncome(int playerCount, int cityCount) {
-        return 15 + Math.min(25, cityCount) * playerCount;
+        final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
+        final int income = baseIncome + Math.min(25, cityCount) * playerCount;
+        final int interest = advances.contains(Advance.interestAndProfit) ? Math.min(cash, income) : 0;
+        return income + interest;
     }
 
     public List<Advance> getAdvances() {
@@ -19,9 +26,9 @@ public class Player {
     }
 
     public void research(Advance advance, int cost) {
-        if (money >= cost) {
+        if (cash >= cost) {
             newAdvances.add(advance);
-            money -= cost;
+            cash -= cost;
         }
     }
 
@@ -41,9 +48,9 @@ public class Player {
     }
 
     private int getSetCount() {
-        final int civics = (int) advances.stream().map(Advance::getCategory).filter(c -> c.equals("Civics")).count();
-        final int commerce = (int) advances.stream().map(Advance::getCategory).filter(c -> c.equals("Commerce")).count();
-        final int communications = (int) advances.stream().map(Advance::getCategory).filter(c -> c.equals("Communications")).count();
+        final int civics = (int) advances.stream().filter(a -> a.category == Advance.Category.CIVICS).count();
+        final int commerce = (int) advances.stream().filter(a -> a.category == Advance.Category.COMMERCE).count();
+        final int communications = (int) advances.stream().filter(a -> a.category == Advance.Category.COMMUNICATION).count();
         return Math.min(Math.min(civics, commerce), communications);
     }
 }
