@@ -1,17 +1,25 @@
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Game {
+    public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
 
-    private final Deque<Card> epoch1 = new ArrayDeque<>();
-    private final Deque<Card> epoch2 = new ArrayDeque<>();
-    private final Deque<Card> epoch3 = new ArrayDeque<>();
-    private Deque<Card> deck = epoch1;
+    private Phase phase;
+    private final List<Card> sideCards = new ArrayList<>();
+    private final List<Card> epoch1 = new ArrayList<>();
+    private final List<Card> epoch2 = new ArrayList<>();
+    private final List<Card> epoch3 = new ArrayList<>();
+    private List<Card> deck = epoch1;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
     final Set<Card> unplayableCards = new HashSet<>();
     private final List<Commodity> shortages = new ArrayList<>();
     private final List<Commodity> surpluses = new ArrayList<>();
     final List<Player> players = new ArrayList<>();
+    private Player current;
+    private final Random r = new Random();
 
     public Game() {
         final WeaponCard stirrups = new WeaponCard("Stirrups", 1);
@@ -45,13 +53,13 @@ public class Game {
         epoch1.add(new EventCard(EventCard.Type.REBELLION));
         epoch1.add(new EventCard(EventCard.Type.REVOLUTIONARY_UPRISINGS));
         epoch1.add(new EventCard(EventCard.Type.WAR));
-        // Shuffle
+        Collections.shuffle(epoch1, r);
 
-        epoch1.add(theCrusades);
-        epoch1.add(walterThePenniless);
-        epoch1.add(rashidAdDin);
-        epoch1.add(new CommodityCard(Commodity.SILK));
-        epoch1.add(new CommodityCard(Commodity.SPICE));
+        sideCards.add(theCrusades);
+        sideCards.add(walterThePenniless);
+        sideCards.add(rashidAdDin);
+        sideCards.add(new CommodityCard(Commodity.SILK));
+        sideCards.add(new CommodityCard(Commodity.SPICE));
 
         final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(theCrusades);
         epoch2.add(mongolArmies);
@@ -89,10 +97,48 @@ public class Game {
         epoch3.add(new LeaderCard("Henry Oldenburg", 30, Advance.enlightenment));
         epoch3.add(new LeaderCard("Leonardo da Vinci", 20, Advance.masterArt, Advance.humanBody, Advance.renaissance));
         epoch3.add(new LeaderCard("Sir Isaac Newton", 20, Advance.lawsOfMatter, Advance.enlightenment));
+
+        players.add(new Player(this));
+        phase = Phase.DRAFT;
     }
 
-    public enum Phase { ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD }
+    private static class FutureOrDefault<T> {
+        private final CompletableFuture<T> result;
+        private final T def;
+        private FutureOrDefault(CompletableFuture<T> result, T def) {
+            this.result = result;
+            this.def = def;
+        }
+    }
 
+    public void run() {
+        while (phase != Phase.END) {
+            switch (phase) {
+                case DRAFT -> {
+                    final List<FutureOrDefault<Card>> discards = new ArrayList<>();
+                    for (Player player : players) {
+                        final Card c1 = drawCard();
+                        final Card c2 = drawCard();
+                        final Card c3 = drawCard();
+                        discards.add(new FutureOrDefault<>(player.getInput(() -> player.discardOne(c1, c2, c3)), c3));
+                    }
+                    if (players.size() <= 4) {
+                        deck.addAll(sideCards);
+                        sideCards.clear();
+                    }
+                    discards.stream().map(d -> {
+                        try {
+                            return d.result.get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                            return d.def;
+                        }
+                    }).forEach(deck::add);
+                    Collections.shuffle(deck, r);
+                }
+            }
+        }
+    }
     public int getCommodityCount(Commodity commodity, Player player) {
         return 0;
     }
@@ -100,11 +146,12 @@ public class Game {
     public Card drawCard() {
         Card card = null;
         if (!deck.isEmpty()) {
-            card = deck.removeFirst();
+            card = deck.remove(deck.size() - 1);
         }
         if (deck.isEmpty()) {
             if (deck == epoch1) deck = epoch2;
             else if (deck == epoch2) deck = epoch3;
+            Collections.shuffle(deck, r);
         }
         return card;
     }

@@ -1,19 +1,37 @@
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class Player {
 
-    private final Game game = null;
+    public static final int[] miserySteps = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000 };
+    private final Game game;
     private static final int maxTokenCount = 36;
-    private int cash;
+    private int cash = 40;
     private int misery;
     private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
+    private List<Card> cards = new ArrayList<>();
 
     List<Node> cities = new ArrayList<>();
     private List<Node> newCities = new ArrayList<>();
 
     private Map<Node, Integer> tokens = new HashMap<>();
     private Map<Node, Integer> newTokens = new HashMap<>();
+
+    public Player(Game game) {
+        this.game = game;
+    }
+
+    public <T> CompletableFuture<T> getInput(Supplier<T> supplier) {
+        return CompletableFuture.supplyAsync(supplier);
+    }
+
+    public Card discardOne(Card c1, Card c2, Card c3) {
+        cards.add(c2);
+        cards.add(c3);
+        return c1;
+    }
 
     public int getIncome(int playerCount, int cityCount) {
         final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
@@ -71,6 +89,9 @@ public class Player {
 
     public void adjustMisery(int delta) {
         misery = Math.max(0, misery + delta);
+        if (misery >= miserySteps.length) {
+            // Player drops to chaos...
+        }
     }
 
     private int getSetCount() {
