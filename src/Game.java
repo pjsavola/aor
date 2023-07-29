@@ -8,6 +8,8 @@ public class Game {
     private Deque<Card> deck = epoch1;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
+    private final List<Commodity> shortages = new ArrayList<>();
+    private final List<Commodity> surpluses = new ArrayList<>();
 
     public Game() {
         final WeaponCard stirrups = new WeaponCard("Stirrups", 1);
@@ -105,20 +107,12 @@ public class Game {
     public void commodityPlayed(Commodity commodity) {
         for (Player player : players) {
             int count = getCommodityCount(commodity, player);
-            if (hasSurplus(commodity)) --count;
-            if (hasShortage(commodity)) ++count;
+            if (shortages.remove(commodity)) ++count;
+            if (surpluses.remove(commodity)) --count;
             if (count > 0) {
                 final int value = count * count * commodity.getValue();
             }
         }
-    }
-
-    public boolean hasShortage(Commodity commodity) {
-        return false;
-    }
-
-    public boolean hasSurplus(Commodity commodity) {
-        return false;
     }
 
     public LeaderCard getBestLeaderCard(Advance advance, Player player) {
@@ -127,7 +121,7 @@ public class Game {
         for (LeaderCard card : patronageQueue) {
             for (Advance discount : card.advances) {
                 if (advance == discount) {
-                    final int amount = card.condition != null && playedCards.contains(card.condition) ? card.boostedAmount : card.amount;
+                    final int amount = card.getAmount(this);
                     if (amount > maxDiscount) {
                         if (card.canUse(player)) {
                             maxDiscount = amount;

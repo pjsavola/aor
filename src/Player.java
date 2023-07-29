@@ -6,7 +6,7 @@ public class Player {
     private static final int maxTokenCount = 36;
     private int cash;
     private int misery;
-    private List<Advance> advances = new ArrayList<>();
+    private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
 
     private List<Node> cities = new ArrayList<>();
@@ -22,7 +22,7 @@ public class Player {
         return income + interest;
     }
 
-    public List<Advance> getAdvances() {
+    public Set<Advance> getAdvances() {
         return advances;
     }
 
@@ -51,6 +51,17 @@ public class Player {
         while (newSetCount > setCount) {
             miseryRelief(setCount);
             ++setCount;
+        }
+    }
+
+    public void gainRebate(LeaderCard card) {
+        if (advances.contains(Advance.printedWord)) {
+            for (Advance advance : card.advances) {
+                if (advances.contains(advance)) {
+                    cash += card.getAmount(game);
+                    break;
+                }
+            }
         }
     }
 

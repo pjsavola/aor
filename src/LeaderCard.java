@@ -22,6 +22,10 @@ public class LeaderCard extends Card {
         this.advances = advances;
     }
 
+    public int getAmount(Game game) {
+        return condition != null && game.playedCards.contains(condition) ? boostedAmount : amount;
+    }
+
     public boolean canUse(Player player) {
         return owner == player || (usesRemaining > 0 && player.getAdvances().contains(Advance.patronage));
     }
@@ -35,6 +39,7 @@ public class LeaderCard extends Card {
     @Override
     public void play(Game game, Player player) {
         super.play(game, player);
+        player.gainRebate(this);
         owner = player;
         usesRemaining = game.patronageQueue.size();
         game.patronageQueue.add(this);

@@ -52,7 +52,7 @@ public class Advance {
     }
 
     public int getCost(Game game, Player player) {
-        final Set<Advance> advances = new HashSet<>(player.getAdvances());
+        final Set<Advance> advances = player.getAdvances();
         if (advances.contains(this)) return Integer.MAX_VALUE;
         if (!advances.containsAll(prerequisites)) return Integer.MAX_VALUE;
 
