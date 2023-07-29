@@ -57,6 +57,10 @@ public class Node {
         return name;
     }
 
+    public Commodity getCommodity() {
+        return commodity;
+    }
+
     public boolean needsRemoval(Line line) {
         for (Line border : borders) {
             if (border == line) return true;

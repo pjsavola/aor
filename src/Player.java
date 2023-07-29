@@ -9,7 +9,7 @@ public class Player {
     private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
 
-    private List<Node> cities = new ArrayList<>();
+    List<Node> cities = new ArrayList<>();
     private List<Node> newCities = new ArrayList<>();
 
     private Map<Node, Integer> tokens = new HashMap<>();
