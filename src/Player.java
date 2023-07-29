@@ -13,6 +13,7 @@ public class Player {
     private List<Advance> newAdvances = new ArrayList<>();
     private List<Card> cards = new ArrayList<>();
 
+    private Node.CityState capital;
     List<Node> cities = new ArrayList<>();
     private List<Node> newCities = new ArrayList<>();
 
@@ -31,6 +32,15 @@ public class Player {
         cards.add(c2);
         cards.add(c3);
         return c1;
+    }
+
+    public int bidForCapital() {
+        return 0;
+    }
+
+    public Node.CityState selectCapital() {
+        capital = Node.CityState.VENICE;
+        return Node.CityState.VENICE;
     }
 
     public int getIncome(int playerCount, int cityCount) {

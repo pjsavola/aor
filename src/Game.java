@@ -11,7 +11,7 @@ public class Game {
     private final List<Card> epoch1 = new ArrayList<>();
     private final List<Card> epoch2 = new ArrayList<>();
     private final List<Card> epoch3 = new ArrayList<>();
-    private List<Card> deck = epoch1;
+    private List<Card> deck;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
     final Set<Card> unplayableCards = new HashSet<>();
@@ -53,7 +53,6 @@ public class Game {
         epoch1.add(new EventCard(EventCard.Type.REBELLION));
         epoch1.add(new EventCard(EventCard.Type.REVOLUTIONARY_UPRISINGS));
         epoch1.add(new EventCard(EventCard.Type.WAR));
-        Collections.shuffle(epoch1, r);
 
         sideCards.add(theCrusades);
         sideCards.add(walterThePenniless);
@@ -109,32 +108,63 @@ public class Game {
             this.result = result;
             this.def = def;
         }
+
+        private T getResult() {
+            try {
+                return result.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                return def;
+            }
+        }
     }
 
     public void run() {
         while (phase != Phase.END) {
             switch (phase) {
                 case DRAFT -> {
-                    final List<FutureOrDefault<Card>> discards = new ArrayList<>();
+                    deck = epoch1;
+                    Collections.shuffle(deck, r);
+                    final List<FutureOrDefault<Card>> asyncDiscards = new ArrayList<>();
                     for (Player player : players) {
                         final Card c1 = drawCard();
                         final Card c2 = drawCard();
                         final Card c3 = drawCard();
-                        discards.add(new FutureOrDefault<>(player.getInput(() -> player.discardOne(c1, c2, c3)), c3));
+                        asyncDiscards.add(new FutureOrDefault<>(player.getInput(() -> player.discardOne(c1, c2, c3)), c3));
                     }
                     if (players.size() <= 4) {
                         deck.addAll(sideCards);
                         sideCards.clear();
                     }
-                    discards.stream().map(d -> {
-                        try {
-                            return d.result.get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            e.printStackTrace();
-                            return d.def;
-                        }
-                    }).forEach(deck::add);
+                    asyncDiscards.stream().map(FutureOrDefault::getResult).forEach(deck::add);
                     Collections.shuffle(deck, r);
+                    // TODO: Update game state
+                }
+                case SELECT_CAPITAL -> {
+                    final List<Player> selectionOrder = new ArrayList<>(players);
+                    Collections.shuffle(selectionOrder);
+                    final List<FutureOrDefault<Integer>> asyncBids = new ArrayList<>();
+                    for (Player player : selectionOrder) {
+                        asyncBids.add(new FutureOrDefault<>(player.getInput(player::bidForCapital), 0));
+                    }
+                    final List<Integer> bids = new ArrayList<>(selectionOrder.size());
+                    asyncBids.stream().map(FutureOrDefault::getResult).forEach(bids::add);
+                    players.clear();
+                    while (!selectionOrder.isEmpty()) {
+                        int highestBid = -1;
+                        int index = -1;
+                        for (int i = 0; i < bids.size(); ++i) {
+                            if (bids.get(i) > highestBid) {
+                                highestBid = bids.get(i);
+                                index = i;
+                            }
+                        }
+                        bids.remove(index);
+                        final Player player = selectionOrder.remove(index);
+                        players.add(player);
+                        new FutureOrDefault<>(player.getInput(player::selectCapital), Node.CityState.VENICE).getResult();
+                        // TODO: Update game state
+                    }
                 }
             }
         }
