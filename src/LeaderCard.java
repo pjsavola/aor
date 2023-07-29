@@ -4,7 +4,7 @@ public class LeaderCard extends Card {
 
     final int amount;
     final Card condition;
-    final int extra;
+    final int boostedAmount;
     final Advance[] advances;
 
     private Player owner;
@@ -14,11 +14,11 @@ public class LeaderCard extends Card {
         this(name, amount, null, 0, advances);
     }
 
-    public LeaderCard(String name, int amount, Card condition, int extra, Advance ... advances) {
-        super(name);
+    public LeaderCard(String name, int amount, Card condition, int boostedAmount, Advance ... advances) {
+        super(name, true);
         this.amount = amount;
         this.condition = condition;
-        this.extra = extra;
+        this.boostedAmount = boostedAmount;
         this.advances = advances;
     }
 
@@ -34,6 +34,7 @@ public class LeaderCard extends Card {
 
     @Override
     public void play(Game game, Player player) {
+        super.play(game, player);
         owner = player;
         usesRemaining = game.patronageQueue.size();
         game.patronageQueue.add(this);

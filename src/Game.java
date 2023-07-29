@@ -2,85 +2,85 @@ import java.util.*;
 
 public class Game {
 
+    private final Deque<Card> epoch1 = new ArrayDeque<>();
+    private final Deque<Card> epoch2 = new ArrayDeque<>();
+    private final Deque<Card> epoch3 = new ArrayDeque<>();
+    private Deque<Card> deck = epoch1;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
-
-    private final Deque<Card> phase1 = new ArrayDeque<>();
-    private final Deque<Card> phase2 = new ArrayDeque<>();
-    private final Deque<Card> phase3 = new ArrayDeque<>();
-
-    private final Set<Card> removedCards = new HashSet<>();
+    final Set<Card> playedCards = new HashSet<>();
 
     public Game() {
-        phase1.add(new CommodityCard(Commodity.STONE));
-        phase1.add(new CommodityCard(Commodity.STONE));
-        phase1.add(new CommodityCard(Commodity.WOOL));
-        phase1.add(new CommodityCard(Commodity.WOOL));
-        phase1.add(new CommodityCard(Commodity.TIMBER));
-        phase1.add(new CommodityCard(Commodity.TIMBER));
-        phase1.add(new DoubleCommodityCard(Commodity.CLOTH, Commodity.WINE));
-        phase1.add(new CommodityCard(Commodity.METAL));
-        phase1.add(new CommodityCard(Commodity.FUR));
-        phase1.add(new CommodityCard(Commodity.SILK));
-        phase1.add(new CommodityCard(Commodity.SPICE));
-        phase1.add(new DoubleCommodityCard(Commodity.GOLD, Commodity.IVORY));
-        phase1.add(new LeaderCard("Charlemagne", 20, Advance.nationalism));
-        phase1.add(new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord));
-        phase1.add(new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast));
-        phase1.add(new LeaderCard("St. Benedict", 10, Advance.writtenRecord, Advance.patronage));
-        phase1.add(new LeaderCard("Walter the Penniless", 20, null, 10, Advance.overlandEast));
-        phase1.add(new Card("Alchemist's Gold"));
-        phase1.add(new Card("Civil War"));
-        phase1.add(new Card("Enlightened Ruler"));
-        phase1.add(new Card("Famine"));
-        phase1.add(new Card("Mysticism Abounds"));
-        phase1.add(new Card("Pirates / Vikings"));
-        phase1.add(new Card("Rebellion"));
-        phase1.add(new Card("Revolutionary Uprisings"));
-        phase1.add(new Card("War"));
         final WeaponCard stirrups = new WeaponCard("Stirrups", 1);
         final WeaponCard armor = new WeaponCard("Armor", 2);
-        final Card papalDecree = new Card("Papal Decree");
-        final Card theCrusades = new Card("The Crusades");
-        phase1.add(stirrups);
-        phase1.add(armor);
-        phase1.add(papalDecree);
-        phase1.add(theCrusades);
+        final Card papalDecree = new Card("Papal Decree", false);
+        final Card theCrusades = new Card("The Crusades", false);
+        epoch1.add(stirrups);
+        epoch1.add(armor);
+        epoch1.add(papalDecree);
+        epoch1.add(theCrusades);
+        epoch1.add(new CommodityCard(Commodity.STONE));
+        epoch1.add(new CommodityCard(Commodity.STONE));
+        epoch1.add(new CommodityCard(Commodity.WOOL));
+        epoch1.add(new CommodityCard(Commodity.WOOL));
+        epoch1.add(new CommodityCard(Commodity.TIMBER));
+        epoch1.add(new CommodityCard(Commodity.TIMBER));
+        epoch1.add(new DoubleCommodityCard(Commodity.CLOTH, Commodity.WINE));
+        epoch1.add(new CommodityCard(Commodity.METAL));
+        epoch1.add(new CommodityCard(Commodity.FUR));
+        epoch1.add(new CommodityCard(Commodity.SILK));
+        epoch1.add(new CommodityCard(Commodity.SPICE));
+        epoch1.add(new DoubleCommodityCard(Commodity.GOLD, Commodity.IVORY));
+        epoch1.add(new LeaderCard("Charlemagne", 20, Advance.nationalism));
+        epoch1.add(new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord));
+        epoch1.add(new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast));
+        epoch1.add(new LeaderCard("St. Benedict", 10, Advance.writtenRecord, Advance.patronage));
+        epoch1.add(new LeaderCard("Walter the Penniless", 20, theCrusades, 10, Advance.overlandEast));
+        epoch1.add(new Card("Alchemist's Gold", false));
+        epoch1.add(new Card("Civil War", false));
+        epoch1.add(new Card("Enlightened Ruler", false));
+        epoch1.add(new Card("Famine", false));
+        epoch1.add(new Card("Mysticism Abounds", false));
+        epoch1.add(new Card("Pirates / Vikings", false));
+        epoch1.add(new Card("Rebellion", false));
+        epoch1.add(new Card("Revolutionary Uprisings", false));
+        epoch1.add(new Card("War", false));
 
-        phase2.add(new CommodityCard(Commodity.TIMBER));
-        phase2.add(new CommodityCard(Commodity.GRAIN));
-        phase2.add(new CommodityCard(Commodity.GRAIN));
-        phase2.add(new CommodityCard(Commodity.CLOTH));
-        phase2.add(new CommodityCard(Commodity.WINE));
-        phase2.add(new CommodityCard(Commodity.METAL));
-        phase2.add(new CommodityCard(Commodity.SILK));
-        phase2.add(new CommodityCard(Commodity.SPICE));
-        phase2.add(new LeaderCard("Christopher Columbus", 30, Advance.oceanNavigation, Advance.newWorld));
-        phase2.add(new LeaderCard("Desiderius Erasmus", 20, Advance.printedWord, Advance.renaissance));
-        phase2.add(new LeaderCard("Ibn Majid", 20, Advance.oceanNavigation, Advance.cosmopolitan));
-        phase2.add(new LeaderCard("Johann Gutenberg", 30, Advance.printedWord));
-        phase2.add(new LeaderCard("Marco Polo", 20, null, 20, Advance.overlandEast, Advance.cosmopolitan));
-        phase2.add(new LeaderCard("Nicolaus Copernicus", 20, Advance.heavens, Advance.institutionalResearch));
-        phase2.add(new LeaderCard("Prince Henry", 20, Advance.oceanNavigation, Advance.institutionalResearch));
-        phase2.add(new LeaderCard("William Caxton", 20, Advance.printedWord));
-        phase2.add(new WeaponCard("Long Bow", 3).invalidates(stirrups, armor));
-        phase2.add(new WeaponCard("Gunpowder", 4).invalidates(stirrups, armor));
-        phase2.add(new Card("Black Death"));
-        phase2.add(new Card("Mongol Armies").invalidates(theCrusades));
-        phase2.add(new Card("Religious Strife").invalidates(papalDecree));
+        final Card mongolArmies = new Card("Mongol Armies", true).invalidates(theCrusades);
+        epoch2.add(mongolArmies);
+        epoch2.add(new CommodityCard(Commodity.TIMBER));
+        epoch2.add(new CommodityCard(Commodity.GRAIN));
+        epoch2.add(new CommodityCard(Commodity.GRAIN));
+        epoch2.add(new CommodityCard(Commodity.CLOTH));
+        epoch2.add(new CommodityCard(Commodity.WINE));
+        epoch2.add(new CommodityCard(Commodity.METAL));
+        epoch2.add(new CommodityCard(Commodity.SILK));
+        epoch2.add(new CommodityCard(Commodity.SPICE));
+        epoch2.add(new LeaderCard("Christopher Columbus", 30, Advance.oceanNavigation, Advance.newWorld));
+        epoch2.add(new LeaderCard("Desiderius Erasmus", 20, Advance.printedWord, Advance.renaissance));
+        epoch2.add(new LeaderCard("Ibn Majid", 20, Advance.oceanNavigation, Advance.cosmopolitan));
+        epoch2.add(new LeaderCard("Johann Gutenberg", 30, Advance.printedWord));
+        epoch2.add(new LeaderCard("Marco Polo", 20, mongolArmies, 20, Advance.overlandEast, Advance.cosmopolitan));
+        epoch2.add(new LeaderCard("Nicolaus Copernicus", 20, Advance.heavens, Advance.institutionalResearch));
+        epoch2.add(new LeaderCard("Prince Henry", 20, Advance.oceanNavigation, Advance.institutionalResearch));
+        epoch2.add(new LeaderCard("William Caxton", 20, Advance.printedWord));
+        epoch2.add(new WeaponCard("Long Bow", 3).invalidates(stirrups, armor));
+        epoch2.add(new WeaponCard("Gunpowder", 4).invalidates(stirrups, armor));
+        epoch2.add(new Card("Black Death", false));
+        epoch2.add(new Card("Religious Strife", false).invalidates(papalDecree));
 
-        phase3.add(new CommodityCard(Commodity.CLOTH));
-        phase3.add(new CommodityCard(Commodity.WINE));
-        phase3.add(new CommodityCard(Commodity.METAL));
-        phase3.add(new CommodityCard(Commodity.FUR));
-        phase3.add(new CommodityCard(Commodity.SILK));
-        phase3.add(new CommodityCard(Commodity.SPICE));
-        phase3.add(new CommodityCard(Commodity.GOLD));
-        phase3.add(new LeaderCard("Andreas Vesalius", 20, Advance.humanBody, Advance.enlightenment));
-        phase3.add(new LeaderCard("Bartolome de Las Casas", 30, Advance.cosmopolitan));
-        phase3.add(new LeaderCard("Galileo Galilei", 20, Advance.heavens, Advance.renaissance));
-        phase3.add(new LeaderCard("Henry Oldenburg", 30, Advance.enlightenment));
-        phase3.add(new LeaderCard("Leonardo da Vinci", 20, Advance.masterArt, Advance.humanBody, Advance.renaissance));
-        phase3.add(new LeaderCard("Sir Isaac Newton", 20, Advance.lawsOfMatter, Advance.enlightenment));
+        epoch3.add(new CommodityCard(Commodity.CLOTH));
+        epoch3.add(new CommodityCard(Commodity.WINE));
+        epoch3.add(new CommodityCard(Commodity.METAL));
+        epoch3.add(new CommodityCard(Commodity.FUR));
+        epoch3.add(new CommodityCard(Commodity.SILK));
+        epoch3.add(new CommodityCard(Commodity.SPICE));
+        epoch3.add(new CommodityCard(Commodity.GOLD));
+        epoch3.add(new LeaderCard("Andreas Vesalius", 20, Advance.humanBody, Advance.enlightenment));
+        epoch3.add(new LeaderCard("Bartolome de Las Casas", 30, Advance.cosmopolitan));
+        epoch3.add(new LeaderCard("Galileo Galilei", 20, Advance.heavens, Advance.renaissance));
+        epoch3.add(new LeaderCard("Henry Oldenburg", 30, Advance.enlightenment));
+        epoch3.add(new LeaderCard("Leonardo da Vinci", 20, Advance.masterArt, Advance.humanBody, Advance.renaissance));
+        epoch3.add(new LeaderCard("Sir Isaac Newton", 20, Advance.lawsOfMatter, Advance.enlightenment));
     }
 
     private final List<Player> players = new ArrayList<>();
@@ -89,6 +89,17 @@ public class Game {
 
     public int getCommodityCount(Commodity commodity, Player player) {
         return 0;
+    }
+
+    public void endPurchasePhase() {
+        patronageQueue.clear();
+        for (Card card : playedCards) {
+            if (!card.singleUse) {
+                if (deck == epoch1) epoch2.add(card);
+                if (deck == epoch2) epoch3.add(card);
+            }
+        }
+        playedCards.clear();
     }
 
     public void commodityPlayed(Commodity commodity) {
@@ -116,9 +127,10 @@ public class Game {
         for (LeaderCard card : patronageQueue) {
             for (Advance discount : card.advances) {
                 if (advance == discount) {
-                    if (card.amount > maxDiscount) {
+                    final int amount = card.condition != null && playedCards.contains(card.condition) ? card.boostedAmount : card.amount;
+                    if (amount > maxDiscount) {
                         if (card.canUse(player)) {
-                            maxDiscount = card.amount;
+                            maxDiscount = amount;
                             bestCard = card;
                         }
                     }
