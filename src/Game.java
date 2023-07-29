@@ -16,10 +16,11 @@ public class Game {
         final WeaponCard armor = new WeaponCard("Armor", 2);
         final Card papalDecree = new Card("Papal Decree", false);
         final Card theCrusades = new Card("The Crusades", false);
+        final Card rashidAdDin = new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast);
+        final Card walterThePenniless = new LeaderCard("Walter the Penniless", 20, theCrusades, 10, Advance.overlandEast);
         epoch1.add(stirrups);
         epoch1.add(armor);
         epoch1.add(papalDecree);
-        epoch1.add(theCrusades);
         epoch1.add(new CommodityCard(Commodity.STONE));
         epoch1.add(new CommodityCard(Commodity.STONE));
         epoch1.add(new CommodityCard(Commodity.WOOL));
@@ -29,14 +30,10 @@ public class Game {
         epoch1.add(new DoubleCommodityCard(Commodity.CLOTH, Commodity.WINE));
         epoch1.add(new CommodityCard(Commodity.METAL));
         epoch1.add(new CommodityCard(Commodity.FUR));
-        epoch1.add(new CommodityCard(Commodity.SILK));
-        epoch1.add(new CommodityCard(Commodity.SPICE));
         epoch1.add(new DoubleCommodityCard(Commodity.GOLD, Commodity.IVORY));
         epoch1.add(new LeaderCard("Charlemagne", 20, Advance.nationalism));
         epoch1.add(new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord));
-        epoch1.add(new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast));
         epoch1.add(new LeaderCard("St. Benedict", 10, Advance.writtenRecord, Advance.patronage));
-        epoch1.add(new LeaderCard("Walter the Penniless", 20, theCrusades, 10, Advance.overlandEast));
         epoch1.add(new Card("Alchemist's Gold", false));
         epoch1.add(new Card("Civil War", false));
         epoch1.add(new Card("Enlightened Ruler", false));
@@ -46,6 +43,13 @@ public class Game {
         epoch1.add(new Card("Rebellion", false));
         epoch1.add(new Card("Revolutionary Uprisings", false));
         epoch1.add(new Card("War", false));
+        // Shuffle
+
+        epoch1.add(theCrusades);
+        epoch1.add(walterThePenniless);
+        epoch1.add(rashidAdDin);
+        epoch1.add(new CommodityCard(Commodity.SILK));
+        epoch1.add(new CommodityCard(Commodity.SPICE));
 
         final Card mongolArmies = new Card("Mongol Armies", true).invalidates(theCrusades);
         epoch2.add(mongolArmies);
@@ -92,8 +96,23 @@ public class Game {
     public int getCommodityCount(Commodity commodity, Player player) {
         return 0;
     }
+    
+    public Card drawCard() {
+        Card card = null;
+        if (!deck.isEmpty()) {
+            card = deck.removeFirst();
+        }
+        if (deck.isEmpty()) {
+            if (deck == epoch1) deck = epoch2;
+            else if (deck == epoch2) deck = epoch3;
+        }
+        return card;
+    }
 
-    public void endPurchasePhase() {
+    public void purchasePhaseFinished() {
+        for (Player player : players) {
+            player.purchasePhaseFinished();
+        }
         patronageQueue.clear();
         for (Card card : playedCards) {
             if (!card.singleUse) {
