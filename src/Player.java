@@ -38,7 +38,7 @@ public class Player {
             newAdvances.add(advance);
             cash -= finalCost;
             if (advance == Advance.humanBody || advance == Advance.improvedAgriculture) {
-                miseryRelief(1);
+                adjustMisery(-1);
             }
         }
     }
@@ -49,7 +49,7 @@ public class Player {
         newAdvances.clear();
         final int newSetCount = getSetCount();
         while (newSetCount > setCount) {
-            miseryRelief(setCount);
+            adjustMisery(-setCount);
             ++setCount;
         }
     }
@@ -65,8 +65,12 @@ public class Player {
         }
     }
 
-    public void miseryRelief(int amount) {
-        misery = Math.max(0, misery - amount);
+    public void adjustCash(int delta) {
+        cash += delta;
+    }
+
+    public void adjustMisery(int delta) {
+        misery = Math.max(0, misery + delta);
     }
 
     private int getSetCount() {

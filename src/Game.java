@@ -8,14 +8,16 @@ public class Game {
     private Deque<Card> deck = epoch1;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
+    final Set<Card> unplayableCards = new HashSet<>();
     private final List<Commodity> shortages = new ArrayList<>();
     private final List<Commodity> surpluses = new ArrayList<>();
+    final List<Player> players = new ArrayList<>();
 
     public Game() {
         final WeaponCard stirrups = new WeaponCard("Stirrups", 1);
         final WeaponCard armor = new WeaponCard("Armor", 2);
-        final Card papalDecree = new Card("Papal Decree", false);
-        final Card theCrusades = new Card("The Crusades", false);
+        final Card papalDecree = new EventCard(EventCard.Type.PAPAL_DECREE);
+        final Card theCrusades = new EventCard(EventCard.Type.THE_CRUSADES);
         final Card rashidAdDin = new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast);
         final Card walterThePenniless = new LeaderCard("Walter the Penniless", 20, theCrusades, 10, Advance.overlandEast);
         epoch1.add(stirrups);
@@ -34,15 +36,15 @@ public class Game {
         epoch1.add(new LeaderCard("Charlemagne", 20, Advance.nationalism));
         epoch1.add(new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord));
         epoch1.add(new LeaderCard("St. Benedict", 10, Advance.writtenRecord, Advance.patronage));
-        epoch1.add(new Card("Alchemist's Gold", false));
-        epoch1.add(new Card("Civil War", false));
-        epoch1.add(new Card("Enlightened Ruler", false));
-        epoch1.add(new Card("Famine", false));
-        epoch1.add(new Card("Mysticism Abounds", false));
-        epoch1.add(new Card("Pirates / Vikings", false));
-        epoch1.add(new Card("Rebellion", false));
-        epoch1.add(new Card("Revolutionary Uprisings", false));
-        epoch1.add(new Card("War", false));
+        epoch1.add(new EventCard(EventCard.Type.ALCHEMISTS_GOLD));
+        epoch1.add(new EventCard(EventCard.Type.CIVIL_WAR));
+        epoch1.add(new EventCard(EventCard.Type.ENLIGHTENED_RULER));
+        epoch1.add(new EventCard(EventCard.Type.FAMINE));
+        epoch1.add(new EventCard(EventCard.Type.MYSTICISM_ABOUNDS));
+        epoch1.add(new EventCard(EventCard.Type.PIRATES_VIKINGS));
+        epoch1.add(new EventCard(EventCard.Type.REBELLION));
+        epoch1.add(new EventCard(EventCard.Type.REVOLUTIONARY_UPRISINGS));
+        epoch1.add(new EventCard(EventCard.Type.WAR));
         // Shuffle
 
         epoch1.add(theCrusades);
@@ -51,7 +53,7 @@ public class Game {
         epoch1.add(new CommodityCard(Commodity.SILK));
         epoch1.add(new CommodityCard(Commodity.SPICE));
 
-        final Card mongolArmies = new Card("Mongol Armies", true).invalidates(theCrusades);
+        final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(theCrusades);
         epoch2.add(mongolArmies);
         epoch2.add(new CommodityCard(Commodity.TIMBER));
         epoch2.add(new CommodityCard(Commodity.GRAIN));
@@ -71,8 +73,8 @@ public class Game {
         epoch2.add(new LeaderCard("William Caxton", 20, Advance.printedWord));
         epoch2.add(new WeaponCard("Long Bow", 3).invalidates(stirrups, armor));
         epoch2.add(new WeaponCard("Gunpowder", 4).invalidates(stirrups, armor));
-        epoch2.add(new Card("Black Death", false));
-        epoch2.add(new Card("Religious Strife", false).invalidates(papalDecree));
+        epoch2.add(new EventCard(EventCard.Type.BLACK_DEATH));
+        epoch2.add(new EventCard(EventCard.Type.RELIGIOUS_STRIFE).invalidates(papalDecree));
 
         epoch3.add(new CommodityCard(Commodity.CLOTH));
         epoch3.add(new CommodityCard(Commodity.WINE));
@@ -89,14 +91,12 @@ public class Game {
         epoch3.add(new LeaderCard("Sir Isaac Newton", 20, Advance.lawsOfMatter, Advance.enlightenment));
     }
 
-    private final List<Player> players = new ArrayList<>();
-
     public enum Phase { ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD }
 
     public int getCommodityCount(Commodity commodity, Player player) {
         return 0;
     }
-    
+
     public Card drawCard() {
         Card card = null;
         if (!deck.isEmpty()) {
