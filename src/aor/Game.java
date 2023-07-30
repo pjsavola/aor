@@ -10,7 +10,7 @@ public class Game {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
 
     private Phase phase;
-    private final List<Card> sideCards = new ArrayList<>();
+    private final List<Card> delayedCards = new ArrayList<>();
     private final List<Card> epoch1 = new ArrayList<>();
     private final List<Card> epoch2 = new ArrayList<>();
     private final List<Card> epoch3 = new ArrayList<>();
@@ -60,11 +60,11 @@ public class Game {
         epoch1.add(new EventCard(EventCard.Type.REVOLUTIONARY_UPRISINGS));
         epoch1.add(new EventCard(EventCard.Type.WAR));
 
-        sideCards.add(theCrusades);
-        sideCards.add(walterThePenniless);
-        sideCards.add(rashidAdDin);
-        sideCards.add(new CommodityCard(Commodity.SILK));
-        sideCards.add(new CommodityCard(Commodity.SPICE));
+        delayedCards.add(theCrusades);
+        delayedCards.add(walterThePenniless);
+        delayedCards.add(rashidAdDin);
+        delayedCards.add(new CommodityCard(Commodity.SILK));
+        delayedCards.add(new CommodityCard(Commodity.SPICE));
 
         final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(theCrusades);
         epoch2.add(mongolArmies);
@@ -152,8 +152,8 @@ public class Game {
                                 new IntegerResponse(0)));
                     }
                     if (players.size() <= 4) {
-                        deck.addAll(sideCards);
-                        sideCards.clear();
+                        deck.addAll(delayedCards);
+                        delayedCards.clear();
                     }
                     for (int i = 0; i < playerCount; ++i) {
                         final IntegerResponse response = asyncDiscards.get(i).getResult();
@@ -343,7 +343,16 @@ public class Game {
                     phase = Phase.EXPANSION;
                 }
                 case EXPANSION -> {
-                    phase = deck.isEmpty() ? Phase.FINAL_PLAY_CARD : Phase.ORDER_OF_PLAY;
+                    if (deck.isEmpty()) {
+                        phase = Phase.FINAL_PLAY_CARD;
+                    } else {
+                        if (round++ == 2 && !delayedCards.isEmpty()) {
+                            deck.addAll(delayedCards);
+                            delayedCards.clear();
+                            Collections.shuffle(deck, r);
+                        }
+                        phase = Phase.ORDER_OF_PLAY;
+                    }
                 }
                 case FINAL_PLAY_CARD -> {
                     for (Player player : turnOrder) {
