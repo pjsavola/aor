@@ -24,6 +24,14 @@ public class Player {
         this.game = game;
     }
 
+    public PlayerState getState() {
+        final PlayerState state = new PlayerState();
+        state.capital = capital;
+        state.numberOfCards = cards.size();
+        state.cash = cash;
+        return state;
+    }
+
     public <T> CompletableFuture<T> getInput(Supplier<T> supplier) {
         return CompletableFuture.supplyAsync(supplier);
     }
@@ -38,7 +46,7 @@ public class Player {
         return 0;
     }
 
-    public Node.CityState selectCapital() {
+    public Node.CityState selectCapital(GameState gameState) {
         capital = Node.CityState.VENICE;
         return Node.CityState.VENICE;
     }

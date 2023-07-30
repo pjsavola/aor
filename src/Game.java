@@ -1,7 +1,7 @@
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.function.Function;
 
 public class Game {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
@@ -103,18 +103,26 @@ public class Game {
 
     private static class FutureOrDefault<T> {
         private final CompletableFuture<T> result;
-        private final T def;
-        private FutureOrDefault(CompletableFuture<T> result, T def) {
+        private final T fallback;
+        private Function<T, Boolean> requirement;
+
+        private FutureOrDefault(CompletableFuture<T> result, Function<T, Boolean> requirement, T fallback) {
             this.result = result;
-            this.def = def;
+            this.requirement = requirement;
+            this.fallback = fallback;
         }
 
         private T getResult() {
+            final T result = get();
+            return requirement.apply(result) ? result : fallback;
+        }
+
+        private T get() {
             try {
                 return result.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
-                return def;
+                return fallback;
             }
         }
     }
@@ -130,7 +138,7 @@ public class Game {
                         final Card c1 = drawCard();
                         final Card c2 = drawCard();
                         final Card c3 = drawCard();
-                        asyncDiscards.add(new FutureOrDefault<>(player.getInput(() -> player.discardOne(c1, c2, c3)), c3));
+                        asyncDiscards.add(new FutureOrDefault<>(player.getInput(() -> player.discardOne(c1, c2, c3)), c -> c == c1 || c == c2 || c == c3, c3));
                     }
                     if (players.size() <= 4) {
                         deck.addAll(sideCards);
@@ -138,16 +146,16 @@ public class Game {
                     }
                     asyncDiscards.stream().map(FutureOrDefault::getResult).forEach(deck::add);
                     Collections.shuffle(deck, r);
-                    // TODO: Update game state
                 }
                 case SELECT_CAPITAL -> {
                     final List<Player> selectionOrder = new ArrayList<>(players);
                     Collections.shuffle(selectionOrder);
                     final List<FutureOrDefault<Integer>> asyncBids = new ArrayList<>();
                     for (Player player : selectionOrder) {
-                        asyncBids.add(new FutureOrDefault<>(player.getInput(player::bidForCapital), 0));
+                        asyncBids.add(new FutureOrDefault<>(player.getInput(player::bidForCapital), bid -> bid >= 0 && bid <= 40, 0));
                     }
                     final List<Integer> bids = new ArrayList<>(selectionOrder.size());
+                    final Set<Node.CityState> options = new HashSet<>(selectionOrder.size());
                     asyncBids.stream().map(FutureOrDefault::getResult).forEach(bids::add);
                     players.clear();
                     while (!selectionOrder.isEmpty()) {
@@ -161,14 +169,24 @@ public class Game {
                         }
                         bids.remove(index);
                         final Player player = selectionOrder.remove(index);
+                        player.adjustCash(-highestBid);
+                        options.add(Node.CityState.values()[players.size()]);
                         players.add(player);
-                        new FutureOrDefault<>(player.getInput(player::selectCapital), Node.CityState.VENICE).getResult();
-                        // TODO: Update game state
+                    }
+                    for (Player player : players) {
+                        options.remove(new FutureOrDefault<>(player.getInput(() -> player.selectCapital(getGameState())), options::contains, options.iterator().next()).getResult());
                     }
                 }
             }
         }
     }
+
+    private GameState getGameState() {
+        final GameState state = new GameState();
+        players.forEach(p -> state.playerStates.add(p.getState()));
+        return state;
+    }
+
     public int getCommodityCount(Commodity commodity, Player player) {
         return 0;
     }
