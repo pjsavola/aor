@@ -14,6 +14,7 @@ public class Player {
     private final Game game;
     private static final int maxTokenCount = 36;
     private int cash = 40;
+    int writtenCash;
     private int misery;
     private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
@@ -42,6 +43,7 @@ public class Player {
         state.capital = capital;
         state.numberOfCards = cards.size();
         state.cash = cash;
+        state.writtenCash = writtenCash;
         return state;
     }
 

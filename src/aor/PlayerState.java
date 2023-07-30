@@ -7,4 +7,5 @@ public class PlayerState implements Serializable {
     public Node.CityState capital;
     public int numberOfCards;
     public int cash;
+    public int writtenCash;
 }

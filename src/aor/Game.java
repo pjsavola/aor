@@ -147,7 +147,7 @@ public class Game {
                         final List<Card> hand = List.of(drawCard(), drawCard(), drawCard());
                         hands.add(hand);
                         asyncDiscards.add(new FutureOrDefault<>(
-                                player.send(new SelectDiscardRequest(hand)),
+                                player.send(new SelectCardRequest("Discard 1 card", hand)),
                                 index -> index.getInt() >= 0 && index.getInt() < hand.size(),
                                 new IntegerResponse(0)));
                     }
@@ -234,12 +234,50 @@ public class Game {
                         bids.set(index, Integer.MAX_VALUE);
                         final Player player = players.get(index);
                         player.adjustCash(-Math.abs(lowestBid));
+                        player.writtenCash = player.getCash();
                         player.addTokens(lowestBid);
                         turnOrder.add(players.get(index));
                     }
                     phase = round == 1 ? Phase.PLAY_CARD : Phase.DRAW_CARD;
                 }
                 case DRAW_CARD -> {
+                    queryForRenaissance();
+                    while (!surpluses.isEmpty() || !shortages.isEmpty()) {
+                        final Player player = turnOrder.get(0);
+                        final Set<Commodity> options = new HashSet<>();
+                        for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
+                        for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
+                        if (!options.isEmpty()) {
+                            final CommodityReponse commodityReponse = new FutureOrDefault<>(
+                                    player.send(new AdjustShortageSurplusRequest(getGameState(), "Pay off shortage/surplus?")),
+                                    response -> response.getCommodity() == null || options.contains(response.getCommodity()),
+                                    new CommodityReponse(null)).getResult();
+                            final Commodity selectedCommodity = commodityReponse.getCommodity();
+                            if (selectedCommodity == null || commodityReponse.getAdjustment() == 0) {
+                                break;
+                            } else {
+                                player.adjustCash(-selectedCommodity.getValue());
+                                if (commodityReponse.getAdjustment() > 0) surpluses.remove(selectedCommodity);
+                                else shortages.remove(selectedCommodity);
+                            }
+                        }
+                    }
+                    if (turnOrder.get(turnOrder.size() - 1).getAdvances().contains(Advance.windWaterMill)) {
+                        final Player player = turnOrder.get(turnOrder.size() - 1);
+                        final CommodityReponse commodityReponse = new FutureOrDefault<>(
+                                player.send(new AdjustShortageSurplusRequest(getGameState(), "Adjust shortage/surplus?")),
+                                response -> response.getCommodity() == null || (response.getCommodity().getValue() >= Commodity.GRAIN.getValue() && response.getCommodity().getValue() <= Commodity.METAL.getValue()),
+                                new CommodityReponse(null)).getResult();
+                        final Commodity selectedCommodity = commodityReponse.getCommodity();
+                        final int adjustment = commodityReponse.getAdjustment();
+                        if (selectedCommodity != null && adjustment != 0) {
+                            if (adjustment > 0) {
+                                if (!surpluses.remove(selectedCommodity)) shortages.add(selectedCommodity);
+                            } else {
+                                if (!shortages.remove(selectedCommodity)) surpluses.add(selectedCommodity);
+                            }
+                        }
+                    }
                     for (Player player : turnOrder) {
                         final Card c = drawCard();
                         if (c != null) {
@@ -249,7 +287,6 @@ public class Game {
                     phase = Phase.BUY_CARD;
                 }
                 case BUY_CARD -> {
-                    queryForRenaissance();
                     for (Player player : turnOrder) {
                         if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
                             if (new FutureOrDefault<>(
@@ -266,7 +303,7 @@ public class Game {
                     for (Player player : turnOrder) {
                         if (!player.cards.isEmpty() && player.getAdvances().contains(Advance.masterArt)) {
                             masterArtResponses.add(new FutureOrDefault<>(
-                                    player.send(new SelectDiscardRequest(player.cards)),
+                                    player.send(new SelectCardRequest("Discard 1 card?", player.cards)),
                                     index -> index.getInt() >= -1 && index.getInt() < player.cards.size(),
                                     new IntegerResponse(-1)));
                         } else {
@@ -286,7 +323,20 @@ public class Game {
                     phase = Phase.PLAY_CARD;
                 }
                 case PLAY_CARD -> {
-
+                    for (Player player : turnOrder) {
+                        while (!player.cards.isEmpty()) {
+                            final int cardIndex = new FutureOrDefault<>(
+                                    player.send(new SelectCardRequest("PLay 1 card?", player.cards)),
+                                    index -> index.getInt() >= -1 && index.getInt() < player.cards.size(),
+                                    new IntegerResponse(-1)).getResult().getInt();
+                            if (cardIndex == -1) {
+                                break;
+                            } else {
+                                final Card card = player.cards.remove(cardIndex);
+                                card.play(this, player);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -327,6 +377,8 @@ public class Game {
         state.phase = phase;
         state.round = round;
         turnOrder.forEach(p -> state.turnOrder.add(p.getState()));
+        state.shortages.addAll(shortages);
+        state.surpluses.addAll(surpluses);
         return state;
     }
 

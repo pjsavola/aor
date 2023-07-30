@@ -11,4 +11,6 @@ public class GameState implements Serializable {
     public int round;
     public Game.Phase phase;
     public List<PlayerState> turnOrder = new ArrayList<>();
+    public List<Commodity> shortages = new ArrayList<>();
+    public List<Commodity> surpluses = new ArrayList<>();
 }
