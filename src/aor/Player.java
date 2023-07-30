@@ -17,7 +17,7 @@ public class Player {
     private int misery;
     private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
-    private List<Card> cards = new ArrayList<>();
+    List<Card> cards = new ArrayList<>();
 
     private Node.CityState capital;
     List<Node> cities = new ArrayList<>();

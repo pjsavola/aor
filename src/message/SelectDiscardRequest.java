@@ -5,10 +5,10 @@ import aor.Card;
 import java.util.Arrays;
 import java.util.List;
 
-public class SelectInitialCardsRequest extends Request {
+public class SelectDiscardRequest extends Request {
     private final int[] indices;
 
-    public SelectInitialCardsRequest(List<Card> cards) {
+    public SelectDiscardRequest(List<Card> cards) {
         indices = cards.stream().map(Card::getIndex).mapToInt(Integer::intValue).toArray();
     }
 

@@ -147,7 +147,7 @@ public class Game {
                         final List<Card> hand = List.of(drawCard(), drawCard(), drawCard());
                         hands.add(hand);
                         asyncDiscards.add(new FutureOrDefault<>(
-                                player.send(new SelectInitialCardsRequest(hand)),
+                                player.send(new SelectDiscardRequest(hand)),
                                 index -> index.getInt() >= 0 && index.getInt() < hand.size(),
                                 new IntegerResponse(0)));
                     }
@@ -259,6 +259,27 @@ public class Game {
                                 final Card c = drawCard();
                                 player.adjustCash(-10);
                                 player.notify(new CardNotification(c));
+                            }
+                        }
+                    }
+                    final List<FutureOrDefault<IntegerResponse>> masterArtResponses = new ArrayList<>();
+                    for (Player player : turnOrder) {
+                        if (!player.cards.isEmpty() && player.getAdvances().contains(Advance.masterArt)) {
+                            masterArtResponses.add(new FutureOrDefault<>(
+                                    player.send(new SelectDiscardRequest(player.cards)),
+                                    index -> index.getInt() >= -1 && index.getInt() < player.cards.size(),
+                                    new IntegerResponse(-1)));
+                        } else {
+                            masterArtResponses.add(null);
+                        }
+                    }
+                    for (int i = 0; i < playerCount; ++i) {
+                        if (masterArtResponses.get(i) != null) {
+                            final Player player = turnOrder.get(i);
+                            final int index = masterArtResponses.get(i).getResult().getInt();
+                            if (index != -1) {
+                                final Card card = player.cards.remove(index);
+                                playedCards.add(card);
                             }
                         }
                     }
