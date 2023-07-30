@@ -337,6 +337,27 @@ public class Game {
                             }
                         }
                     }
+                    phase = Phase.PURCHASE;
+                }
+                case PURCHASE -> {
+                    phase = Phase.EXPANSION;
+                }
+                case EXPANSION -> {
+                    phase = deck.isEmpty() ? Phase.FINAL_PLAY_CARD : Phase.ORDER_OF_PLAY;
+                }
+                case FINAL_PLAY_CARD -> {
+                    for (Player player : turnOrder) {
+                        player.cards.removeIf(c -> !c.canPlay(this));
+                        while (!player.cards.isEmpty()) {
+                            final int cardIndex = new FutureOrDefault<>(
+                                    player.send(new SelectCardRequest("PLay 1 cards", player.cards)),
+                                    index -> index.getInt() >= -0 && index.getInt() < player.cards.size(),
+                                    new IntegerResponse(0)).getResult().getInt();
+                            final Card card = player.cards.remove(cardIndex);
+                            card.play(this, player);
+                        }
+                    }
+                    phase = Phase.END;
                 }
             }
         }
