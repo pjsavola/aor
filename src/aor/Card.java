@@ -1,11 +1,12 @@
 package aor;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Card {
     public static List<Card> allCards = new ArrayList<>();
-    private int cardIndex;
+    private int index;
     private final String name;
     final boolean singleUse;
     private Card[] invalidates;
@@ -13,8 +14,12 @@ public abstract class Card {
     protected Card(String name, boolean singleUse) {
         this.name = name;
         this.singleUse = singleUse;
-        cardIndex = allCards.size();
+        index = allCards.size();
         allCards.add(this);
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public boolean canPlay(Game game) {

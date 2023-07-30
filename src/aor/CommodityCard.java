@@ -1,7 +1,5 @@
 package aor;
 
-import aor.Card;
-
 public class CommodityCard extends Card {
     private final Commodity commodity;
 
