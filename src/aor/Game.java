@@ -126,21 +126,6 @@ public class Game {
         }
     }
 
-    private void queryForRenaissance() {
-        for (int i = 0; i < turnOrder.size(); ++i) {
-            final Player player = turnOrder.get(i);
-            final Set<Integer> renaissanceOptions = getRenaissanceOptions(i, turnOrder, round);
-            if (!renaissanceOptions.isEmpty()) {
-                final int delta = new FutureOrDefault<>(player, new UseRenaissanceRequest(getGameState(), renaissanceOptions)).get().getInt();
-                if (delta != 0) {
-                    turnOrder.set(i, turnOrder.get(i + delta));
-                    turnOrder.set(i + delta, player);
-                    player.renaissanceUsed = round;
-                }
-            }
-        }
-    }
-
     private void draftPhase() {
         deck = epoch1;
         Collections.shuffle(deck, r);
@@ -310,6 +295,7 @@ public class Game {
     private void playCardPhase() {
         queryForRenaissance();
         for (Player player : turnOrder) {
+            resolveWar(player);
             while (!player.cards.isEmpty()) {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
                 final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("PLay 1 card?", playableCards, true)).get().getInt();
@@ -382,6 +368,7 @@ public class Game {
 
     private void finalPlayCardPhase() {
         for (Player player : turnOrder) {
+            resolveWar(player);
             player.cards.removeIf(c -> !c.canPlay(this));
             while (!player.cards.isEmpty()) {
                 final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", player.cards, false)).get().getInt();
@@ -390,6 +377,21 @@ public class Game {
             }
         }
         phase = Phase.END;
+    }
+
+    private void queryForRenaissance() {
+        for (int i = 0; i < turnOrder.size(); ++i) {
+            final Player player = turnOrder.get(i);
+            final Set<Integer> renaissanceOptions = getRenaissanceOptions(i, turnOrder, round);
+            if (!renaissanceOptions.isEmpty()) {
+                final int delta = new FutureOrDefault<>(player, new UseRenaissanceRequest(getGameState(), renaissanceOptions)).get().getInt();
+                if (delta != 0) {
+                    turnOrder.set(i, turnOrder.get(i + delta));
+                    turnOrder.set(i + delta, player);
+                    player.renaissanceUsed = round;
+                }
+            }
+        }
     }
 
     private static Set<Integer> getRenaissanceOptions(int index, List<Player> turnOrder, int round) {
@@ -517,8 +519,13 @@ public class Game {
             player.purchasePhaseFinished();
         }
         patronageQueue.clear();
-        playedCards.forEach(this::moveToNextDeck);
-        playedCards.clear();
+        final Iterator<Card> it = playedCards.iterator();
+        while (it.hasNext()) {
+            final Card card = it.next();
+            if (card == Cards.war && war1 != null && war2 != null) continue;
+            moveToNextDeck(card);
+            it.remove();
+        }
     }
 
     public void moveToNextDeck(Card card) {
