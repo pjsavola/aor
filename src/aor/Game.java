@@ -484,11 +484,14 @@ public class Game {
     }
 
     public void commodityPlayed(Commodity commodity) {
+        int adjustment = 0;
+        if (surpluses.remove(commodity)) --adjustment;
+        if (shortages.remove(commodity)) ++adjustment;
         for (Player player : players) {
             int count = player.getCommodityCount(commodity);
-            if (shortages.remove(commodity)) ++count;
-            if (surpluses.remove(commodity)) --count;
             if (count > 0) {
+                if (player.getAdvances().contains(Advance.industry)) ++count;
+                count += adjustment;
                 final int value = count * count * commodity.getValue();
                 player.adjustCash(value);
             }
