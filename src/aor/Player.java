@@ -15,7 +15,7 @@ public class Player {
     private static final int maxTokenCount = 36;
     private int cash = 40;
     int writtenCash;
-    private int misery;
+    int misery;
     private Set<Advance> advances = new HashSet<>();
     private List<Advance> newAdvances = new ArrayList<>();
     List<Card> cards = new ArrayList<>();
@@ -28,6 +28,7 @@ public class Player {
     private Map<Node, Integer> newTokens = new HashMap<>();
     private int usableTokens;
     int renaissanceUsed;
+    boolean chaos;
     private Client client = new Client(null);
 
     public Player(Game game) {
@@ -69,32 +70,6 @@ public class Player {
         usableTokens = Math.max(0, Math.min(bid, maxTokens));
     }
 
-    public AdvanceActions useAdvances(GameState gameState) {
-        final AdvanceActions result = new AdvanceActions();
-        switch (gameState.phase) {
-            case BUY_CARD -> {
-                if (cash >= 10 && advances.contains(Advance.urbanAscendancy) && gameState.deckSize > 0) {
-                    result.useUrbanAscendancy = true;
-                }
-                if (advances.contains(Advance.renaissance) && renaissanceUsed < gameState.round) {
-                    int myIdx = -1;
-                    for (int i = 0; i < gameState.turnOrder.size(); ++i) {
-                        final PlayerState playerState = gameState.turnOrder.get(i);
-                        if (playerState.capital == capital) {
-                            myIdx = i;
-                            break;
-                        }
-                    }
-                    if (myIdx == 1) result.useRenaissance = AdvanceActions.RenaissanceMovement.MOVE_FRONT;
-                    else if (myIdx == gameState.turnOrder.size() - 2) result.useRenaissance = AdvanceActions.RenaissanceMovement.MOVE_BACK;
-                    else if (myIdx > 1 && myIdx < gameState.turnOrder.size() - 2) result.useRenaissance = AdvanceActions.RenaissanceMovement.MOVE_FRONT;
-                    if (result.useRenaissance != AdvanceActions.RenaissanceMovement.NO_MOVE) renaissanceUsed = gameState.round;
-                }
-            }
-        }
-        return result;
-    }
-
     public int getIncome(int playerCount) {
         cities.addAll(newCities);
         newCities.clear();
@@ -115,6 +90,10 @@ public class Player {
     }
 
     public void research(Advance advance) {
+        final Set<Advance> allAdvances = new HashSet<>(advances);
+        allAdvances.addAll(newAdvances);
+        if (!allAdvances.containsAll(advance.prerequisites)) return;
+
         final int cost = advance.getCost(game, this);
         final LeaderCard card = game.getBestLeaderCard(advance, this);
         final int discount = card == null ? 0 : card.amount;
@@ -127,6 +106,9 @@ public class Player {
             cash -= finalCost;
             if (advance == Advance.humanBody || advance == Advance.improvedAgriculture) {
                 adjustMisery(-1);
+            }
+            if (advance.category == Advance.Category.RELIGION) {
+                adjustMisery(1);
             }
         }
     }
@@ -160,7 +142,9 @@ public class Player {
     public void adjustMisery(int delta) {
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
-            // Player drops to chaos...
+            chaos = true;
+            game.playedCards.addAll(cards);
+            cards.clear();
         }
     }
 

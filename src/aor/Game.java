@@ -378,7 +378,43 @@ public class Game {
     private void purchasePhase() {
         queryForRenaissance();
         for (Player player : turnOrder) {
-
+            final List<Advance> advances = new FutureOrDefault<>(
+                    player.send(new PurchaseAdvancesRequest(getGameState())),
+                    response -> {
+                        int cash = player.getCash();
+                        int misery = player.misery;
+                        final Set<Advance> allAdvances = new HashSet<>(player.getAdvances());
+                        final List<Advance> list = response.getAdvances();
+                        for (Advance advance : list) {
+                            if (misery >= Player.miserySteps.length) {
+                                // Trying to purchase advances while in Chaos.
+                                return false;
+                            }
+                            if (!allAdvances.containsAll(advance.prerequisites)) {
+                                return false;
+                            }
+                            final int cost = advance.getCost(this, player);
+                            final LeaderCard card = getBestLeaderCard(advance, player);
+                            final int discount = card == null ? 0 : card.amount;
+                            final int finalCost = Math.max(0, cost - discount);
+                            if (cash < finalCost) {
+                                return false;
+                            }
+                            cash -= finalCost;
+                            allAdvances.add(advance);
+                            if (advance == Advance.humanBody || advance == Advance.improvedAgriculture) {
+                                misery = Math.max(0, misery - 1);
+                            }
+                            if (advance.category == Advance.Category.RELIGION) {
+                                ++misery;
+                            }
+                        }
+                        return true;
+                    },
+                    new PurchaseAdvancesResponse(Collections.emptyList())).getResult().getAdvances();
+            for (Advance advance : advances) {
+                player.research(advance);
+            }
         }
         purchasePhaseFinished();
         phase = Phase.EXPANSION;
