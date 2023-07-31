@@ -2,7 +2,7 @@ package aor;
 
 public class WeaponCard extends Card {
 
-    private final int power;
+    public final int power;
 
     public WeaponCard(String name, int power) {
         super(name, true);
@@ -12,5 +12,6 @@ public class WeaponCard extends Card {
     @Override
     public void play(Game game, Player player) {
         super.play(game, player);
+        player.weapons.add(power);
     }
 }

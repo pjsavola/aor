@@ -3,6 +3,7 @@ package aor;
 import message.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Game {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
@@ -27,6 +28,8 @@ public class Game {
     Player civilWar;
     private final Random r = new Random();
     public List<Node> nodes;
+    public Player war1;
+    public Player war2;
 
     public Game() {
         initDecks();
@@ -349,6 +352,7 @@ public class Game {
         int mostTokens = 0;
         Player winningPlayer = null;
         for (Player player : players) {
+            player.weapons.clear();
             final int tokens = player.flipTokens();
             if (tokens > mostTokens) {
                 mostTokens = tokens;
@@ -396,6 +400,71 @@ public class Game {
             if (index < turnOrder.size() - 1 && !turnOrder.get(index + 1).getAdvances().contains(Advance.renaissance)) options.add(1);
         }
         return options;
+    }
+
+    public void resolveWar(Player currentPlayer) {
+        if (war1 != null && war2 != null) {
+            if (war1.chaos || war2.chaos) {
+                war1 = null;
+                war2 = null;
+                return;
+            }
+            war1.adjustMisery(1);
+            war2.adjustMisery(1);
+            int bestWeapon1 = war1.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+            int bestWeapon2 = war2.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+            if (currentPlayer == war1 || currentPlayer == war2) {
+                final int opponentBestWeapon = currentPlayer == war1 ? bestWeapon2 : bestWeapon1;
+                final List<WeaponCard> playableWeapons = new ArrayList<>(currentPlayer.cards.stream()
+                        .filter(c -> c instanceof WeaponCard && c.canPlay(this))
+                        .map(c -> (WeaponCard) c)
+                        .filter(c -> c.power > opponentBestWeapon).toList());
+                while (!playableWeapons.isEmpty()) {
+                    final int index = new FutureOrDefault<>(currentPlayer, new SelectCardRequest("Play weapons for war?", playableWeapons, true)).get().getInt();
+                    if (index == -1) {
+                        break;
+                    } else {
+                        final WeaponCard card = playableWeapons.remove(index);
+                        card.play(this, currentPlayer);
+                        bestWeapon1 = war1.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+                        bestWeapon2 = war2.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+                    }
+                }
+            }
+            final int mod1 = bestWeapon1 > bestWeapon2 ? war1.weapons.size() : 0;
+            final int mod2 = bestWeapon2 > bestWeapon1 ? war2.weapons.size() : 0;
+            final int roll1 = r.nextInt(6) + mod1;
+            final int roll2 = r.nextInt(6) + mod2;
+            if (roll1 != roll2) {
+                final Player winner =  roll1 > roll2 ? war1 : war2;
+                final Player loser = roll1 > roll2 ? war2 : war1;
+                final Set<String> options = loser.cities.stream().filter(n -> n.getRegion() != 5 || winner.getAdvances().contains(Advance.overlandEast)).map(Node::getName).collect(Collectors.toSet());
+                final int count = Math.abs(roll1 - roll2);
+                if (!options.isEmpty()) {
+                    final String[] targets;
+                    if (options.size() > count) {
+                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, Math.min(count, options.size()))).get().getCities();
+                    } else {
+                        targets = options.toArray(String[]::new);
+                    }
+                    for (String target : targets) {
+                        loser.cities.stream().filter(c -> c.getName().equals(target)).forEach(n -> {
+                            loser.remove(n);
+                            winner.cities.add(n);
+                        });
+                    }
+                }
+                loser.adjustMisery(1);
+                loser.adjustMisery(Math.max(0, count - options.size()));
+                war1 = null;
+                war2 = null;
+            } else if (mod1 != mod2) {
+                if (mod1 > mod2) war2.adjustMisery(1);
+                else war1.adjustMisery(1);
+                war1 = null;
+                war2 = null;
+            }
+        }
     }
 
     public GameState getGameState() {

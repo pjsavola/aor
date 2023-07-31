@@ -9,7 +9,7 @@ public class SelectCardRequest extends Request<IntegerResponse> {
     private final int[] indices;
     public final boolean optional;
 
-    public SelectCardRequest(String info, List<Card> cards, boolean optional) {
+    public SelectCardRequest(String info, List<? extends Card> cards, boolean optional) {
         super(info);
         indices = cards.stream().map(Card::getIndex).mapToInt(Integer::intValue).toArray();
         this.optional = optional;

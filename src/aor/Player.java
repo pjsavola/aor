@@ -26,6 +26,7 @@ public class Player {
 
     private Map<Node, Integer> tokens = new HashMap<>();
     private Map<Node, Integer> newTokens = new HashMap<>();
+    public Set<Integer> weapons = new HashSet<>();
     public int usableTokens;
     int renaissanceUsed;
     boolean chaos;

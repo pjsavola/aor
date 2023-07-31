@@ -88,8 +88,10 @@ public class EventCard extends Card {
                 });
                 if (!options.isEmpty()) {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(3, options.size()))).get().getCities();
-                    for (Player p : game.players) {
-                        game.nodes.stream().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(p::reduce);
+                    for (String target : targets) {
+                        for (Player p : game.players) {
+                            game.nodes.stream().filter(n -> n.getName().equals(target)).findAny().ifPresent(p::reduce);
+                        }
                     }
                 }
             }
@@ -120,7 +122,15 @@ public class EventCard extends Card {
                 player.adjustMisery(1);
             }
             case WAR -> {
-
+                final Map<Node.CityState, Player> targets = new HashMap<>();
+                game.players.stream().filter(p -> p != player).forEach(p -> targets.put(p.getCapital(), p));
+                if (!targets.isEmpty()) {
+                    final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for War!", game.getGameState(), targets.keySet())).get().getCapital();
+                    final Player target = targets.get(capital);
+                    game.war1 = player;
+                    game.war2 = target;
+                    game.resolveWar(player);
+                }
             }
             case BLACK_DEATH -> {
                 final int area = new FutureOrDefault<>(player, new SelectAreaRequest(game.getGameState())).get().getInt();
