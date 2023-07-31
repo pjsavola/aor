@@ -3,8 +3,8 @@ package aor;
 public abstract class Cards {
     public static final Card stirrups = new WeaponCard("Stirrups", 1);
     public static final Card armor = new WeaponCard("Armor", 2);
-    public static final Card longBow = new WeaponCard("Long Bow", 3).invalidates(stirrups, armor);
-    public static final Card gunpowder = new WeaponCard("Gunpowder", 4).invalidates(stirrups, armor);
+    public static final Card longBow = new WeaponCard("Long Bow", 3).invalidates(2, stirrups, armor);
+    public static final Card gunpowder = new WeaponCard("Gunpowder", 4).invalidates(2, stirrups, armor);
 
     public static final Card alchemistsGold = new EventCard(EventCard.Type.ALCHEMISTS_GOLD);
     public static final Card civilWar = new EventCard(EventCard.Type.CIVIL_WAR);
@@ -18,8 +18,8 @@ public abstract class Cards {
     public static final Card theCrusades = new EventCard(EventCard.Type.THE_CRUSADES);
     public static final Card war = new EventCard(EventCard.Type.WAR);
     public static final Card blackDeath = new EventCard(EventCard.Type.BLACK_DEATH);
-    public static final Card religiousStrife = new EventCard(EventCard.Type.RELIGIOUS_STRIFE).invalidates(papalDecree);
-    public static final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(theCrusades);
+    public static final Card religiousStrife = new EventCard(EventCard.Type.RELIGIOUS_STRIFE).invalidates(3, papalDecree);
+    public static final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(2, theCrusades);
 
     public static final Card charlemagne = new LeaderCard("Charlemagne", 20, Advance.nationalism);
     public static final Card dionysusExiguus = new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord);

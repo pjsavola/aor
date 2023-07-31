@@ -9,6 +9,7 @@ public abstract class Card {
     private int index;
     private final String name;
     final boolean singleUse;
+    private int epoch;
     private Card[] invalidates;
 
     protected Card(String name, boolean singleUse) {
@@ -26,13 +27,16 @@ public abstract class Card {
         return !game.unplayableCards.contains(this);
     }
 
-    public Card invalidates(Card... cards) {
+    public Card invalidates(int epoch, Card... cards) {
+        this.epoch = epoch;
         invalidates = cards;
         return this;
     }
 
     public void play(Game game, Player player) {
         game.playedCards.add(this);
-        game.unplayableCards.addAll(List.of(invalidates));
+        if (game.getEpoch() >= epoch) {
+            game.unplayableCards.addAll(List.of(invalidates));
+        }
     }
 }

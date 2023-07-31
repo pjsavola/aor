@@ -21,6 +21,7 @@ public class Game {
     private final List<Commodity> shortages = new ArrayList<>();
     private final List<Commodity> surpluses = new ArrayList<>();
     final List<Player> players = new ArrayList<>();
+    Advance.Category bannedCategory;
     final List<Player> turnOrder;
     private final int playerCount;
     private int round = 1;
@@ -349,7 +350,7 @@ public class Game {
                 final int index = masterArtResponses.get(i).getResult().getInt();
                 if (index != -1) {
                     final Card card = player.cards.remove(index);
-                    playedCards.add(card);
+                    moveToNextDeck(card);
                 }
             }
         }
@@ -362,7 +363,7 @@ public class Game {
             while (!player.cards.isEmpty()) {
                 final int cardIndex = new FutureOrDefault<>(
                         player.send(new SelectCardRequest("PLay 1 card?", player.cards)),
-                        index -> index.getInt() >= -1 && index.getInt() < player.cards.size(),
+                        index -> index.getInt() == -1 || (index.getInt() >= 0 && index.getInt() < player.cards.size() && player.cards.get(index.getInt()).canPlay(this)),
                         new IntegerResponse(-1)).getResult().getInt();
                 if (cardIndex == -1) {
                     break;
@@ -387,7 +388,9 @@ public class Game {
                         final List<Advance> list = response.getAdvances();
                         for (Advance advance : list) {
                             if (misery >= Player.miserySteps.length) {
-                                // Trying to purchase advances while in Chaos.
+                                return false;
+                            }
+                            if (advance.category == bannedCategory && !playedCards.contains(Cards.religiousStrife)) {
                                 return false;
                             }
                             if (!allAdvances.containsAll(advance.prerequisites)) {
@@ -432,6 +435,7 @@ public class Game {
         if (deck.isEmpty()) {
             phase = Phase.FINAL_PLAY_CARD;
         } else {
+            bannedCategory = null;
             if (round++ == 2 && !delayedCards.isEmpty()) {
                 deck.addAll(delayedCards);
                 delayedCards.clear();
@@ -478,7 +482,7 @@ public class Game {
         return state;
     }
 
-    private int getEpoch() {
+    public int getEpoch() {
         if (deck != null) {
             if (deck.isEmpty()) return 4;
             if (deck == epoch1) return 1;
@@ -506,13 +510,15 @@ public class Game {
             player.purchasePhaseFinished();
         }
         patronageQueue.clear();
-        for (Card card : playedCards) {
-            if (!card.singleUse) {
-                if (deck == epoch1) epoch2.add(card);
-                if (deck == epoch2) epoch3.add(card);
-            }
-        }
+        playedCards.forEach(this::moveToNextDeck);
         playedCards.clear();
+    }
+
+    public void moveToNextDeck(Card card) {
+        if (!card.singleUse) {
+            if (deck == epoch1) epoch2.add(card);
+            if (deck == epoch2) epoch3.add(card);
+        }
     }
 
     public void commodityPlayed(Commodity commodity) {

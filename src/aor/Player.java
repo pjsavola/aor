@@ -143,7 +143,7 @@ public class Player {
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
             chaos = true;
-            game.playedCards.addAll(cards);
+            cards.forEach(game::moveToNextDeck);
             cards.clear();
         }
     }
