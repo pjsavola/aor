@@ -96,10 +96,18 @@ public class Player {
     }
 
     public int getIncome(int playerCount) {
+        cities.addAll(newCities);
+        newCities.clear();
+        tokens.putAll(newTokens);
+        newTokens.clear();
         final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
         final int income = baseIncome + Math.min(25, cities.size()) * playerCount;
         final int interest = advances.contains(Advance.interestAndProfit) ? Math.min(cash, income) : 0;
         return income + interest;
+    }
+
+    public int getCommodityCount(Commodity commodity) {
+        return (int) cities.stream().filter(c -> c.hasCommodity(commodity)).count();
     }
 
     public Set<Advance> getAdvances() {

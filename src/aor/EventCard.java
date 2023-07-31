@@ -38,7 +38,7 @@ public class EventCard extends Card {
             case ALCHEMISTS_GOLD -> {}
             case CIVIL_WAR -> {}
             case ENLIGHTENED_RULER -> {}
-            case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 4 : 3) - (int) p.cities.stream().filter(n -> n.getCommodity() == Commodity.GRAIN).count())));
+            case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 4 : 3) - p.getCommodityCount(Commodity.GRAIN))));
             case MYSTICISM_ABOUNDS -> game.players.forEach(p -> p.adjustMisery(4 - (int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.SCIENCE).count()));
             case PAPAL_DECREE -> {}
             case PIRATES_VIKINGS -> {}

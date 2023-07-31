@@ -436,10 +436,6 @@ public class Game {
         return 0;
     }
 
-    public int getCommodityCount(Commodity commodity, Player player) {
-        return 0;
-    }
-
     public Card drawCard() {
         Card card = null;
         if (!deck.isEmpty()) {
@@ -469,11 +465,12 @@ public class Game {
 
     public void commodityPlayed(Commodity commodity) {
         for (Player player : players) {
-            int count = getCommodityCount(commodity, player);
+            int count = player.getCommodityCount(commodity);
             if (shortages.remove(commodity)) ++count;
             if (surpluses.remove(commodity)) --count;
             if (count > 0) {
                 final int value = count * count * commodity.getValue();
+                player.adjustCash(value);
             }
         }
     }

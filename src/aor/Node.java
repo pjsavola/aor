@@ -13,6 +13,7 @@ public class Node {
     private String name;
     private int size;
     private Commodity commodity;
+    private List<Commodity> specialCommodities;
     private CityState capital;
     private int region;
     private final Set<Node> supports = new HashSet<>();
@@ -26,6 +27,13 @@ public class Node {
         this.region = region;
         initPolygon();
         for (Line line : borders) line.nodes.add(this);
+        switch (name) {
+            case "East Indies" -> specialCommodities = List.of(Commodity.SILK, Commodity.SPICE);
+            case "China" -> specialCommodities = List.of(Commodity.SILK, Commodity.SPICE);
+            case "India" -> specialCommodities = List.of(Commodity.GOLD, Commodity.SPICE);
+            case "North America" -> specialCommodities = List.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.FUR);
+            case "South America" -> specialCommodities = List.of(Commodity.METAL, Commodity.SPICE, Commodity.GOLD);
+        }
     }
 
     private void initPolygon() {
@@ -59,8 +67,9 @@ public class Node {
         return name;
     }
 
-    public Commodity getCommodity() {
-        return commodity;
+    public boolean hasCommodity(Commodity commodity) {
+        if (commodity != null) return this.commodity == commodity;
+        return specialCommodities != null && specialCommodities.contains(commodity);
     }
 
     public boolean needsRemoval(Line line) {
