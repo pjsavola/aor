@@ -1,10 +1,10 @@
 package aor;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Advance {
+    public static List<Advance> allAdvances = new ArrayList<>();
+    private final int index;
     final String name;
     final Category category;
     final int cost;
@@ -45,12 +45,17 @@ public class Advance {
     public static final Advance cosmopolitan = new Advance("Cosmopolitan", Category.CIVICS, 150, 50, Set.of(overlandEast));
     public static final Advance middleClass = new Advance("Middle Class", Category.CIVICS, 170, 60, Set.of(improvedAgriculture));
 
-    public Advance(String name, Category category, int cost, int credits, Set<Advance> prerequisites) {
+    private Advance(String name, Category category, int cost, int credits, Set<Advance> prerequisites) {
         this.name = name;
         this.category = category;
         this.cost = cost;
         this.credits = credits;
         this.prerequisites = prerequisites;
+        index = allAdvances.size();
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public int getCost(Game game, Player player) {
