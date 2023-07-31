@@ -67,6 +67,10 @@ public class Node {
         return name;
     }
 
+    public CityState getCapital() {
+        return capital;
+    }
+
     public boolean hasCommodity(Commodity commodity) {
         if (commodity != null) return this.commodity == commodity;
         return specialCommodities != null && specialCommodities.contains(commodity);

@@ -1,5 +1,12 @@
 package aor;
 
+import message.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class EventCard extends Card {
 
     public enum Type {
@@ -35,19 +42,76 @@ public class EventCard extends Card {
     public void play(Game game, Player player) {
         super.play(game, player);
         switch (type) {
-            case ALCHEMISTS_GOLD -> {}
-            case CIVIL_WAR -> {}
-            case ENLIGHTENED_RULER -> {}
+            case ALCHEMISTS_GOLD -> {
+                final Map<Node.CityState, Player> targets = new HashMap<>();
+                game.players.stream().filter(p -> p != game.enlightenedRuler && !p.getAdvances().contains(Advance.lawsOfMatter)).forEach(p -> targets.put(p.getCapital(), p));
+                final Node.CityState capital = new FutureOrDefault<>(
+                        player.send(new SelectCapitalRequest(game.getGameState())),
+                        response -> targets.containsKey(response.getCapital()),
+                        new CapitalResponse(targets.keySet().iterator().next())).getResult().getCapital();
+                final Player target = targets.get(capital);
+                target.adjustCash(-(target.writtenCash + 1) / 2);
+            }
+            case CIVIL_WAR -> {
+                final Map<Node.CityState, Player> targets = new HashMap<>();
+                game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> targets.put(p.getCapital(), p));
+                final Node.CityState capital = new FutureOrDefault<>(
+                        player.send(new SelectCapitalRequest(game.getGameState())),
+                        response -> targets.containsKey(response.getCapital()),
+                        new CapitalResponse(targets.keySet().iterator().next())).getResult().getCapital();
+                final Player target = targets.get(capital);
+                target.adjustMisery(1);
+                game.civilWar = target;
+                if (!target.chaos) {
+                    final boolean loseTokens = new FutureOrDefault<>(
+                            target.send(new SelectCivilWarLossesRequest(game.getGameState())),
+                            response -> true,
+                            new BooleanResponse(true)).getResult().getBool();
+                    if (loseTokens) {
+                        player.usableTokens -= (player.usableTokens + 1) / 2;
+                    } else {
+                        player.adjustCash(-(player.writtenCash + 1) / 2);
+                    }
+                }
+                final Node node = game.nodes.stream().filter(n -> n.getCapital() == capital).findAny().orElse(null);
+                for (Player p : game.players) {
+                    final int idx = p.cities.indexOf(node);
+                    if (idx != -1) {
+                        p.reduceCity(p.cities.get(idx));
+                        break;
+                    }
+                }
+            }
+            case ENLIGHTENED_RULER -> game.enlightenedRuler = player;
             case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 4 : 3) - p.getCommodityCount(Commodity.GRAIN))));
-            case MYSTICISM_ABOUNDS -> game.players.forEach(p -> p.adjustMisery(4 - (int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.SCIENCE).count()));
-            case PAPAL_DECREE -> {}
-            case PIRATES_VIKINGS -> {}
-            case REBELLION -> {}
-            case REVOLUTIONARY_UPRISINGS -> game.players.forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.COMMERCE).count()));
-            case THE_CRUSADES -> {}
-            case WAR -> {}
-            case BLACK_DEATH -> {}
-            case RELIGIOUS_STRIFE -> game.players.forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.RELIGION).count()));
+            case MYSTICISM_ABOUNDS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery(4 - (int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.SCIENCE).count()));
+            case PAPAL_DECREE -> {
+                final Set<Advance.Category> allowedCategories = Set.of(Advance.Category.SCIENCE, Advance.Category.RELIGION, Advance.Category.EXPLORATION);
+                game.bannedCategory = new FutureOrDefault<>(
+                        player.send(new SelectCategoryRequest(game.getGameState())),
+                        response -> response.getCategory() == null || allowedCategories.contains(response.getCategory()),
+                        new CategoryResponse(null)).getResult().getCategory();
+            }
+            case PIRATES_VIKINGS -> {
+                // Choose node(s)
+            }
+            case REBELLION -> {
+                // Choose node(s)
+            }
+            case REVOLUTIONARY_UPRISINGS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.COMMERCE).count()));
+            case THE_CRUSADES -> {
+                // Choose node(s)
+            }
+            case WAR -> {
+
+            }
+            case BLACK_DEATH -> {
+                final int area = new FutureOrDefault<>(
+                        player.send(new BidForTurnOrderRequest(game.getGameState())),
+                        response -> response.getInt() >= 1 && response.getInt() <= 8,
+                        new IntegerResponse(1)).getResult().getInt();
+            }
+            case RELIGIOUS_STRIFE -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.RELIGION).count()));
             case MONGOL_ARMIES -> player.adjustCash(10);
         }
     }

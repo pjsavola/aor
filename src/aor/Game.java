@@ -3,9 +3,7 @@ package aor;
 import message.*;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
+
 public class Game {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
 
@@ -25,8 +23,10 @@ public class Game {
     final List<Player> turnOrder;
     private final int playerCount;
     private int round = 1;
-    private Player current;
+    Player enlightenedRuler;
+    Player civilWar;
     private final Random r = new Random();
+    public List<Node> nodes;
 
     public Game() {
         initDecks();
@@ -104,32 +104,6 @@ public class Game {
         epoch3.add(Cards.henryOldenburg);
         epoch3.add(Cards.leonardoDaVinci);
         epoch3.add(Cards.sirIsaacNewton);
-    }
-
-    private static class FutureOrDefault<T extends Response> {
-        private final CompletableFuture<T> result;
-        private final T fallback;
-        private final Function<T, Boolean> requirement;
-
-        private FutureOrDefault(CompletableFuture<T> result, Function<T, Boolean> requirement, T fallback) {
-            this.result = result;
-            this.requirement = requirement;
-            this.fallback = fallback;
-        }
-
-        private T getResult() {
-            final T result = get();
-            return requirement.apply(result) ? result : fallback;
-        }
-
-        private T get() {
-            try {
-                return result.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                return fallback;
-            }
-        }
     }
 
     public void run() {
@@ -424,6 +398,11 @@ public class Game {
     }
 
     private void expansionPhase() {
+        if (civilWar != null) {
+            turnOrder.remove(civilWar);
+            turnOrder.add(civilWar);
+            civilWar = null;
+        }
         queryForRenaissance();
         phase = Phase.INCOME;
     }
@@ -436,6 +415,7 @@ public class Game {
             phase = Phase.FINAL_PLAY_CARD;
         } else {
             bannedCategory = null;
+            enlightenedRuler = null;
             if (round++ == 2 && !delayedCards.isEmpty()) {
                 deck.addAll(delayedCards);
                 delayedCards.clear();
@@ -470,7 +450,7 @@ public class Game {
         return options;
     }
 
-    private GameState getGameState() {
+    public GameState getGameState() {
         final GameState state = new GameState();
         state.epoch = getEpoch();
         state.deckSize = deck.size();

@@ -26,7 +26,7 @@ public class Player {
 
     private Map<Node, Integer> tokens = new HashMap<>();
     private Map<Node, Integer> newTokens = new HashMap<>();
-    private int usableTokens;
+    public int usableTokens;
     int renaissanceUsed;
     boolean chaos;
     private Client client = new Client(null);
@@ -48,6 +48,10 @@ public class Player {
         return state;
     }
 
+    public Node.CityState getCapital() {
+        return capital;
+    }
+
     public <T extends Request, U extends Response> CompletableFuture<U> send(T request) {
         return CompletableFuture.supplyAsync(() -> client.request(request));
     }
@@ -65,9 +69,13 @@ public class Player {
     }
 
     public void addTokens(int bid) {
-        final int usedTokens = tokens.values().stream().mapToInt(Integer::intValue).sum();
-        final int maxTokens = maxTokenCount - usedTokens;
+        final int maxTokens = getRemainingTokens();
         usableTokens = Math.max(0, Math.min(bid, maxTokens));
+    }
+
+    public int getRemainingTokens() {
+        final int usedTokens = tokens.values().stream().mapToInt(Integer::intValue).sum();
+        return maxTokenCount - usedTokens - usableTokens;
     }
 
     public int getIncome(int playerCount) {
@@ -140,12 +148,23 @@ public class Player {
     }
 
     public void adjustMisery(int delta) {
+        if (chaos) return;
+
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
             chaos = true;
             cards.forEach(game::moveToNextDeck);
             cards.clear();
         }
+    }
+
+    public void reduceCity(Node node) {
+        cities.remove(node);
+        if (getRemainingTokens() == 0) {
+            if (usableTokens <= 0) return;
+            --usableTokens;
+        }
+        tokens.put(node, 1);
     }
 
     private int getSetCount() {
