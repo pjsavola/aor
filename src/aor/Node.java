@@ -71,6 +71,14 @@ public class Node {
         return capital;
     }
 
+    public int getSize() {
+        return size;
+    }
+
+    public int getRegion() {
+        return region;
+    }
+
     public boolean hasCommodity(Commodity commodity) {
         if (commodity != null) return this.commodity == commodity;
         return specialCommodities != null && specialCommodities.contains(commodity);

@@ -485,7 +485,7 @@ public class Game {
         return card;
     }
 
-    public void purchasePhaseFinished() {
+    private void purchasePhaseFinished() {
         for (Player player : players) {
             player.purchasePhaseFinished();
         }

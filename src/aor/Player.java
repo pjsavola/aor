@@ -158,13 +158,21 @@ public class Player {
         }
     }
 
-    public void reduceCity(Node node) {
-        cities.remove(node);
-        if (getRemainingTokens() == 0) {
-            if (usableTokens <= 0) return;
-            --usableTokens;
+    public void reduce(List<Node> nodes) {
+        nodes.forEach(tokens::remove);
+        nodes.forEach(this::reduce);
+    }
+
+    public void reduce(Node node) {
+        if (cities.remove(node)) {
+            if (getRemainingTokens() == 0) {
+                if (usableTokens <= 0) return;
+                --usableTokens;
+            }
+            tokens.put(node, 1);
+        } else {
+            tokens.remove(node);
         }
-        tokens.put(node, 1);
     }
 
     private int getSetCount() {

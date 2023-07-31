@@ -77,7 +77,7 @@ public class EventCard extends Card {
                 for (Player p : game.players) {
                     final int idx = p.cities.indexOf(node);
                     if (idx != -1) {
-                        p.reduceCity(p.cities.get(idx));
+                        p.reduce(p.cities.get(idx));
                         break;
                     }
                 }
@@ -110,6 +110,9 @@ public class EventCard extends Card {
                         player.send(new BidForTurnOrderRequest(game.getGameState())),
                         response -> response.getInt() >= 1 && response.getInt() <= 8,
                         new IntegerResponse(1)).getResult().getInt();
+                for (Player p : game.players) {
+                    p.reduce(game.nodes.stream().filter(n -> n.getRegion() == area).toList());
+                }
             }
             case RELIGIOUS_STRIFE -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.RELIGION).count()));
             case MONGOL_ARMIES -> player.adjustCash(10);
