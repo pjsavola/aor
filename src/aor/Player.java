@@ -182,6 +182,13 @@ public class Player {
         }
     }
 
+    public void remove(Node node) {
+        cities.remove(node);
+        tokens.remove(node);
+        newCities.remove(node);
+        newTokens.remove(node);
+    }
+
     private int getSetCount() {
         final int civics = (int) advances.stream().filter(a -> a.category == Advance.Category.CIVICS).count();
         final int commerce = (int) advances.stream().filter(a -> a.category == Advance.Category.COMMERCE).count();

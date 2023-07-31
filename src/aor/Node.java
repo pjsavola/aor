@@ -84,6 +84,13 @@ public class Node {
         return specialCommodities != null && specialCommodities.contains(commodity);
     }
 
+    public boolean isCoastal() {
+        for (Line line : borders) {
+            if (line.water) return true;
+        }
+        return false;
+    }
+
     public boolean needsRemoval(Line line) {
         for (Line border : borders) {
             if (border == line) return true;
