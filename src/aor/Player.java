@@ -80,11 +80,16 @@ public class Player {
         return maxTokenCount - usedTokens - usableTokens;
     }
 
-    public int getIncome(int playerCount) {
+    public int flipTokens() {
+        int count = newCities.size();
         cities.addAll(newCities);
         newCities.clear();
         tokens.putAll(newTokens);
         newTokens.clear();
+        return count;
+    }
+
+    public int getIncome(int playerCount) {
         final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
         final int income = baseIncome + Math.min(25, cities.size()) * playerCount;
         final int interest = advances.contains(Advance.interestAndProfit) ? Math.min(cash, income) : 0;

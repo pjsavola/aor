@@ -346,8 +346,21 @@ public class Game {
     }
 
     private void incomePhase() {
+        int mostTokens = 0;
+        Player winningPlayer = null;
         for (Player player : players) {
-            player.getIncome(playerCount);
+            final int tokens = player.flipTokens();
+            if (tokens > mostTokens) {
+                mostTokens = tokens;
+                winningPlayer = player;
+            }
+            player.adjustCash(player.getIncome(playerCount));
+        }
+        if (winningPlayer != null) {
+            final Card c = drawCard();
+            if (c != null) {
+                winningPlayer.notify(new CardNotification(c));
+            }
         }
         if (deck.isEmpty()) {
             phase = Phase.FINAL_PLAY_CARD;
