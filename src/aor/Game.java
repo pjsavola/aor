@@ -287,6 +287,7 @@ public class Game {
                     phase = Phase.BUY_CARD;
                 }
                 case BUY_CARD -> {
+                    queryForRenaissance();
                     for (Player player : turnOrder) {
                         if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
                             if (new FutureOrDefault<>(
@@ -323,6 +324,7 @@ public class Game {
                     phase = Phase.PLAY_CARD;
                 }
                 case PLAY_CARD -> {
+                    queryForRenaissance();
                     for (Player player : turnOrder) {
                         while (!player.cards.isEmpty()) {
                             final int cardIndex = new FutureOrDefault<>(
@@ -340,9 +342,21 @@ public class Game {
                     phase = Phase.PURCHASE;
                 }
                 case PURCHASE -> {
+                    queryForRenaissance();
+                    for (Player player : turnOrder) {
+
+                    }
+                    purchasePhaseFinished();
                     phase = Phase.EXPANSION;
                 }
                 case EXPANSION -> {
+                    queryForRenaissance();
+                    phase = Phase.INCOME;
+                }
+                case INCOME -> {
+                    for (Player player : players) {
+                        player.getIncome(playerCount);
+                    }
                     if (deck.isEmpty()) {
                         phase = Phase.FINAL_PLAY_CARD;
                     } else {

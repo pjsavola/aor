@@ -95,9 +95,9 @@ public class Player {
         return result;
     }
 
-    public int getIncome(int playerCount, int cityCount) {
+    public int getIncome(int playerCount) {
         final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
-        final int income = baseIncome + Math.min(25, cityCount) * playerCount;
+        final int income = baseIncome + Math.min(25, cities.size()) * playerCount;
         final int interest = advances.contains(Advance.interestAndProfit) ? Math.min(cash, income) : 0;
         return income + interest;
     }
