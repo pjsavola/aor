@@ -28,85 +28,81 @@ public class Game {
     private final Random r = new Random();
 
     public Game() {
-        final WeaponCard stirrups = new WeaponCard("Stirrups", 1);
-        final WeaponCard armor = new WeaponCard("Armor", 2);
-        final Card papalDecree = new EventCard(EventCard.Type.PAPAL_DECREE);
-        final Card theCrusades = new EventCard(EventCard.Type.THE_CRUSADES);
-        final Card rashidAdDin = new LeaderCard("Rashid ad Din", 10, Advance.writtenRecord, Advance.overlandEast);
-        final Card walterThePenniless = new LeaderCard("Walter the Penniless", 20, theCrusades, 10, Advance.overlandEast);
-        epoch1.add(stirrups);
-        epoch1.add(armor);
-        epoch1.add(papalDecree);
-        epoch1.add(new CommodityCard(Commodity.STONE));
-        epoch1.add(new CommodityCard(Commodity.STONE));
-        epoch1.add(new CommodityCard(Commodity.WOOL));
-        epoch1.add(new CommodityCard(Commodity.WOOL));
-        epoch1.add(new CommodityCard(Commodity.TIMBER));
-        epoch1.add(new CommodityCard(Commodity.TIMBER));
-        epoch1.add(new DoubleCommodityCard(Commodity.CLOTH, Commodity.WINE));
-        epoch1.add(new CommodityCard(Commodity.METAL));
-        epoch1.add(new CommodityCard(Commodity.FUR));
-        epoch1.add(new DoubleCommodityCard(Commodity.GOLD, Commodity.IVORY));
-        epoch1.add(new LeaderCard("Charlemagne", 20, Advance.nationalism));
-        epoch1.add(new LeaderCard("Dionysus Exiguus", 20, Advance.writtenRecord));
-        epoch1.add(new LeaderCard("St. Benedict", 10, Advance.writtenRecord, Advance.patronage));
-        epoch1.add(new EventCard(EventCard.Type.ALCHEMISTS_GOLD));
-        epoch1.add(new EventCard(EventCard.Type.CIVIL_WAR));
-        epoch1.add(new EventCard(EventCard.Type.ENLIGHTENED_RULER));
-        epoch1.add(new EventCard(EventCard.Type.FAMINE));
-        epoch1.add(new EventCard(EventCard.Type.MYSTICISM_ABOUNDS));
-        epoch1.add(new EventCard(EventCard.Type.PIRATES_VIKINGS));
-        epoch1.add(new EventCard(EventCard.Type.REBELLION));
-        epoch1.add(new EventCard(EventCard.Type.REVOLUTIONARY_UPRISINGS));
-        epoch1.add(new EventCard(EventCard.Type.WAR));
-
-        delayedCards.add(theCrusades);
-        delayedCards.add(walterThePenniless);
-        delayedCards.add(rashidAdDin);
-        delayedCards.add(new CommodityCard(Commodity.SILK));
-        delayedCards.add(new CommodityCard(Commodity.SPICE));
-
-        final Card mongolArmies = new EventCard(EventCard.Type.MONGOL_ARMIES).invalidates(theCrusades);
-        epoch2.add(mongolArmies);
-        epoch2.add(new CommodityCard(Commodity.TIMBER));
-        epoch2.add(new CommodityCard(Commodity.GRAIN));
-        epoch2.add(new CommodityCard(Commodity.GRAIN));
-        epoch2.add(new CommodityCard(Commodity.CLOTH));
-        epoch2.add(new CommodityCard(Commodity.WINE));
-        epoch2.add(new CommodityCard(Commodity.METAL));
-        epoch2.add(new CommodityCard(Commodity.SILK));
-        epoch2.add(new CommodityCard(Commodity.SPICE));
-        epoch2.add(new LeaderCard("Christopher Columbus", 30, Advance.oceanNavigation, Advance.newWorld));
-        epoch2.add(new LeaderCard("Desiderius Erasmus", 20, Advance.printedWord, Advance.renaissance));
-        epoch2.add(new LeaderCard("Ibn Majid", 20, Advance.oceanNavigation, Advance.cosmopolitan));
-        epoch2.add(new LeaderCard("Johann Gutenberg", 30, Advance.printedWord));
-        epoch2.add(new LeaderCard("Marco Polo", 20, mongolArmies, 20, Advance.overlandEast, Advance.cosmopolitan));
-        epoch2.add(new LeaderCard("Nicolaus Copernicus", 20, Advance.heavens, Advance.institutionalResearch));
-        epoch2.add(new LeaderCard("Prince Henry", 20, Advance.oceanNavigation, Advance.institutionalResearch));
-        epoch2.add(new LeaderCard("William Caxton", 20, Advance.printedWord));
-        epoch2.add(new WeaponCard("Long Bow", 3).invalidates(stirrups, armor));
-        epoch2.add(new WeaponCard("Gunpowder", 4).invalidates(stirrups, armor));
-        epoch2.add(new EventCard(EventCard.Type.BLACK_DEATH));
-        epoch2.add(new EventCard(EventCard.Type.RELIGIOUS_STRIFE).invalidates(papalDecree));
-
-        epoch3.add(new CommodityCard(Commodity.CLOTH));
-        epoch3.add(new CommodityCard(Commodity.WINE));
-        epoch3.add(new CommodityCard(Commodity.METAL));
-        epoch3.add(new CommodityCard(Commodity.FUR));
-        epoch3.add(new CommodityCard(Commodity.SILK));
-        epoch3.add(new CommodityCard(Commodity.SPICE));
-        epoch3.add(new CommodityCard(Commodity.GOLD));
-        epoch3.add(new LeaderCard("Andreas Vesalius", 20, Advance.humanBody, Advance.enlightenment));
-        epoch3.add(new LeaderCard("Bartolome de Las Casas", 30, Advance.cosmopolitan));
-        epoch3.add(new LeaderCard("Galileo Galilei", 20, Advance.heavens, Advance.renaissance));
-        epoch3.add(new LeaderCard("Henry Oldenburg", 30, Advance.enlightenment));
-        epoch3.add(new LeaderCard("Leonardo da Vinci", 20, Advance.masterArt, Advance.humanBody, Advance.renaissance));
-        epoch3.add(new LeaderCard("Sir Isaac Newton", 20, Advance.lawsOfMatter, Advance.enlightenment));
-
+        initDecks();
         players.add(new Player(this));
         playerCount = players.size();
         turnOrder = new ArrayList<>(playerCount);
         phase = Phase.DRAFT;
+    }
+
+    private void initDecks() {
+        epoch1.add(Cards.stirrups);
+        epoch1.add(Cards.armor);
+        epoch1.add(Cards.stone1);
+        epoch1.add(Cards.stone2);
+        epoch1.add(Cards.wool1);
+        epoch1.add(Cards.wool2);
+        epoch1.add(Cards.timber1);
+        epoch1.add(Cards.timber2);
+        epoch1.add(Cards.clothWine);
+        epoch1.add(Cards.metal1);
+        epoch1.add(Cards.fur1);
+        epoch1.add(Cards.goldIvory);
+        epoch1.add(Cards.charlemagne);
+        epoch1.add(Cards.dionysusExiguus);
+        epoch1.add(Cards.stBenedict);
+        epoch1.add(Cards.alchemistsGold);
+        epoch1.add(Cards.civilWar);
+        epoch1.add(Cards.enlightenedRuler);
+        epoch1.add(Cards.famine);
+        epoch1.add(Cards.mysticismAbounds);
+        epoch1.add(Cards.papalDecree);
+        epoch1.add(Cards.piratesVikings);
+        epoch1.add(Cards.rebellion);
+        epoch1.add(Cards.revolutionaryUprisings);
+        epoch1.add(Cards.war);
+
+        delayedCards.add(Cards.theCrusades);
+        delayedCards.add(Cards.walterThePenniless);
+        delayedCards.add(Cards.rashidAdDin);
+        delayedCards.add(Cards.silk1);
+        delayedCards.add(Cards.spice1);
+
+        epoch2.add(Cards.longBow);
+        epoch2.add(Cards.gunpowder);
+        epoch2.add(Cards.timber3);
+        epoch2.add(Cards.grain1);
+        epoch2.add(Cards.grain2);
+        epoch2.add(Cards.cloth1);
+        epoch2.add(Cards.wine1);
+        epoch2.add(Cards.metal2);
+        epoch2.add(Cards.silk2);
+        epoch2.add(Cards.spice2);
+        epoch2.add(Cards.christopherColumbus);
+        epoch2.add(Cards.desideriusErasmus);
+        epoch2.add(Cards.ibnMajid);
+        epoch2.add(Cards.johannGutenberg);
+        epoch2.add(Cards.marcoPolo);
+        epoch2.add(Cards.nicolausCopernicus);
+        epoch2.add(Cards.princeHenry);
+        epoch2.add(Cards.williamCaxton);
+        epoch2.add(Cards.mongolArmies);
+        epoch2.add(Cards.blackDeath);
+        epoch2.add(Cards.religiousStrife);
+
+        epoch3.add(Cards.cloth2);
+        epoch3.add(Cards.wine2);
+        epoch3.add(Cards.metal3);
+        epoch3.add(Cards.fur2);
+        epoch3.add(Cards.silk3);
+        epoch3.add(Cards.spice3);
+        epoch3.add(Cards.gold);
+        epoch3.add(Cards.andreasVesalius);
+        epoch3.add(Cards.bartolomeDeLasCasas);
+        epoch3.add(Cards.galileoGalilei);
+        epoch3.add(Cards.henryOldenburg);
+        epoch3.add(Cards.leonardoDaVinci);
+        epoch3.add(Cards.sirIsaacNewton);
     }
 
     private static class FutureOrDefault<T extends Response> {
