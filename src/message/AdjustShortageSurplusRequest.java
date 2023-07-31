@@ -1,12 +1,25 @@
 package message;
 
+import aor.Commodity;
 import aor.GameState;
 
-public class AdjustShortageSurplusRequest extends Request {
-    private final String info;
+import java.util.Set;
 
-    public AdjustShortageSurplusRequest(GameState gameState, String info) {
-        super(gameState);
-        this.info = info;
+public class AdjustShortageSurplusRequest extends Request<CommodityReponse> {
+    private final Set<Commodity> options;
+
+    public AdjustShortageSurplusRequest(String info, GameState gameState, Set<Commodity> options) {
+        super(info, gameState);
+        this.options = options;
+    }
+
+    @Override
+    public boolean validateResponse(CommodityReponse response) {
+        return response.getCommodity() == null || (options.contains(response.getCommodity()) && Math.abs(response.getAdjustment()) == 1);
+    }
+
+    @Override
+    public CommodityReponse getDefaultResponse() {
+        return new CommodityReponse(null);
     }
 }

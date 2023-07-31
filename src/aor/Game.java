@@ -128,10 +128,7 @@ public class Game {
             final Player player = turnOrder.get(i);
             final Set<Integer> renaissanceOptions = getRenaissanceOptions(i, turnOrder, round);
             if (!renaissanceOptions.isEmpty()) {
-                final int delta = new FutureOrDefault<>(
-                        player.send(new UseRenaissanceRequest(getGameState())),
-                        response -> response.getInt() == 0 || renaissanceOptions.contains(response.getInt()),
-                        new IntegerResponse(0)).getResult().getInt();
+                final int delta = new FutureOrDefault<>(player, new UseRenaissanceRequest(getGameState(), renaissanceOptions)).get().getInt();
                 if (delta != 0) {
                     turnOrder.set(i, turnOrder.get(i + delta));
                     turnOrder.set(i + delta, player);
@@ -144,26 +141,23 @@ public class Game {
     private void draftPhase() {
         deck = epoch1;
         Collections.shuffle(deck, r);
-        final List<FutureOrDefault<IntegerResponse>> asyncDiscards = new ArrayList<>(playerCount);
+        final List<FutureOrDefault<SelectCardRequest, IntegerResponse>> asyncDiscards = new ArrayList<>(playerCount);
         final List<List<Card>> hands = new ArrayList<>(playerCount);
         for (Player player : players) {
             final List<Card> hand = List.of(drawCard(), drawCard(), drawCard());
             hands.add(hand);
-            asyncDiscards.add(new FutureOrDefault<>(
-                    player.send(new SelectCardRequest("Discard 1 card", hand)),
-                    index -> index.getInt() >= 0 && index.getInt() < hand.size(),
-                    new IntegerResponse(0)));
+            asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", hand, false)));
         }
         if (players.size() <= 4) {
             deck.addAll(delayedCards);
             delayedCards.clear();
         }
         for (int i = 0; i < playerCount; ++i) {
-            final IntegerResponse response = asyncDiscards.get(i).getResult();
+            final int index = asyncDiscards.get(i).get().getInt();
             final List<Card> hand = hands.get(i);
             for (int j = 0; j < hand.size(); ++j) {
                 final Card card = hand.get(j);
-                if (response.getInt() == j) {
+                if (index == j) {
                     deck.add(card);
                 } else {
                     players.get(i).addCard(card);
@@ -177,16 +171,13 @@ public class Game {
     private void selectCapitalPhase() {
         final List<Player> selectionOrder = new ArrayList<>(players);
         Collections.shuffle(selectionOrder);
-        final List<FutureOrDefault<IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
+        final List<FutureOrDefault<BidForCapitalRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : selectionOrder) {
-            asyncBids.add(new FutureOrDefault<>(
-                    player.send(new BidForCapitalRequest()),
-                    bid -> bid.getInt() >= 0 && bid.getInt() <= 40,
-                    new IntegerResponse(0)));
+            asyncBids.add(new FutureOrDefault<>(player, new BidForCapitalRequest()));
         }
         final List<Integer> bids = new ArrayList<>(playerCount);
         final Set<Node.CityState> options = new HashSet<>(playerCount);
-        asyncBids.stream().map(FutureOrDefault::getResult).mapToInt(IntegerResponse::getInt).forEach(bids::add);
+        asyncBids.stream().map(FutureOrDefault::get).mapToInt(IntegerResponse::getInt).forEach(bids::add);
         players.clear();
         while (!selectionOrder.isEmpty()) {
             int highestBid = -1;
@@ -205,10 +196,7 @@ public class Game {
             turnOrder.add(player);
         }
         for (Player player : turnOrder) {
-            final Node.CityState capital = new FutureOrDefault<>(
-                    player.send(new SelectCapitalRequest(getGameState())),
-                    response -> options.contains(response.getCapital()),
-                    new CapitalResponse(options.iterator().next())).getResult().getCapital();
+            final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
             player.selectCapital(capital);
             options.remove(capital);
         }
@@ -218,15 +206,12 @@ public class Game {
     private void orderOfPlayPhase() {
         turnOrder.clear();
         final GameState gameState = getGameState();
-        final List<FutureOrDefault<IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
+        final List<FutureOrDefault<BidForTurnOrderRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : players) {
-            asyncBids.add(new FutureOrDefault<>(
-                    player.send(new BidForTurnOrderRequest(gameState)),
-                    bid -> Math.abs(bid.getInt()) <= player.getCash(),
-                    new IntegerResponse(0)));
+            asyncBids.add(new FutureOrDefault<>(player, new BidForTurnOrderRequest(gameState, player.getCash())));
         }
         final List<Integer> bids = new ArrayList<>(playerCount);
-        asyncBids.stream().map(FutureOrDefault::getResult).mapToInt(IntegerResponse::getInt).forEach(bids::add);
+        asyncBids.stream().map(FutureOrDefault::get).mapToInt(IntegerResponse::getInt).forEach(bids::add);
         while (turnOrder.size() < playerCount) {
             int lowestBid = Integer.MAX_VALUE;
             int index = -1;
@@ -254,12 +239,9 @@ public class Game {
             for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             if (!options.isEmpty()) {
-                final CommodityReponse commodityReponse = new FutureOrDefault<>(
-                        player.send(new AdjustShortageSurplusRequest(getGameState(), "Pay off shortage/surplus?")),
-                        response -> response.getCommodity() == null || options.contains(response.getCommodity()),
-                        new CommodityReponse(null)).getResult();
+                final CommodityReponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
-                if (selectedCommodity == null || commodityReponse.getAdjustment() == 0) {
+                if (selectedCommodity == null) {
                     break;
                 } else {
                     player.adjustCash(-selectedCommodity.getValue());
@@ -270,14 +252,11 @@ public class Game {
         }
         if (turnOrder.get(turnOrder.size() - 1).getAdvances().contains(Advance.windWaterMill)) {
             final Player player = turnOrder.get(turnOrder.size() - 1);
-            final CommodityReponse commodityReponse = new FutureOrDefault<>(
-                    player.send(new AdjustShortageSurplusRequest(getGameState(), "Adjust shortage/surplus?")),
-                    response -> response.getCommodity() == null || (response.getCommodity().getValue() >= Commodity.GRAIN.getValue() && response.getCommodity().getValue() <= Commodity.METAL.getValue()),
-                    new CommodityReponse(null)).getResult();
+            final Set<Commodity> options = Set.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.WINE, Commodity.METAL);
+            final CommodityReponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options)).get();
             final Commodity selectedCommodity = commodityReponse.getCommodity();
-            final int adjustment = commodityReponse.getAdjustment();
-            if (selectedCommodity != null && adjustment != 0) {
-                if (adjustment > 0) {
+            if (selectedCommodity != null) {
+                if (commodityReponse.getAdjustment() > 0) {
                     if (!surpluses.remove(selectedCommodity)) shortages.add(selectedCommodity);
                 } else {
                     if (!shortages.remove(selectedCommodity)) surpluses.add(selectedCommodity);
@@ -297,23 +276,17 @@ public class Game {
         queryForRenaissance();
         for (Player player : turnOrder) {
             if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
-                if (new FutureOrDefault<>(
-                        player.send(new UseUrbanAscendancyRequest(getGameState())),
-                        response -> true,
-                        new BooleanResponse(false)).getResult().getBool()) {
+                if (new FutureOrDefault<>(player, new UseUrbanAscendancyRequest(getGameState())).get().getBool()) {
                     final Card c = drawCard();
                     player.adjustCash(-10);
                     player.notify(new CardNotification(c));
                 }
             }
         }
-        final List<FutureOrDefault<IntegerResponse>> masterArtResponses = new ArrayList<>();
+        final List<FutureOrDefault<SelectCardRequest, IntegerResponse>> masterArtResponses = new ArrayList<>();
         for (Player player : turnOrder) {
             if (!player.cards.isEmpty() && player.getAdvances().contains(Advance.masterArt)) {
-                masterArtResponses.add(new FutureOrDefault<>(
-                        player.send(new SelectCardRequest("Discard 1 card?", player.cards)),
-                        index -> index.getInt() >= -1 && index.getInt() < player.cards.size(),
-                        new IntegerResponse(-1)));
+                masterArtResponses.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card with Master Art?", player.cards, true)));
             } else {
                 masterArtResponses.add(null);
             }
@@ -321,7 +294,7 @@ public class Game {
         for (int i = 0; i < playerCount; ++i) {
             if (masterArtResponses.get(i) != null) {
                 final Player player = turnOrder.get(i);
-                final int index = masterArtResponses.get(i).getResult().getInt();
+                final int index = masterArtResponses.get(i).get().getInt();
                 if (index != -1) {
                     final Card card = player.cards.remove(index);
                     moveToNextDeck(card);
@@ -335,14 +308,13 @@ public class Game {
         queryForRenaissance();
         for (Player player : turnOrder) {
             while (!player.cards.isEmpty()) {
-                final int cardIndex = new FutureOrDefault<>(
-                        player.send(new SelectCardRequest("PLay 1 card?", player.cards)),
-                        index -> index.getInt() == -1 || (index.getInt() >= 0 && index.getInt() < player.cards.size() && player.cards.get(index.getInt()).canPlay(this)),
-                        new IntegerResponse(-1)).getResult().getInt();
+                final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("PLay 1 card?", playableCards, true)).get().getInt();
                 if (cardIndex == -1) {
                     break;
                 } else {
-                    final Card card = player.cards.remove(cardIndex);
+                    final Card card = playableCards.get(cardIndex);
+                    player.cards.remove(card);
                     card.play(this, player);
                 }
             }
@@ -352,43 +324,9 @@ public class Game {
 
     private void purchasePhase() {
         queryForRenaissance();
-        for (Player player : turnOrder) {
-            final List<Advance> advances = new FutureOrDefault<>(
-                    player.send(new PurchaseAdvancesRequest(getGameState())),
-                    response -> {
-                        int cash = player.getCash();
-                        int misery = player.misery;
-                        final Set<Advance> allAdvances = new HashSet<>(player.getAdvances());
-                        final List<Advance> list = response.getAdvances();
-                        for (Advance advance : list) {
-                            if (misery >= Player.miserySteps.length) {
-                                return false;
-                            }
-                            if (advance.category == bannedCategory && !playedCards.contains(Cards.religiousStrife)) {
-                                return false;
-                            }
-                            if (!allAdvances.containsAll(advance.prerequisites)) {
-                                return false;
-                            }
-                            final int cost = advance.getCost(this, player);
-                            final LeaderCard card = getBestLeaderCard(advance, player);
-                            final int discount = card == null ? 0 : card.amount;
-                            final int finalCost = Math.max(0, cost - discount);
-                            if (cash < finalCost) {
-                                return false;
-                            }
-                            cash -= finalCost;
-                            allAdvances.add(advance);
-                            if (advance == Advance.humanBody || advance == Advance.improvedAgriculture) {
-                                misery = Math.max(0, misery - 1);
-                            }
-                            if (advance.category == Advance.Category.RELIGION) {
-                                ++misery;
-                            }
-                        }
-                        return true;
-                    },
-                    new PurchaseAdvancesResponse(Collections.emptyList())).getResult().getAdvances();
+        for (int i = 0; i < turnOrder.size(); ++i) {
+            final Player player = turnOrder.get(i);
+            final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), i)).get().getAdvances();
             for (Advance advance : advances) {
                 player.research(advance);
             }
@@ -429,10 +367,7 @@ public class Game {
         for (Player player : turnOrder) {
             player.cards.removeIf(c -> !c.canPlay(this));
             while (!player.cards.isEmpty()) {
-                final int cardIndex = new FutureOrDefault<>(
-                        player.send(new SelectCardRequest("PLay 1 cards", player.cards)),
-                        index -> index.getInt() >= -0 && index.getInt() < player.cards.size(),
-                        new IntegerResponse(0)).getResult().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", player.cards, false)).get().getInt();
                 final Card card = player.cards.remove(cardIndex);
                 card.play(this, player);
             }
@@ -456,9 +391,19 @@ public class Game {
         state.deckSize = deck.size();
         state.phase = phase;
         state.round = round;
-        turnOrder.forEach(p -> state.turnOrder.add(p.getState()));
         state.shortages.addAll(shortages);
         state.surpluses.addAll(surpluses);
+        state.bannedCategory = bannedCategory;
+        state.playedCards = playedCards.stream().mapToInt(Card::getIndex).toArray();
+        turnOrder.forEach(p -> state.turnOrder.add(p.getState()));
+        state.patronageCards = new int[patronageQueue.size()];
+        state.patronageUsesRemaining = new int[patronageQueue.size()];
+        for (int i = 0; i < patronageQueue.size(); ++i) {
+            state.patronageCards[i] = patronageQueue.get(i).getIndex();
+            state.patronageUsesRemaining[i] = patronageQueue.get(i).usesRemaining;
+            final int playerIdx = turnOrder.indexOf(patronageQueue.get(i).owner);
+            state.turnOrder.get(playerIdx).ownedPatronageCards.add(state.patronageCards[i]);
+        }
         return state;
     }
 
@@ -516,15 +461,15 @@ public class Game {
         }
     }
 
-    public LeaderCard getBestLeaderCard(Advance advance, Player player) {
+    public LeaderCard getBestLeaderCard(Advance advance, Player player, Set<Advance> allAdvances) {
         int maxDiscount = 0;
         LeaderCard bestCard = null;
         for (LeaderCard card : patronageQueue) {
             for (Advance discount : card.advances) {
                 if (advance == discount) {
-                    final int amount = card.getAmount(this);
+                    final int amount = card.getAmount(playedCards);
                     if (amount > maxDiscount) {
-                        if (card.canUse(player)) {
+                        if (card.canUse(player, allAdvances)) {
                             maxDiscount = amount;
                             bestCard = card;
                         }

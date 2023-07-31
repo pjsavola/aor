@@ -45,6 +45,8 @@ public class Player {
         state.numberOfCards = cards.size();
         state.cash = cash;
         state.writtenCash = writtenCash;
+        state.misery = misery;
+        state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
         return state;
     }
 
@@ -102,9 +104,9 @@ public class Player {
         allAdvances.addAll(newAdvances);
         if (!allAdvances.containsAll(advance.prerequisites)) return;
 
-        final int cost = advance.getCost(game, this);
-        final LeaderCard card = game.getBestLeaderCard(advance, this);
-        final int discount = card == null ? 0 : card.amount;
+        final int cost = advance.getCost(advances);
+        final LeaderCard card = game.getBestLeaderCard(advance, this, allAdvances);
+        final int discount = card == null ? 0 : card.getAmount(game.playedCards);
         final int finalCost = Math.max(0, cost - discount);
         if (cash >= finalCost) {
             if (cost > 0 && discount > 0) {
@@ -136,7 +138,7 @@ public class Player {
         if (advances.contains(Advance.printedWord)) {
             for (Advance advance : card.advances) {
                 if (advances.contains(advance)) {
-                    cash += card.getAmount(game);
+                    cash += card.getAmount(game.playedCards);
                     break;
                 }
             }

@@ -1,33 +1,28 @@
 package aor;
 
+import message.Request;
 import message.Response;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
-class FutureOrDefault<T extends Response> {
-    private final CompletableFuture<T> result;
-    private final T fallback;
-    private final Function<T, Boolean> requirement;
+public class FutureOrDefault<T extends Request<U>, U extends Response> {
+    private final CompletableFuture<U> result;
+    private final T request;
 
-    public FutureOrDefault(CompletableFuture<T> result, Function<T, Boolean> requirement, T fallback) {
-        this.result = result;
-        this.requirement = requirement;
-        this.fallback = fallback;
+    public FutureOrDefault(Player player, T request) {
+        this.request = request;
+        result = player.send(request);
     }
 
-    public T getResult() {
-        final T result = get();
-        return requirement.apply(result) ? result : fallback;
-    }
-
-    private T get() {
+    public U get() {
         try {
-            return result.get();
+            final U response = result.get();
+            return request.validateResponse(response) ? response : request.getDefaultResponse();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            return fallback;
+            return request.getDefaultResponse();
         }
     }
 }

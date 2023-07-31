@@ -1,5 +1,7 @@
 package aor;
 
+import java.util.Set;
+
 public class LeaderCard extends Card {
 
     final int amount;
@@ -7,8 +9,8 @@ public class LeaderCard extends Card {
     final int boostedAmount;
     final Advance[] advances;
 
-    private Player owner;
-    private int usesRemaining;
+    Player owner;
+    int usesRemaining;
 
     public LeaderCard(String name, int amount, Advance ... advances) {
         this(name, amount, null, 0, advances);
@@ -22,12 +24,16 @@ public class LeaderCard extends Card {
         this.advances = advances;
     }
 
-    public int getAmount(Game game) {
-        return condition != null && game.playedCards.contains(condition) ? boostedAmount : amount;
+    public int getAmount(Set<Card> playedCards) {
+        return condition != null && playedCards.contains(condition) ? boostedAmount : amount;
     }
 
-    public boolean canUse(Player player) {
-        return owner == player || (usesRemaining > 0 && player.getAdvances().contains(Advance.patronage));
+    public Advance[] getAdvances() {
+        return advances;
+    }
+
+    public boolean canUse(Player player, Set<Advance> allAdvances) {
+        return owner == player || (usesRemaining > 0 && allAdvances.contains(Advance.patronage));
     }
 
     public void use(Player player) {

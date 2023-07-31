@@ -58,8 +58,15 @@ public class Advance {
         return index;
     }
 
-    public int getCost(Game game, Player player) {
-        final Set<Advance> advances = player.getAdvances();
+    public Category getCategory() {
+        return category;
+    }
+
+    public Set<Advance> getPrerequisites() {
+        return prerequisites;
+    }
+
+    public int getCost(Set<Advance> advances) {
         if (advances.contains(this)) return Integer.MAX_VALUE;
         if (!advances.containsAll(prerequisites)) return Integer.MAX_VALUE;
 

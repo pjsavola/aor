@@ -45,28 +45,19 @@ public class EventCard extends Card {
             case ALCHEMISTS_GOLD -> {
                 final Map<Node.CityState, Player> targets = new HashMap<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler && !p.getAdvances().contains(Advance.lawsOfMatter)).forEach(p -> targets.put(p.getCapital(), p));
-                final Node.CityState capital = new FutureOrDefault<>(
-                        player.send(new SelectCapitalRequest(game.getGameState())),
-                        response -> targets.containsKey(response.getCapital()),
-                        new CapitalResponse(targets.keySet().iterator().next())).getResult().getCapital();
+                final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Alchemist's Gold", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
                 target.adjustCash(-(target.writtenCash + 1) / 2);
             }
             case CIVIL_WAR -> {
                 final Map<Node.CityState, Player> targets = new HashMap<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> targets.put(p.getCapital(), p));
-                final Node.CityState capital = new FutureOrDefault<>(
-                        player.send(new SelectCapitalRequest(game.getGameState())),
-                        response -> targets.containsKey(response.getCapital()),
-                        new CapitalResponse(targets.keySet().iterator().next())).getResult().getCapital();
+                final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Civil War", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
                 target.adjustMisery(1);
                 game.civilWar = target;
                 if (!target.chaos) {
-                    final boolean loseTokens = new FutureOrDefault<>(
-                            target.send(new SelectCivilWarLossesRequest(game.getGameState())),
-                            response -> true,
-                            new BooleanResponse(true)).getResult().getBool();
+                    final boolean loseTokens = new FutureOrDefault<>(player, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
                     if (loseTokens) {
                         player.usableTokens -= (player.usableTokens + 1) / 2;
                     } else {
@@ -87,10 +78,7 @@ public class EventCard extends Card {
             case MYSTICISM_ABOUNDS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery(4 - (int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.SCIENCE).count()));
             case PAPAL_DECREE -> {
                 final Set<Advance.Category> allowedCategories = Set.of(Advance.Category.SCIENCE, Advance.Category.RELIGION, Advance.Category.EXPLORATION);
-                game.bannedCategory = new FutureOrDefault<>(
-                        player.send(new SelectCategoryRequest(game.getGameState())),
-                        response -> response.getCategory() == null || allowedCategories.contains(response.getCategory()),
-                        new CategoryResponse(null)).getResult().getCategory();
+                game.bannedCategory = new FutureOrDefault<>(player, new SelectCategoryRequest(game.getGameState(), allowedCategories)).get().getCategory();
             }
             case PIRATES_VIKINGS -> {
                 // Choose node(s)
@@ -106,10 +94,7 @@ public class EventCard extends Card {
 
             }
             case BLACK_DEATH -> {
-                final int area = new FutureOrDefault<>(
-                        player.send(new BidForTurnOrderRequest(game.getGameState())),
-                        response -> response.getInt() >= 1 && response.getInt() <= 8,
-                        new IntegerResponse(1)).getResult().getInt();
+                final int area = new FutureOrDefault<>(player, new SelectAreaRequest(game.getGameState())).get().getInt();
                 for (Player p : game.players) {
                     p.reduce(game.nodes.stream().filter(n -> n.getRegion() == area).toList());
                 }
