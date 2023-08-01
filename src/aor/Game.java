@@ -314,7 +314,7 @@ public class Game {
     private void purchasePhase() {
         queryForRenaissance();
         final List<FutureOrDefault<UpgradeShipsRequest, BooleanResponse>> asyncShipUpgrades = new ArrayList<>(playerCount);
-        final GameState gameState = getGameState();
+        GameState gameState = getGameState();
         for (Player player : players) {
             if (player.shipLevel < 4 && player.getCash() >= 10) {
                 asyncShipUpgrades.add(new FutureOrDefault<>(player, new UpgradeShipsRequest(gameState)));
@@ -337,6 +337,30 @@ public class Game {
                 player.research(advance);
             }
         }
+
+        final Map<Player, FutureOrDefault<StabilizationRequest, BooleanResponse>> asyncDecisions = new HashMap<>(playerCount);
+        gameState = getGameState();
+        for (Player player : players) {
+            final int cost = player.cards.size() * (player.cards.size() + 1) / 2;
+            if (cost > 0 && player.getCash() >= cost) {
+                asyncDecisions.put(player, new FutureOrDefault<>(player, new StabilizationRequest(gameState)));
+            }
+        }
+        for (Player player : players) {
+            int cost = player.cards.size() * (player.cards.size() + 1) / 2;
+            if (cost > 0) {
+                final FutureOrDefault<StabilizationRequest, BooleanResponse> response = asyncDecisions.get(player);
+                if (response != null && response.get().getBool()) {
+                    player.adjustCash(-cost);
+                } else {
+                    while (!player.chaos && cost > 0) {
+                        player.adjustMisery(1);
+                        cost -= Player.miserySteps[player.misery] - Player.miserySteps[player.misery - 1];
+                    }
+                }
+            }
+        }
+
         purchasePhaseFinished();
         phase = Phase.EXPANSION;
     }
