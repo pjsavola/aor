@@ -57,7 +57,7 @@ public class EventCard extends Card {
                 if (!target.chaos) {
                     final boolean loseTokens = new FutureOrDefault<>(player, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
                     if (loseTokens) {
-                        player.usableTokens -= (player.usableTokens + 1) / 2;
+                        player.adjustUsableTokens(-(player.getUsableTokens() + 1) / 2);
                     } else {
                         player.adjustCash(-(player.writtenCash + 1) / 2);
                     }

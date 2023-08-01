@@ -377,15 +377,13 @@ public class Game {
         for (Player player : turnOrder) {
             if (player.getAdvances().contains(Advance.holyIndulgence)) {
                 final int maxExtra = (playerCount - indulgenceOwners) * 2;
-                final int extra = Math.min(maxExtra, player.remainingTokens);
-                player.usableTokens += extra;
-                player.remainingTokens -= extra;
+                final int extra = Math.min(maxExtra, player.getRemainingTokens());
+                player.adjustUsableTokens(extra);
                 if (extra < maxExtra) player.adjustCash(maxExtra - extra);
             } else {
                 final int maxPayment = indulgenceOwners * 2;
-                final int payment = Math.min(maxPayment, player.usableTokens);
-                player.usableTokens -= payment;
-                player.remainingTokens += payment;
+                final int payment = Math.min(maxPayment, player.getUsableTokens());
+                player.adjustUsableTokens(-payment);
                 if (payment < maxPayment) {
                     boolean payCash = false;
                     if (player.getCash() >= maxPayment - payment) {
@@ -399,9 +397,9 @@ public class Game {
 
         for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
-            while (player.usableTokens > 0) {
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.usableTokens)).get();
-                player.usableTokens -= response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum() + response.getTokensDisbanded();
+            while (player.getUsableTokens() > 0) {
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens())).get();
+                //player.usableTokens -= response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum() + response.getTokensDisbanded();
             }
         }
         phase = Phase.INCOME;

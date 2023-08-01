@@ -25,9 +25,9 @@ public class Player {
     private Node.CityState capital;
     Map<Node, Integer> areas = new HashMap<>();
     private Map<Node, Integer> newAreas = new HashMap<>();
-    int remainingTokens = maxTokenCount;
+    private int remainingTokens = maxTokenCount;
     public Set<Integer> weapons = new HashSet<>();
-    public int usableTokens;
+    private int usableTokens;
     public int shipLevel;
     int renaissanceUsed;
     boolean chaos;
@@ -39,6 +39,19 @@ public class Player {
 
     public int getCash() {
         return cash;
+    }
+
+    public int getUsableTokens() {
+        return usableTokens;
+    }
+
+    public int getRemainingTokens() {
+        return remainingTokens;
+    }
+
+    public void adjustUsableTokens(int amount) {
+        usableTokens += amount;
+        remainingTokens -= amount;
     }
 
     public Stream<Node> getCities() {
@@ -97,6 +110,7 @@ public class Player {
 
     public void addTokens(int bid) {
         usableTokens = Math.max(0, Math.min(bid, remainingTokens));
+        adjustUsableTokens(usableTokens);
     }
 
     public void flipTokens() {
