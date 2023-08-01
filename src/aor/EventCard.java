@@ -57,7 +57,7 @@ public class EventCard extends Card {
                 if (!target.chaos) {
                     final boolean loseTokens = new FutureOrDefault<>(player, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
                     if (loseTokens) {
-                        player.adjustUsableTokens(-(player.getUsableTokens() + 1) / 2);
+                        player.moveTokens(-(player.getUsableTokens() + 1) / 2);
                     } else {
                         player.adjustCash(-(player.writtenCash + 1) / 2);
                     }
@@ -96,7 +96,7 @@ public class EventCard extends Card {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1)).get().getCities();
                     game.nodes.stream().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(n -> {
                         for (Player p : game.players) p.remove(n);
-                        player.areas.put(n, n.getSize());
+                        player.addCity(n);
                     });
                 }
                 player.adjustMisery(1);
@@ -115,7 +115,7 @@ public class EventCard extends Card {
             case BLACK_DEATH -> {
                 final int area = new FutureOrDefault<>(player, new SelectAreaRequest(game.getGameState())).get().getInt();
                 for (Player p : game.players) {
-                    final List<Node> tokenAreas = p.areas.entrySet().stream().filter(e -> e.getKey().getSize() > e.getValue()).map(Map.Entry::getKey).filter(n -> n.getRegion() == area).toList();
+                    final List<Node> tokenAreas = p.getTokenAreas().filter(n -> n.getRegion() == area).toList();
                     for (Node n : tokenAreas) p.remove(n);
                     final List<Node> cityAreas = p.getCities().filter(n -> n.getRegion() == area).toList();
                     for (Node n : cityAreas) p.reduceCity(n);

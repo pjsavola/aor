@@ -6,8 +6,6 @@ import message.Response;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Player {
@@ -23,7 +21,7 @@ public class Player {
     List<Card> cards = new ArrayList<>();
 
     private Node.CityState capital;
-    Map<Node, Integer> areas = new HashMap<>();
+    private Map<Node, Integer> areas = new HashMap<>();
     private Map<Node, Integer> newAreas = new HashMap<>();
     private int remainingTokens = maxTokenCount;
     public Set<Integer> weapons = new HashSet<>();
@@ -49,9 +47,26 @@ public class Player {
         return remainingTokens;
     }
 
-    public void adjustUsableTokens(int amount) {
+    public void moveTokens(int amount) {
         usableTokens += amount;
         remainingTokens -= amount;
+    }
+
+    public void spendTokens(int amount) {
+        usableTokens -= amount;
+        remainingTokens = maxTokenCount - usableTokens - areas.values().stream().mapToInt(Integer::intValue).sum() - newAreas.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    public void addCity(Node node) {
+        areas.put(node, node.getSize());
+    }
+
+    public Stream<Node> getAreas() {
+        return areas.keySet().stream();
+    }
+
+    public Stream<Node> getTokenAreas() {
+        return areas.entrySet().stream().filter(e -> e.getKey().getSize() > e.getValue()).map(Map.Entry::getKey);
     }
 
     public Stream<Node> getCities() {
@@ -110,11 +125,11 @@ public class Player {
 
     public void addTokens(int bid) {
         usableTokens = Math.max(0, Math.min(bid, remainingTokens));
-        adjustUsableTokens(usableTokens);
+        moveTokens(usableTokens);
     }
 
     public void flipTokens() {
-        areas.putAll(newAreas);
+        newAreas.forEach((node, count) -> areas.merge(node, count, Integer::sum));
         newAreas.clear();
     }
 

@@ -378,12 +378,12 @@ public class Game {
             if (player.getAdvances().contains(Advance.holyIndulgence)) {
                 final int maxExtra = (playerCount - indulgenceOwners) * 2;
                 final int extra = Math.min(maxExtra, player.getRemainingTokens());
-                player.adjustUsableTokens(extra);
+                player.moveTokens(extra);
                 if (extra < maxExtra) player.adjustCash(maxExtra - extra);
             } else {
                 final int maxPayment = indulgenceOwners * 2;
                 final int payment = Math.min(maxPayment, player.getUsableTokens());
-                player.adjustUsableTokens(-payment);
+                player.moveTokens(-payment);
                 if (payment < maxPayment) {
                     boolean payCash = false;
                     if (player.getCash() >= maxPayment - payment) {
@@ -399,7 +399,16 @@ public class Game {
             final Player player = turnOrder.get(i);
             while (player.getUsableTokens() > 0) {
                 final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens())).get();
-                //player.usableTokens -= response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum() + response.getTokensDisbanded();
+                if (response.getTokensDisbanded() > 0) {
+                    player.moveTokens(-response.getTokensDisbanded());
+                }
+                response.getTokensUsed().forEach((name, tokens) -> {
+                    nodes.stream().filter(n -> n.getName().equals(name)).findAny().ifPresent(node -> {
+
+                    });
+                });
+                final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
+                player.spendTokens(spentTokens);
             }
         }
         phase = Phase.INCOME;
@@ -515,8 +524,8 @@ public class Game {
             if (roll1 != roll2) {
                 final Player winner =  roll1 > roll2 ? war1 : war2;
                 final Player loser = roll1 > roll2 ? war2 : war1;
-                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.areas.keySet().stream().filter(Node::isInAsia).count());
-                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.areas.keySet().stream().filter(Node::isInNewWorld).count());
+                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.getAreas().filter(Node::isInAsia).count());
+                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.getAreas().filter(Node::isInNewWorld).count());
                 final Set<String> options = loser.getCities()
                         .filter(n -> n.isAccessible(winner.getAdvances()))
                         .filter(n -> !n.isInAsia() || asiaLimit > 0)
@@ -533,7 +542,7 @@ public class Game {
                     for (String target : targets) {
                         loser.getCities().filter(c -> c.getName().equals(target)).forEach(n -> {
                             loser.remove(n);
-                            winner.areas.put(n, n.getSize());
+                            winner.addCity(n);
                         });
                     }
                 }
