@@ -372,9 +372,8 @@ public class Game {
             civilWar = null;
         }
         queryForRenaissance();
-        for (Player player : turnOrder) {
-
-            //new FutureOrDefault<>(player, new ExpansionRequest(getGameState()));
+        for (int i = 0; i < playerCount; ++i) {
+            final ExpansionResponse response = new FutureOrDefault<>(turnOrder.get(i), new ExpansionRequest(getGameState(), i)).get();
         }
         phase = Phase.INCOME;
     }
