@@ -569,9 +569,20 @@ public class Game {
     }
 
     private void purchasePhaseFinished() {
+        boolean mysticismPlayable = false;
+        boolean alchemistsGoldPlayable = false;
         for (Player player : players) {
             player.purchasePhaseFinished();
+            if (player.getAdvances().stream().map(Advance::getCategory).filter(c -> c == Advance.Category.SCIENCE).count() < 4) {
+                mysticismPlayable = true;
+            }
+            if (!player.getAdvances().contains(Advance.lawsOfMatter)) {
+                alchemistsGoldPlayable = true;
+            }
         }
+        if (!mysticismPlayable) unplayableCards.add(Cards.mysticismAbounds);
+        if (!alchemistsGoldPlayable) unplayableCards.add(Cards.alchemistsGold);
+
         patronageQueue.clear();
         final Iterator<Card> it = playedCards.iterator();
         while (it.hasNext()) {
