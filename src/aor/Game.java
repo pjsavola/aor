@@ -313,7 +313,24 @@ public class Game {
 
     private void purchasePhase() {
         queryForRenaissance();
-        for (int i = 0; i < turnOrder.size(); ++i) {
+        final List<FutureOrDefault<UpgradeShipsRequest, BooleanResponse>> asyncShipUpgrades = new ArrayList<>(playerCount);
+        final GameState gameState = getGameState();
+        for (Player player : players) {
+            if (player.shipLevel < 4 && player.getCash() >= 10) {
+                asyncShipUpgrades.add(new FutureOrDefault<>(player, new UpgradeShipsRequest(gameState)));
+            } else {
+                asyncShipUpgrades.add(null);
+            }
+        }
+        for (int i = 0; i < playerCount; ++i) {
+            final FutureOrDefault<UpgradeShipsRequest, BooleanResponse> response = asyncShipUpgrades.get(i);
+            if (response != null && response.get().getBool()) {
+                turnOrder.get(i).adjustCash(-10);
+                ++turnOrder.get(i).shipLevel;
+            }
+        }
+
+        for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
             final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), i)).get().getAdvances();
             for (Advance advance : advances) {
