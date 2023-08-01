@@ -376,20 +376,22 @@ public class Game {
         final int indulgenceOwners = (int) players.stream().filter(p -> p.getAdvances().contains(Advance.holyIndulgence)).count();
         for (Player player : turnOrder) {
             if (player.getAdvances().contains(Advance.holyIndulgence)) {
-                final int bonus = (playerCount - indulgenceOwners) * 2;
-                final int limit = player.getRemainingTokens();
-                player.usableTokens += Math.min(limit, bonus);
-                if (limit < bonus) player.adjustCash(bonus - limit);
+                final int maxExtra = (playerCount - indulgenceOwners) * 2;
+                final int extra = Math.min(maxExtra, player.remainingTokens);
+                player.usableTokens += extra;
+                player.remainingTokens -= extra;
+                if (extra < maxExtra) player.adjustCash(maxExtra - extra);
             } else {
-                final int payment = indulgenceOwners * 2;
-                final int limit = player.usableTokens;
-                player.usableTokens -= Math.min(payment, limit);
-                if (limit < payment) {
+                final int maxPayment = indulgenceOwners * 2;
+                final int payment = Math.min(maxPayment, player.usableTokens);
+                player.usableTokens -= payment;
+                player.remainingTokens += payment;
+                if (payment < maxPayment) {
                     boolean payCash = false;
-                    if (player.getCash() >= payment - limit) {
+                    if (player.getCash() >= maxPayment - payment) {
                         payCash = new FutureOrDefault<>(player, new SelectHolyIndulgencePaymentRequest(getGameState())).get().getBool();
                     }
-                    if (payCash) player.adjustCash(limit - payment);
+                    if (payCash) player.adjustCash(payment - maxPayment);
                     else player.adjustMisery(1);
                 }
             }
@@ -406,18 +408,19 @@ public class Game {
     }
 
     private void incomePhase() {
-        int mostTokens = 0;
+        int mostNewCities = 0;
         Player winningPlayer = null;
         for (Player player : players) {
             player.weapons.clear();
             if (player.getAdvances().contains(Advance.enlightenment)) {
                 player.adjustMisery(-1);
             }
-            final int tokens = player.flipTokens();
-            if (tokens > mostTokens) {
-                mostTokens = tokens;
+            final int newCities = player.getNewCityCount();
+            if (newCities > mostNewCities) {
+                mostNewCities = newCities;
                 winningPlayer = player;
             }
+            player.flipTokens();
             player.adjustCash(player.getIncome(playerCount));
         }
         if (winningPlayer != null) {
@@ -514,9 +517,9 @@ public class Game {
             if (roll1 != roll2) {
                 final Player winner =  roll1 > roll2 ? war1 : war2;
                 final Player loser = roll1 > roll2 ? war2 : war1;
-                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.cities.stream().filter(Node::isInAsia).count() - winner.tokens.keySet().stream().filter(Node::isInAsia).count());
-                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.cities.stream().filter(Node::isInNewWorld).count() - winner.tokens.keySet().stream().filter(Node::isInNewWorld).count());
-                final Set<String> options = loser.cities.stream()
+                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.areas.keySet().stream().filter(Node::isInAsia).count());
+                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.areas.keySet().stream().filter(Node::isInNewWorld).count());
+                final Set<String> options = loser.getCities()
                         .filter(n -> n.isAccessible(winner.getAdvances()))
                         .filter(n -> !n.isInAsia() || asiaLimit > 0)
                         .filter(n -> !n.isInNewWorld() || newWorldLimit > 0)
@@ -530,9 +533,9 @@ public class Game {
                         targets = options.toArray(String[]::new);
                     }
                     for (String target : targets) {
-                        loser.cities.stream().filter(c -> c.getName().equals(target)).forEach(n -> {
+                        loser.getCities().filter(c -> c.getName().equals(target)).forEach(n -> {
                             loser.remove(n);
-                            winner.cities.add(n);
+                            winner.areas.put(n, n.getSize());
                         });
                     }
                 }

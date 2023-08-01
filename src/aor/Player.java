@@ -7,6 +7,8 @@ import message.Response;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Player {
 
@@ -21,11 +23,9 @@ public class Player {
     List<Card> cards = new ArrayList<>();
 
     private Node.CityState capital;
-    List<Node> cities = new ArrayList<>();
-    private List<Node> newCities = new ArrayList<>();
-
-    Map<Node, Integer> tokens = new HashMap<>();
-    private Map<Node, Integer> newTokens = new HashMap<>();
+    Map<Node, Integer> areas = new HashMap<>();
+    private Map<Node, Integer> newAreas = new HashMap<>();
+    int remainingTokens = maxTokenCount;
     public Set<Integer> weapons = new HashSet<>();
     public int usableTokens;
     public int shipLevel;
@@ -39,6 +39,29 @@ public class Player {
 
     public int getCash() {
         return cash;
+    }
+
+    public Stream<Node> getCities() {
+        return areas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue()).map(Map.Entry::getKey);
+    }
+
+    public void reduceCity(Node node) {
+        final Integer tokens = areas.get(node);
+        if (tokens != null && tokens == node.getSize()) {
+            if (remainingTokens > 0) {
+                --remainingTokens;
+                areas.put(node, 1);
+            } else if (usableTokens > 0) {
+                --usableTokens;
+                areas.put(node, 1);
+            } else {
+                areas.put(node, 0);
+            }
+        }
+    }
+
+    public int getNewCityCount() {
+        return (int) newAreas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue()).count();
     }
 
     public PlayerState getState() {
@@ -73,33 +96,23 @@ public class Player {
     }
 
     public void addTokens(int bid) {
-        final int maxTokens = getRemainingTokens();
-        usableTokens = Math.max(0, Math.min(bid, maxTokens));
+        usableTokens = Math.max(0, Math.min(bid, remainingTokens));
     }
 
-    public int getRemainingTokens() {
-        final int usedTokens = tokens.values().stream().mapToInt(Integer::intValue).sum();
-        return maxTokenCount - usedTokens - usableTokens;
-    }
-
-    public int flipTokens() {
-        int count = newCities.size();
-        cities.addAll(newCities);
-        newCities.clear();
-        tokens.putAll(newTokens);
-        newTokens.clear();
-        return count;
+    public void flipTokens() {
+        areas.putAll(newAreas);
+        newAreas.clear();
     }
 
     public int getIncome(int playerCount) {
         final int baseIncome = advances.contains(Advance.middleClass) ? 25 : 15;
-        final int income = baseIncome + Math.min(25, cities.size()) * playerCount;
+        final int income = baseIncome + (int) Math.min(25, getCities().count()) * playerCount;
         final int interest = advances.contains(Advance.interestAndProfit) ? Math.min(cash, income) : 0;
         return income + interest;
     }
 
     public int getCommodityCount(Commodity commodity) {
-        return (int) cities.stream().filter(c -> c.hasCommodity(commodity)).count();
+        return (int) getCities().filter(c -> c.hasCommodity(commodity)).count();
     }
 
     public Set<Advance> getAdvances() {
@@ -167,28 +180,19 @@ public class Player {
         }
     }
 
-    public void reduce(List<Node> nodes) {
-        nodes.forEach(tokens::remove);
-        nodes.forEach(this::reduce);
-    }
-
-    public void reduce(Node node) {
-        if (cities.remove(node)) {
-            if (getRemainingTokens() == 0) {
-                if (usableTokens <= 0) return;
-                --usableTokens;
-            }
-            tokens.put(node, 1);
-        } else {
-            tokens.remove(node);
-        }
-    }
-
     public void remove(Node node) {
-        cities.remove(node);
-        tokens.remove(node);
-        newCities.remove(node);
-        newTokens.remove(node);
+        final Integer tokens = areas.remove(node);
+        if (tokens != null) {
+            if (tokens < node.getSize()) {
+                remainingTokens += tokens;
+            }
+        }
+        final Integer newTokens = newAreas.remove(node);
+        if (newTokens != null) {
+            if (newTokens < node.getSize()) {
+                remainingTokens += newTokens;
+            }
+        }
     }
 
     private int getSetCount() {

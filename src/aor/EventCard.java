@@ -2,10 +2,7 @@ package aor;
 
 import message.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EventCard extends Card {
@@ -65,14 +62,7 @@ public class EventCard extends Card {
                         player.adjustCash(-(player.writtenCash + 1) / 2);
                     }
                 }
-                final Node node = game.nodes.stream().filter(n -> n.getCapital() == capital).findAny().orElse(null);
-                for (Player p : game.players) {
-                    final int idx = p.cities.indexOf(node);
-                    if (idx != -1) {
-                        p.reduce(p.cities.get(idx));
-                        break;
-                    }
-                }
+                for (Player p : game.players) p.getCities().filter(n -> n.getCapital() == capital).findAny().ifPresent(p::reduceCity);
             }
             case ENLIGHTENED_RULER -> game.enlightenedRuler = player;
             case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 4 : 3) - p.getCommodityCount(Commodity.GRAIN))));
@@ -83,40 +73,30 @@ public class EventCard extends Card {
             }
             case PIRATES_VIKINGS -> {
                 final Set<String> options = new HashSet<>();
-                game.players.forEach(p -> {
-                    p.cities.stream().filter(Node::isCoastal).map(Node::getName).forEach(options::add);
-                });
+                game.players.forEach(p -> p.getCities().filter(Node::isCoastal).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(3, options.size()))).get().getCities();
                     for (String target : targets) {
-                        for (Player p : game.players) {
-                            game.nodes.stream().filter(n -> n.getName().equals(target)).findAny().ifPresent(p::reduce);
-                        }
+                        for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(target)).findAny().ifPresent(p::reduceCity);
                     }
                 }
             }
             case REBELLION -> {
                 final Set<String> options = new HashSet<>();
-                game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> {
-                    p.cities.stream().filter(n -> n.getCapital() == null && !n.getName().endsWith("America")).map(Node::getName).forEach(options::add);
-                });
+                game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.getCities().filter(n -> n.getCapital() == null && !n.isInNewWorld()).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Rebellion", game.getGameState(), options, 1)).get().getCities();
-                    for (Player p : game.players) {
-                        game.nodes.stream().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(p::reduce);
-                    }
+                    for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(p::reduceCity);
                 }
             }
             case REVOLUTIONARY_UPRISINGS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.COMMERCE).count()));
             case THE_CRUSADES -> {
-                final Set<String> options = game.nodes.stream().filter(n -> n.getRegion() == 6 && !player.cities.contains(n)).map(Node::getName).collect(Collectors.toSet());
+                final Set<String> options = game.nodes.stream().filter(n -> n.getRegion() == 6 && player.getCities().noneMatch(c -> c == n)).map(Node::getName).collect(Collectors.toSet());
                 if (!options.isEmpty()) {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1)).get().getCities();
                     game.nodes.stream().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(n -> {
-                        for (Player p : game.players) {
-                            p.remove(n);
-                        }
-                        player.cities.add(n);
+                        for (Player p : game.players) p.remove(n);
+                        player.areas.put(n, n.getSize());
                     });
                 }
                 player.adjustMisery(1);
@@ -135,7 +115,10 @@ public class EventCard extends Card {
             case BLACK_DEATH -> {
                 final int area = new FutureOrDefault<>(player, new SelectAreaRequest(game.getGameState())).get().getInt();
                 for (Player p : game.players) {
-                    p.reduce(game.nodes.stream().filter(n -> n.getRegion() == area).toList());
+                    final List<Node> tokenAreas = p.areas.entrySet().stream().filter(e -> e.getKey().getSize() > e.getValue()).map(Map.Entry::getKey).filter(n -> n.getRegion() == area).toList();
+                    for (Node n : tokenAreas) p.remove(n);
+                    final List<Node> cityAreas = p.getCities().filter(n -> n.getRegion() == area).toList();
+                    for (Node n : cityAreas) p.reduceCity(n);
                 }
             }
             case RELIGIOUS_STRIFE -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.RELIGION).count()));
