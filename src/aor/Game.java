@@ -372,8 +372,13 @@ public class Game {
             civilWar = null;
         }
         queryForRenaissance();
+        // TODO: Holy Indulgence
         for (int i = 0; i < playerCount; ++i) {
-            final ExpansionResponse response = new FutureOrDefault<>(turnOrder.get(i), new ExpansionRequest(getGameState(), i)).get();
+            final Player player = turnOrder.get(i);
+            while (player.usableTokens > 0) {
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.usableTokens)).get();
+                player.usableTokens -= response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum() + response.getTokensDisbanded();
+            }
         }
         phase = Phase.INCOME;
     }

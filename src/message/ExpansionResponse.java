@@ -1,13 +1,21 @@
 package message;
 
-public class ExpansionResponse extends Response {
-    private final int i;
+import java.util.Map;
 
-    public ExpansionResponse(int i) {
-        this.i = i;
+public class ExpansionResponse extends Response {
+    private final Map<String, Integer> tokensUsed;
+    private final int tokensDisbanded;
+
+    public ExpansionResponse(Map<String, Integer> tokensUsed, int tokensDisbanded) {
+        this.tokensUsed = tokensUsed;
+        this.tokensDisbanded = tokensDisbanded;
     }
 
-    public int getInt() {
-        return i;
+    public Map<String, Integer> getTokensUsed() {
+        return tokensUsed;
+    }
+
+    public int getTokensDisbanded() {
+        return tokensDisbanded;
     }
 }
