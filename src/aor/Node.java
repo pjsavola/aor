@@ -91,6 +91,29 @@ public class Node {
         return false;
     }
 
+    public boolean isInNewWorld() {
+        return isInNewWorld(name);
+    }
+
+    public static boolean isInNewWorld(String name) {
+        return name.endsWith("America");
+    }
+
+    public boolean isInAsia() {
+        return isInAsia(name);
+    }
+
+    public static boolean isInAsia(String name) {
+        return name.equals("East Indies") || name.equals("China") || name.equals("India");
+    }
+
+    public boolean isAccessible(Set<Advance> advances) {
+        if (region == 5) return advances.contains(Advance.overlandEast);
+        else if (isInAsia()) return advances.contains(Advance.oceanNavigation);
+        else if (isInNewWorld()) return advances.contains(Advance.newWorld);
+        return true;
+    }
+
     public boolean needsRemoval(Line line) {
         for (Line border : borders) {
             if (border == line) return true;

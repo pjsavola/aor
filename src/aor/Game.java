@@ -331,6 +331,10 @@ public class Game {
             civilWar = null;
         }
         queryForRenaissance();
+        for (Player player : turnOrder) {
+
+            //new FutureOrDefault<>(player, new ExpansionRequest(getGameState()));
+        }
         phase = Phase.INCOME;
     }
 
@@ -440,12 +444,18 @@ public class Game {
             if (roll1 != roll2) {
                 final Player winner =  roll1 > roll2 ? war1 : war2;
                 final Player loser = roll1 > roll2 ? war2 : war1;
-                final Set<String> options = loser.cities.stream().filter(n -> n.getRegion() != 5 || winner.getAdvances().contains(Advance.overlandEast)).map(Node::getName).collect(Collectors.toSet());
+                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.cities.stream().filter(Node::isInAsia).count() - winner.tokens.keySet().stream().filter(Node::isInAsia).count());
+                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.cities.stream().filter(Node::isInNewWorld).count() - winner.tokens.keySet().stream().filter(Node::isInNewWorld).count());
+                final Set<String> options = loser.cities.stream()
+                        .filter(n -> n.isAccessible(winner.getAdvances()))
+                        .filter(n -> !n.isInAsia() || asiaLimit > 0)
+                        .filter(n -> !n.isInNewWorld() || newWorldLimit > 0)
+                        .map(Node::getName).collect(Collectors.toSet());
                 final int count = Math.abs(roll1 - roll2);
                 if (!options.isEmpty()) {
                     final String[] targets;
                     if (options.size() > count) {
-                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, Math.min(count, options.size()))).get().getCities();
+                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, asiaLimit, newWorldLimit)).get().getCities();
                     } else {
                         targets = options.toArray(String[]::new);
                     }

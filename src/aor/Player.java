@@ -24,10 +24,11 @@ public class Player {
     List<Node> cities = new ArrayList<>();
     private List<Node> newCities = new ArrayList<>();
 
-    private Map<Node, Integer> tokens = new HashMap<>();
+    Map<Node, Integer> tokens = new HashMap<>();
     private Map<Node, Integer> newTokens = new HashMap<>();
     public Set<Integer> weapons = new HashSet<>();
     public int usableTokens;
+    public int shipLevel;
     int renaissanceUsed;
     boolean chaos;
     private Client client = new Client(null);
