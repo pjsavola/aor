@@ -372,7 +372,29 @@ public class Game {
             civilWar = null;
         }
         queryForRenaissance();
-        // TODO: Holy Indulgence
+
+        final int indulgenceOwners = (int) players.stream().filter(p -> p.getAdvances().contains(Advance.holyIndulgence)).count();
+        for (Player player : turnOrder) {
+            if (player.getAdvances().contains(Advance.holyIndulgence)) {
+                final int bonus = (playerCount - indulgenceOwners) * 2;
+                final int limit = player.getRemainingTokens();
+                player.usableTokens += Math.min(limit, bonus);
+                if (limit < bonus) player.adjustCash(bonus - limit);
+            } else {
+                final int payment = indulgenceOwners * 2;
+                final int limit = player.usableTokens;
+                player.usableTokens -= Math.min(payment, limit);
+                if (limit < payment) {
+                    boolean payCash = false;
+                    if (player.getCash() >= payment - limit) {
+                        payCash = new FutureOrDefault<>(player, new SelectHolyIndulgencePaymentRequest(getGameState())).get().getBool();
+                    }
+                    if (payCash) player.adjustCash(limit - payment);
+                    else player.adjustMisery(1);
+                }
+            }
+        }
+
         for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
             while (player.usableTokens > 0) {
