@@ -384,6 +384,9 @@ public class Game {
         Player winningPlayer = null;
         for (Player player : players) {
             player.weapons.clear();
+            if (player.getAdvances().contains(Advance.enlightenment)) {
+                player.adjustMisery(-1);
+            }
             final int tokens = player.flipTokens();
             if (tokens > mostTokens) {
                 mostTokens = tokens;

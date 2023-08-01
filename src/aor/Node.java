@@ -17,6 +17,7 @@ public class Node {
     private CityState capital;
     private int region;
     private final Set<Node> supports = new HashSet<>();
+    private final Set<Node> supportNodes = new HashSet<>();
 
     public void init(List<Line> borders, String name, int size, Commodity commodity, CityState capital, int region) {
         this.borders = new ArrayList<>(borders);
@@ -124,15 +125,21 @@ public class Node {
     public void addSupport(Node node) {
         if (size == 1) {
             supports.add(node);
+            node.supportNodes.add(this);
         }
     }
 
     public void removeSupport(Node node) {
         supports.remove(node);
+        node.supportNodes.remove(this);
     }
 
     public boolean supports(Node node) {
         return supports.contains(node);
+    }
+
+    public Set<Node> getSupportNodes() {
+        return supportNodes;
     }
 
     public boolean contains(Point p) {

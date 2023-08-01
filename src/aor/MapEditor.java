@@ -97,12 +97,37 @@ public class MapEditor extends JPanel {
                 }
                 if (p == null) {
                     if (rightClick) {
-                        if (!lines.removeIf(l -> l.p1 == c || l.p2 == c)) {
+                        boolean found = false;
+                        for (Line l : lines) {
+                            if (l.p1 == c || l.p2 == c) {
+                                final Iterator<Node> it = nodes.iterator();
+                                while (it.hasNext()) {
+                                    final Node node = it.next();
+                                    if (node.needsRemoval(l)) {
+                                        final Set<Node> supporters = new HashSet<>(node.getSupportNodes());
+                                        supporters.forEach(n -> n.removeSupport(node));
+                                        it.remove();
+                                    }
+                                }
+                                lines.remove(l);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
                             for (Line line : lines) {
                                 final int x = (line.p1.x + line.p2.x) / 2;
                                 final int y = (line.p1.y + line.p2.y) / 2;
                                 if (Line.nearby(c, new Point(x, y))) {
-                                    nodes.removeIf(n -> n.needsRemoval(line));
+                                    final Iterator<Node> it = nodes.iterator();
+                                    while (it.hasNext()) {
+                                        final Node node = it.next();
+                                        if (node.needsRemoval(line)) {
+                                            final Set<Node> supporters = new HashSet<>(node.getSupportNodes());
+                                            supporters.forEach(n -> n.removeSupport(node));
+                                            it.remove();
+                                        }
+                                    }
                                     lines.remove(line);
                                     break;
                                 }
