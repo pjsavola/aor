@@ -159,7 +159,7 @@ public class Node {
         }
     }
 
-    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens) {
+    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens, Set<Node> blockedNodes) {
         final Map<Line, Integer> borderDistances = new HashMap<>();
         final Map<Line, Integer> borderDistancesWithHeavens = new HashMap<>();
         final Deque<Work> work = new ArrayDeque<>();
@@ -206,6 +206,8 @@ public class Node {
                 }
                 for (Node neighbor : border.nodes) {
                     if (neighbor == node) continue;
+                    if (blockedNodes.contains(neighbor)) continue;
+
                     boolean heavensUsed = w.heavensUsed;
                     if (neighbor.commodity == null && neighbor.size == 0) {
                         if (!useHeavens || w.heavensUsed) continue;

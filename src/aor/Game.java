@@ -397,6 +397,25 @@ public class Game {
 
         for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
+            final Map<Node, Integer> usedShipping = new HashMap<>();
+            final int groundRange = player.getAdvances().contains(Advance.caravan) ? 2 : 1;
+            final boolean useHeavens = player.getAdvances().contains(Advance.heavens);
+            final int shipRange = player.getAdvances().contains(Advance.seaworthyVessels) ? Integer.MAX_VALUE : player.shipLevel * 2;
+            final int shipCapacity = player.getAdvances().contains(Advance.oceanNavigation) ? Integer.MAX_VALUE : player.shipLevel * 2 + (player.getAdvances().contains(Advance.seaworthyVessels) ? 8 : 0);
+            final Set<Node> reachableLimited = new HashSet<>();
+            final Set<Node> reachableUnlimited = new HashSet<>();
+            final Set<Node> allCities = new HashSet<>();
+            players.forEach(p -> p.getCities().forEach(allCities::add));
+            if (shipRange == Integer.MAX_VALUE) {
+                if (shipCapacity == Integer.MAX_VALUE) nodes.stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
+                else nodes.stream().filter(Node::isCoastal).forEach(reachableLimited::add);
+            }
+            player.getAreas().forEach(node -> {
+                reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, allCities));
+                if (shipRange != Integer.MAX_VALUE) {
+                    reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
+                }
+            });
             while (player.getUsableTokens() > 0) {
                 final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens())).get();
                 if (response.getTokensDisbanded() > 0) {
@@ -404,7 +423,15 @@ public class Game {
                 }
                 response.getTokensUsed().forEach((name, tokens) -> {
                     nodes.stream().filter(n -> n.getName().equals(name)).findAny().ifPresent(node -> {
-
+                        if (!reachableUnlimited.contains(node) && reachableLimited.contains(node)) {
+                            final int oldTokens = usedShipping.getOrDefault(node, 0);
+                            usedShipping.put(node, oldTokens + tokens);
+                        }
+                        for (Player p : players) {
+                            if (p != player && p.getAreas().anyMatch(n -> n == node)) {
+                                // FIGHT!!!
+                            }
+                        }
                     });
                 });
                 final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
