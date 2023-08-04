@@ -405,6 +405,7 @@ public class Game {
             final Set<Node> reachableLimited = new HashSet<>();
             final Set<Node> reachableUnlimited = new HashSet<>();
             final Set<Node> allCities = new HashSet<>();
+            final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
             players.forEach(p -> p.getCities().forEach(allCities::add));
             if (shipRange == Integer.MAX_VALUE) {
                 if (shipCapacity == Integer.MAX_VALUE) nodes.stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
@@ -416,6 +417,7 @@ public class Game {
                     reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
                 }
             });
+
             while (player.getUsableTokens() > 0) {
                 final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens())).get();
                 if (response.getTokensDisbanded() > 0) {
@@ -427,11 +429,47 @@ public class Game {
                             final int oldTokens = usedShipping.getOrDefault(node, 0);
                             usedShipping.put(node, oldTokens + tokens);
                         }
-                        for (Player p : players) {
-                            if (p != player && p.getAreas().anyMatch(n -> n == node)) {
-                                // FIGHT!!!
+                        final int existingTokens = players.stream().map(p -> p.getTokenCount(node)).mapToInt(Integer::intValue).sum();
+                        if (existingTokens + tokens >= node.getSize()) {
+                            final int turnOrderRoll = r.nextInt(6);
+                            boolean win = false;
+                            if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && player.getAdvances().contains(Advance.proselytism)) {
+                                win = true;
+                            } else {
+                                final int attackerRoll = r.nextInt(6);
+                                final int defenderRoll = r.nextInt(6);
+                                if (attackerRoll > defenderRoll) {
+                                    win = true;
+                                } else if (attackerRoll == defenderRoll) {
+                                    win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player, p) <= 0);
+                                }
                             }
+                            if (win) {
+                                for (Player p : players) p.removeAllTokens(node);
+                                player.addNewCity(node);
+                            } else {
+                                player.removeAllTokens(node);
+                            }
+                        } else {
+                            player.addNewTokens(node, tokens);
                         }
+                        player.spendTokens(tokens);
+                        /*
+                        int requiredTokens = node.getSize();
+                        boolean winTies = true;
+                        for (Player p : players) {
+                            if (p != player) {
+                                int defenderTokens = p.getTokenCount(node);
+                                if (defenderTokens == 0) continue;
+
+                                if (node.getCapital() == p.getCapital()) {
+                                    defenderTokens *= 2;
+                                }
+                                final int mod = getAttackModifier(player, p);
+                                if (mod <= 0) winTies = false;
+                                requiredTokens -= mod;
+                            }
+                        }*/
                     });
                 });
                 final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
@@ -439,6 +477,19 @@ public class Game {
             }
         }
         phase = Phase.INCOME;
+    }
+
+    private int getAttackModifier(Player attacker, Player defender) {
+        final int attackerBestWeapon = attacker.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+        final int defenderBestWeapon = defender.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+        final int attackerModifier = attackerBestWeapon > defenderBestWeapon ? (int) attacker.weapons.stream().filter(w -> w > defenderBestWeapon).count() : 0;
+        final int defenderModifier = defenderBestWeapon > attackerBestWeapon ? (int) defender.weapons.stream().filter(w -> w > attackerBestWeapon).count() : 0;
+        if (attackerModifier > 0) return attackerModifier;
+        else return -defenderModifier;
+    }
+
+    private static int getTurnOrderThreshold(int i, int playerCount) {
+        return i;
     }
 
     private void incomePhase() {
@@ -544,8 +595,10 @@ public class Game {
                     }
                 }
             }
-            final int mod1 = bestWeapon1 > bestWeapon2 ? war1.weapons.size() : 0;
-            final int mod2 = bestWeapon2 > bestWeapon1 ? war2.weapons.size() : 0;
+            final int best1 = bestWeapon1;
+            final int best2 = bestWeapon2;
+            final int mod1 = bestWeapon1 > bestWeapon2 ? (int) war1.weapons.stream().filter(w -> w > best2).count() : 0;
+            final int mod2 = bestWeapon2 > bestWeapon1 ? (int) war2.weapons.stream().filter(w -> w > best1).count() : 0;
             final int roll1 = r.nextInt(6) + mod1;
             final int roll2 = r.nextInt(6) + mod2;
             if (roll1 != roll2) {

@@ -54,7 +54,6 @@ public class Player {
 
     public void spendTokens(int amount) {
         usableTokens -= amount;
-        remainingTokens = maxTokenCount - usableTokens - areas.values().stream().mapToInt(Integer::intValue).sum() - newAreas.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public void addCity(Node node) {
@@ -63,6 +62,27 @@ public class Player {
 
     public Stream<Node> getAreas() {
         return areas.keySet().stream();
+    }
+
+    public int getTokenCount(Node area) {
+        return areas.getOrDefault(area, 0) + newAreas.getOrDefault(area, 0);
+    }
+
+    public void addNewTokens(Node area, int count) {
+        newAreas.put(area, getTokenCount(area) + count);
+    }
+
+    public void addNewCity(Node area) {
+        newAreas.put(area, area.getSize());
+    }
+
+    public void removeAllTokens(Node area) {
+        final int old = getTokenCount(area);
+        areas.remove(area);
+        newAreas.remove(area);
+        if (old < area.getSize()) {
+            remainingTokens += old;
+        }
     }
 
     public Stream<Node> getTokenAreas() {
