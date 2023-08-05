@@ -122,8 +122,14 @@ public class Player {
         state.writtenCash = writtenCash;
         state.misery = misery;
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
-        areas.forEach((key, value) -> state.areas.put(key.getName(), value));
-        newAreas.forEach((key, value) -> state.newAreas.put(key.getName(), value));
+        areas.forEach((key, value) -> {
+            state.areas.add(key.getName());
+            state.tokens.add(value);
+        });
+        newAreas.forEach((key, value) -> {
+            state.newAreas.add(key.getName());
+            state.newTokens.add(value);
+        });
         state.weapons.addAll(weapons);
         return state;
     }

@@ -12,7 +12,9 @@ public class PlayerState implements Serializable {
     public int misery;
     public int[] advances;
     public List<Integer> ownedPatronageCards = new ArrayList<>();
-    public Map<String, Integer> areas = new HashMap<>();
-    public Map<String, Integer> newAreas = new HashMap<>();
-    public Set<Integer> weapons = new HashSet<>();
+    public List<String> areas = new ArrayList<>();
+    public List<Integer> tokens = new ArrayList<>();
+    public List<String> newAreas = new ArrayList<>();
+    public List<Integer> newTokens = new ArrayList<>();
+    public List<Integer> weapons = new ArrayList<>();
 }

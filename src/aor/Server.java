@@ -470,7 +470,7 @@ public class Server implements Runnable {
         phase = Phase.INCOME;
     }
 
-    public static int getAttackModifier(Set<Integer> attackerWeapons, Set<Integer> defenderWeapons) {
+    public static int getAttackModifier(Collection<Integer> attackerWeapons, Collection<Integer> defenderWeapons) {
         final int attackerBestWeapon = attackerWeapons.stream().mapToInt(Integer::intValue).max().orElse(0);
         final int defenderBestWeapon = defenderWeapons.stream().mapToInt(Integer::intValue).max().orElse(0);
         final int attackerModifier = attackerBestWeapon > defenderBestWeapon ? (int) attackerWeapons.stream().filter(w -> w > defenderBestWeapon).count() : 0;
