@@ -402,24 +402,24 @@ public class Game {
             final boolean useHeavens = player.getAdvances().contains(Advance.heavens);
             final int shipRange = player.getAdvances().contains(Advance.seaworthyVessels) ? Integer.MAX_VALUE : player.shipLevel * 2;
             final int shipCapacity = player.getAdvances().contains(Advance.oceanNavigation) ? Integer.MAX_VALUE : player.shipLevel * 2 + (player.getAdvances().contains(Advance.seaworthyVessels) ? 8 : 0);
-            final Set<Node> reachableLimited = new HashSet<>();
-            final Set<Node> reachableUnlimited = new HashSet<>();
             final Set<Node> allCities = new HashSet<>();
-            final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
             players.forEach(p -> p.getCities().forEach(allCities::add));
-            if (shipRange == Integer.MAX_VALUE) {
-                if (shipCapacity == Integer.MAX_VALUE) nodes.stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
-                else nodes.stream().filter(Node::isCoastal).forEach(reachableLimited::add);
-            }
-            player.getAreas().forEach(node -> {
-                reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, allCities));
-                if (shipRange != Integer.MAX_VALUE) {
-                    reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
-                }
-            });
 
             while (player.getUsableTokens() > 0) {
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens())).get();
+                final Set<Node> reachableLimited = new HashSet<>();
+                final Set<Node> reachableUnlimited = new HashSet<>();
+                final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
+                if (shipRange == Integer.MAX_VALUE) {
+                    if (shipCapacity == Integer.MAX_VALUE) nodes.stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
+                    else nodes.stream().filter(Node::isCoastal).forEach(reachableLimited::add);
+                }
+                player.getAreas().forEach(node -> {
+                    reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, allCities));
+                    if (shipRange != Integer.MAX_VALUE) {
+                        reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
+                    }
+                });
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens(), reachableUnlimited, reachableLimited, usedShipping, shipCapacity)).get();
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
@@ -441,7 +441,7 @@ public class Game {
                                 if (attackerRoll > defenderRoll) {
                                     win = true;
                                 } else if (attackerRoll == defenderRoll) {
-                                    win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player, p) <= 0);
+                                    win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
                                 }
                             }
                             if (win) {
@@ -454,22 +454,6 @@ public class Game {
                             player.addNewTokens(node, tokens);
                         }
                         player.spendTokens(tokens);
-                        /*
-                        int requiredTokens = node.getSize();
-                        boolean winTies = true;
-                        for (Player p : players) {
-                            if (p != player) {
-                                int defenderTokens = p.getTokenCount(node);
-                                if (defenderTokens == 0) continue;
-
-                                if (node.getCapital() == p.getCapital()) {
-                                    defenderTokens *= 2;
-                                }
-                                final int mod = getAttackModifier(player, p);
-                                if (mod <= 0) winTies = false;
-                                requiredTokens -= mod;
-                            }
-                        }*/
                     });
                 });
                 final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
@@ -479,11 +463,11 @@ public class Game {
         phase = Phase.INCOME;
     }
 
-    private int getAttackModifier(Player attacker, Player defender) {
-        final int attackerBestWeapon = attacker.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
-        final int defenderBestWeapon = defender.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
-        final int attackerModifier = attackerBestWeapon > defenderBestWeapon ? (int) attacker.weapons.stream().filter(w -> w > defenderBestWeapon).count() : 0;
-        final int defenderModifier = defenderBestWeapon > attackerBestWeapon ? (int) defender.weapons.stream().filter(w -> w > attackerBestWeapon).count() : 0;
+    public static int getAttackModifier(Set<Integer> attackerWeapons, Set<Integer> defenderWeapons) {
+        final int attackerBestWeapon = attackerWeapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+        final int defenderBestWeapon = defenderWeapons.stream().mapToInt(Integer::intValue).max().orElse(0);
+        final int attackerModifier = attackerBestWeapon > defenderBestWeapon ? (int) attackerWeapons.stream().filter(w -> w > defenderBestWeapon).count() : 0;
+        final int defenderModifier = defenderBestWeapon > attackerBestWeapon ? (int) defenderWeapons.stream().filter(w -> w > attackerBestWeapon).count() : 0;
         if (attackerModifier > 0) return attackerModifier;
         else return -defenderModifier;
     }
