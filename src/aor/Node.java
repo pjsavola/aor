@@ -7,6 +7,7 @@ import java.util.List;
 public class Node {
     public enum CityState { VENICE, GENOA, BARCELONA, PARIS, LONDON, HAMBURG };
 
+    public static Map<String, Node> nodeMap = new HashMap<>();
     private List<Line> borders;
     private Polygon polygon;
     private String name;
@@ -34,6 +35,7 @@ public class Node {
             case "North America" -> specialCommodities = List.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.FUR);
             case "South America" -> specialCommodities = List.of(Commodity.METAL, Commodity.SPICE, Commodity.GOLD);
         }
+        nodeMap.put(name, this);
     }
 
     private void initPolygon() {

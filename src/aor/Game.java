@@ -27,7 +27,6 @@ public class Game {
     Player enlightenedRuler;
     Player civilWar;
     private final Random r = new Random();
-    public List<Node> nodes;
     public Player war1;
     public Player war2;
 
@@ -410,8 +409,8 @@ public class Game {
                 final Set<Node> reachableUnlimited = new HashSet<>();
                 final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
                 if (shipRange == Integer.MAX_VALUE) {
-                    if (shipCapacity == Integer.MAX_VALUE) nodes.stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
-                    else nodes.stream().filter(Node::isCoastal).forEach(reachableLimited::add);
+                    if (shipCapacity == Integer.MAX_VALUE) Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
+                    else Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableLimited::add);
                 }
                 player.getAreas().forEach(node -> {
                     reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, allCities));
@@ -428,7 +427,8 @@ public class Game {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
                 response.getTokensUsed().forEach((name, tokens) -> {
-                    nodes.stream().filter(n -> n.getName().equals(name)).findAny().ifPresent(node -> {
+                    final Node node = Node.nodeMap.get(name);
+                    if (node != null) {
                         if (!reachableUnlimited.contains(node) && reachableLimited.contains(node)) {
                             final int oldTokens = usedShipping.getOrDefault(node, 0);
                             usedShipping.put(node, oldTokens + tokens);
@@ -458,7 +458,7 @@ public class Game {
                             player.addNewTokens(node, tokens);
                         }
                         player.spendTokens(tokens);
-                    });
+                    }
                 });
                 final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
                 player.spendTokens(spentTokens);

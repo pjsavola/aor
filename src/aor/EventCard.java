@@ -91,13 +91,14 @@ public class EventCard extends Card {
             }
             case REVOLUTIONARY_UPRISINGS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.COMMERCE).count()));
             case THE_CRUSADES -> {
-                final Set<String> options = game.nodes.stream().filter(n -> n.getRegion() == 6 && player.getCities().noneMatch(c -> c == n)).map(Node::getName).collect(Collectors.toSet());
+                final Set<String> options = Node.nodeMap.values().stream().filter(n -> n.getRegion() == 6 && player.getCities().noneMatch(c -> c == n)).map(Node::getName).collect(Collectors.toSet());
                 if (!options.isEmpty()) {
                     final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1)).get().getCities();
-                    game.nodes.stream().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(n -> {
+                    final Node n = Node.nodeMap.get(targets[0]);
+                    if (n != null) {
                         for (Player p : game.players) p.remove(n);
                         player.addCity(n);
-                    });
+                    }
                 }
                 player.adjustMisery(1);
             }
