@@ -27,6 +27,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         }
 
         final PlayerState playerState = gameState.turnOrder.get(playerIndex);
+        final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         return response.getTokensUsed().entrySet().stream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
@@ -50,9 +51,18 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                         defenderTokens *= 2;
                     }
                     requiredTokens += defenderTokens;
+                    for (Node support : node.getSupportNodes()) {
+                        if (p.areas.contains(support.getName())) ++requiredTokens;
+                    }
                     final int mod = Server.getAttackModifier(playerState.weapons, p.weapons);
                     requiredTokens -= mod;
                 }
+                if (cosmopolitan) {
+                    for (Node support : node.getSupportNodes()) {
+                        if (playerState.areas.contains(support.getName())) --requiredTokens;
+                    }
+                }
+
                 return tokenCount == Math.min(node.getSize(), requiredTokens);
             }
             return false;
