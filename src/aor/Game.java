@@ -419,7 +419,11 @@ public class Game {
                         reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
                     }
                 });
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens(), reachableUnlimited, reachableLimited, usedShipping, shipCapacity)).get();
+                final Map<Node, Integer> capacityMap = new HashMap<>();
+                reachableLimited.forEach(n -> {
+                    capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
+                });
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens(), reachableUnlimited, capacityMap)).get();
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
                 }

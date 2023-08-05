@@ -9,18 +9,14 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     public final int playerIndex;
     public final int tokens;
     private final transient Set<Node> reachableUnlimited;
-    private final transient Set<Node> reachableLimited;
-    private final transient Map<Node, Integer> usedShipping;
-    private final transient int shipCapacity;
+    private final transient Map<Node, Integer> capacityMap;
 
-    public ExpansionRequest(GameState gameState, int playerIndex, int tokens, Set<Node> reachableUnlimited, Set<Node> reachableLimited, Map<Node, Integer> usedShipping, int shipCapacity) {
+    public ExpansionRequest(GameState gameState, int playerIndex, int tokens, Set<Node> reachableUnlimited, Map<Node, Integer> capacityMap) {
         super("Expand", gameState);
         this.playerIndex = playerIndex;
         this.tokens = tokens;
         this.reachableUnlimited = reachableUnlimited;
-        this.reachableLimited = reachableLimited;
-        this.usedShipping = usedShipping;
-        this.shipCapacity = shipCapacity;
+        this.capacityMap = capacityMap;
     }
 
     @Override
@@ -32,16 +28,11 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         final PlayerState playerState = gameState.turnOrder.get(playerIndex);
         return response.getTokensUsed().entrySet().stream().allMatch(e -> {
             final String name = e.getKey();
-            final int tokenss = e.getValue();
-            Node node = reachableLimited.stream().filter(n -> n.getName().equals(name)).findAny().orElse(null);
-            if (node != null) {
-                final int used = usedShipping.getOrDefault(node, 0);
-                if (used + tokens > shipCapacity) {
-                    return false;
-                }
-            } else {
-                node = reachableUnlimited.stream().filter(n -> n.getName().equals(name)).findAny().orElse(null);
-            }
+            final int tokenCount = e.getValue();
+            final Node node = capacityMap.entrySet().stream()
+                    .filter(entry -> entry.getKey().getName().equals(name) && entry.getValue() >= tokenCount)
+                    .map(Map.Entry::getKey).findAny()
+                    .orElse(reachableUnlimited.stream().filter(n -> n.getName().equals(name)).findAny().orElse(null));
             if (node != null) {
                 int requiredTokens = node.getSize();
                 for (int i = 0; i < gameState.turnOrder.size(); ++i) {
@@ -58,7 +49,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     final int mod = Game.getAttackModifier(playerState.weapons, p.weapons);
                     requiredTokens -= mod;
                 }
-                return tokens == Math.min(node.getSize(), requiredTokens);
+                return tokenCount == Math.min(node.getSize(), requiredTokens);
             }
             return false;
         });
