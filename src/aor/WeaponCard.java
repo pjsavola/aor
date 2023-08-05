@@ -10,7 +10,7 @@ public class WeaponCard extends Card {
     }
 
     @Override
-    public void play(Game game, Player player) {
+    public void play(Server game, Player player) {
         super.play(game, player);
         player.weapons.add(power);
     }

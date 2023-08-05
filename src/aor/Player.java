@@ -4,6 +4,7 @@ import message.Notification;
 import message.Request;
 import message.Response;
 
+import java.sql.ClientInfoStatus;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
 public class Player {
 
     public static final int[] miserySteps = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000 };
-    private final Game game;
+    private final Server game;
     private static final int maxTokenCount = 36;
     private int cash = 40;
     int writtenCash;
@@ -29,10 +30,11 @@ public class Player {
     public int shipLevel;
     int renaissanceUsed;
     boolean chaos;
-    private Client client = new Client(null);
+    private final ClientConnection client;
 
-    public Player(Game game) {
+    public Player(Server game, ClientConnection client) {
         this.game = game;
+        this.client = client;
     }
 
     public int getCash() {
@@ -130,7 +132,7 @@ public class Player {
         return capital;
     }
 
-    public <T extends Request, U extends Response> CompletableFuture<U> send(T request) {
+    public <T extends Request<U>, U extends Response> CompletableFuture<U> send(T request) {
         return CompletableFuture.supplyAsync(() -> client.request(request));
     }
 

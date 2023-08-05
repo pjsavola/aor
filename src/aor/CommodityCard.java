@@ -9,7 +9,7 @@ public class CommodityCard extends Card {
     }
 
     @Override
-    public void play(Game game, Player player) {
+    public void play(Server game, Player player) {
         super.play(game, player);
         game.commodityPlayed(commodity);
     }

@@ -46,7 +46,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                         defenderTokens *= 2;
                     }
                     requiredTokens += defenderTokens;
-                    final int mod = Game.getAttackModifier(playerState.weapons, p.weapons);
+                    final int mod = Server.getAttackModifier(playerState.weapons, p.weapons);
                     requiredTokens -= mod;
                 }
                 return tokenCount == Math.min(node.getSize(), requiredTokens);

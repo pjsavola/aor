@@ -5,7 +5,7 @@ import message.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Game {
+public class Server implements Runnable {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
 
     private Phase phase;
@@ -30,10 +30,12 @@ public class Game {
     public Player war1;
     public Player war2;
 
-    public Game() {
+    public Server(List<ClientConnection> clients) {
         initDecks();
-        players.add(new Player(this));
-        playerCount = players.size();
+        this.playerCount = clients.size();
+        for (int i = 0; i < playerCount; ++i) {
+            players.add(new Player(this, clients.get(i)));
+        }
         turnOrder = new ArrayList<>(playerCount);
         phase = Phase.DRAFT;
     }
@@ -108,6 +110,7 @@ public class Game {
         epoch3.add(Cards.sirIsaacNewton);
     }
 
+    @Override
     public void run() {
         while (phase != Phase.END) {
             switch (phase) {

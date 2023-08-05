@@ -1,6 +1,5 @@
 package aor;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public abstract class Card {
         return index;
     }
 
-    public boolean canPlay(Game game) {
+    public boolean canPlay(Server game) {
         return !game.unplayableCards.contains(this);
     }
 
@@ -33,7 +32,7 @@ public abstract class Card {
         return this;
     }
 
-    public void play(Game game, Player player) {
+    public void play(Server game, Player player) {
         game.playedCards.add(this);
         if (game.getEpoch() >= epoch) {
             game.unplayableCards.addAll(List.of(invalidates));

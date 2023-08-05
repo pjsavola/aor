@@ -19,9 +19,9 @@ public class Board extends JPanel {
 
     private Point cursor;
 
-    Board(JFrame frame) {
+    Board(JFrame frame, String imagePath) {
         this.frame = frame;
-        final ImageIcon icon = new ImageIcon("map.jpg");
+        final ImageIcon icon = new ImageIcon(imagePath);
         final Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         scale = Math.min((double) rect.width / icon.getIconWidth(), (double) rect.height / icon.getIconHeight());
         final int mapWidth = scale(icon.getIconWidth());

@@ -37,7 +37,7 @@ public class EventCard extends Card {
         this.type = type;
     }
 
-    public void play(Game game, Player player) {
+    public void play(Server game, Player player) {
         super.play(game, player);
         switch (type) {
             case ALCHEMISTS_GOLD -> {
