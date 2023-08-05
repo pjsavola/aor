@@ -5,7 +5,6 @@ import java.util.*;
 import java.util.List;
 
 public class Node {
-    ;
     public enum CityState { VENICE, GENOA, BARCELONA, PARIS, LONDON, HAMBURG };
 
     private List<Line> borders;

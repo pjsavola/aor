@@ -120,8 +120,8 @@ public class Player {
         state.writtenCash = writtenCash;
         state.misery = misery;
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
-        state.areas.putAll(areas);
-        state.newAreas.putAll(newAreas);
+        areas.forEach((key, value) -> state.areas.put(key.getName(), value));
+        newAreas.forEach((key, value) -> state.newAreas.put(key.getName(), value));
         state.weapons.addAll(weapons);
         return state;
     }

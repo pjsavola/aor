@@ -48,7 +48,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     if (i == playerIndex) continue;
 
                     final PlayerState p = gameState.turnOrder.get(i);
-                    int defenderTokens = p.areas.getOrDefault(node, 0) + p.newAreas.getOrDefault(node, 0);
+                    int defenderTokens = p.areas.getOrDefault(node.getName(), 0) + p.newAreas.getOrDefault(node.getName(), 0);
                     if (defenderTokens == 0) continue;
 
                     if (p.capital == node.getCapital()) {
