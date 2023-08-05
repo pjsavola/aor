@@ -3,14 +3,16 @@ package message;
 import aor.GameState;
 import aor.Node;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class SelectCapitalRequest extends Request<CapitalResponse> {
-    public final Set<Node.CityState> options;
+    public final List<Node.CityState> options;
 
     public SelectCapitalRequest(String info, GameState gameState, Set<Node.CityState> options) {
         super(info, gameState);
-        this.options = options;
+        this.options = new ArrayList<>(options);
     }
 
     @Override

@@ -3,14 +3,16 @@ package message;
 import aor.Commodity;
 import aor.GameState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class AdjustShortageSurplusRequest extends Request<CommodityReponse> {
-    private final Set<Commodity> options;
+    private final List<Commodity> options;
 
     public AdjustShortageSurplusRequest(String info, GameState gameState, Set<Commodity> options) {
         super(info, gameState);
-        this.options = options;
+        this.options = new ArrayList<>(options);
     }
 
     @Override

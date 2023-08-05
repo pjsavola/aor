@@ -3,12 +3,10 @@ package message;
 import aor.GameState;
 import aor.Node;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesResponse> {
-    public final Set<String> options;
+    public final List<String> options;
     public final int count;
     public final int asiaLimit;
     public final int newWorldLimit;
@@ -19,7 +17,7 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
 
     public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, int asiaLimit, int newWorldLimit) {
         super(info, gameState);
-        this.options = options;
+        this.options = new ArrayList<>(options);
         this.count = count;
         this.asiaLimit = asiaLimit;
         this.newWorldLimit = newWorldLimit;
@@ -28,7 +26,7 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     @Override
     public boolean validateResponse(SelectTargetCitiesResponse response) {
         return response.getCities().length == count &&
-                options.containsAll(List.of(response.getCities())) &&
+                new HashSet<>(options).containsAll(List.of(response.getCities())) &&
                 Arrays.stream(response.getCities()).map(Node::isInAsia).count() <= asiaLimit &&
                 Arrays.stream(response.getCities()).map(Node::isInNewWorld).count() <= newWorldLimit;
     }

@@ -67,6 +67,7 @@ public class ClientConnection {
                 } while (!(response instanceof Response));
                 return (U) response;
             } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
                 System.err.println("Lost connection to Client " + socket.getInetAddress());
                 disconnect();
             }

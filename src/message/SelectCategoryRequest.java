@@ -3,15 +3,17 @@ package message;
 import aor.Advance;
 import aor.GameState;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SelectCategoryRequest extends Request<CategoryResponse> {
-    public final Set<Advance.Category> options;
+    public final List<Advance.Category> options;
 
     public SelectCategoryRequest(GameState gameState, Set<Advance.Category> options) {
         super("Ban Science, Religion or Exploraion?", gameState);
-        this.options = options;
+        this.options = new ArrayList<>(options);
     }
 
     @Override

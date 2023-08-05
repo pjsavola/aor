@@ -2,14 +2,16 @@ package message;
 
 import aor.GameState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class UseRenaissanceRequest extends Request<IntegerResponse> {
-    public final Set<Integer> options;
+    public final List<Integer> options;
 
     public UseRenaissanceRequest(GameState gameState, Set<Integer> options) {
         super("Use Renaissance?", gameState);
-        this.options = options;
+        this.options = new ArrayList<>(options);
     }
 
     @Override

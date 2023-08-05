@@ -35,7 +35,9 @@ public abstract class Card {
     public void play(Server game, Player player) {
         game.playedCards.add(this);
         if (game.getEpoch() >= epoch) {
-            game.unplayableCards.addAll(List.of(invalidates));
+            if (invalidates != null) {
+                game.unplayableCards.addAll(List.of(invalidates));
+            }
         }
     }
 }
