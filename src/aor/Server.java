@@ -439,12 +439,30 @@ public class Server implements Runnable {
                         }
                         final int existingTokens = players.stream().map(p -> p.getTokenCount(node)).mapToInt(Integer::intValue).sum();
                         if (existingTokens + tokens >= node.getSize()) {
+                            final boolean cathedral = player.getAdvances().contains(Advance.cathedral);
+                            boolean autoLoss = false;
+                            if (!cathedral) {
+                                for (Player p : turnOrder) {
+                                    if (p == player) continue;
+
+                                    if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed && p.getTokenCount(node) > 0) {
+                                        final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState())).get().getBool();
+                                        if (cathedralUsed) {
+                                            p.cathedralUsed = round;
+                                            autoLoss = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                             final boolean proselytism = player.getAdvances().contains(Advance.proselytism);
                             final boolean win;
-                            if (proselytism && turnOrderRollRequirement == 1) {
+                            if (autoLoss) {
+                                win = false;
+                            } else if (proselytism && turnOrderRollRequirement == 1) {
                                 win = true;
                             } else {
-                                if (e.getKey().equals(response.getCathedralused())) {
+                                if (cathedral && e.getKey().equals(response.getCathedralused())) {
                                     player.cathedralUsed = round;
                                     win = true;
                                 } else {
