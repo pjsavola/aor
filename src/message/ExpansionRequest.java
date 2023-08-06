@@ -35,6 +35,18 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
+                int totalTokenCount = 0;
+                for (int i = 0; i < gameState.turnOrder.size(); ++i) {
+                    final PlayerState p = gameState.turnOrder.get(i);
+                    final int idx = p.areas.indexOf(node.getName());
+                    if (idx != -1) totalTokenCount += p.tokens.get(idx);
+                    final int newIdx = p.newAreas.indexOf(node.getName());
+                    if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx)
+                }
+                if (totalTokenCount + tokenCount < node.getSize()) {
+                    return true;
+                }
+
                 int requiredTokens = node.getSize();
                 for (int i = 0; i < gameState.turnOrder.size(); ++i) {
                     if (i == playerIndex) continue;
@@ -62,7 +74,6 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                         if (playerState.areas.contains(support.getName())) --requiredTokens;
                     }
                 }
-
                 return tokenCount == Math.min(node.getSize(), requiredTokens);
             }
             return false;
