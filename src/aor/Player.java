@@ -29,6 +29,7 @@ public class Player {
     private int usableTokens;
     public int shipLevel;
     int renaissanceUsed;
+    int cathedralUsed;
     boolean chaos;
     private final ClientConnection client;
 

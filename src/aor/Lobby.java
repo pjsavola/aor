@@ -30,7 +30,7 @@ public class Lobby implements Runnable {
     public void run() {
         boolean done = false;
         while (!done) {
-            System.err.println("Waiting for clients");
+            System.err.println("Waiting for clients (" + clients.size() + "/" + playerCount + ")");
             try {
                 final Socket socket = serverSocket.accept();
                 if (clients.size() < playerCount) {

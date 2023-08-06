@@ -429,8 +429,9 @@ public class Server implements Runnable {
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
-                response.getTokensUsed().forEach((name, tokens) -> {
-                    final Node node = Node.nodeMap.get(name);
+                response.getEntryStream().forEach(e -> {
+                    final Node node = Node.nodeMap.get(e.getKey());
+                    final int tokens = e.getValue();
                     if (node != null) {
                         if (!reachableUnlimited.contains(node) && reachableLimited.contains(node)) {
                             final int oldTokens = usedShipping.getOrDefault(node, 0);
@@ -438,17 +439,24 @@ public class Server implements Runnable {
                         }
                         final int existingTokens = players.stream().map(p -> p.getTokenCount(node)).mapToInt(Integer::intValue).sum();
                         if (existingTokens + tokens >= node.getSize()) {
-                            final int turnOrderRoll = r.nextInt(6);
-                            boolean win = false;
-                            if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && player.getAdvances().contains(Advance.proselytism)) {
+                            final boolean proselytism = player.getAdvances().contains(Advance.proselytism);
+                            final boolean win;
+                            if (proselytism && turnOrderRollRequirement == 1 || e.getKey().equals(response.getCathedralused())) {
                                 win = true;
                             } else {
-                                final int attackerRoll = r.nextInt(6);
-                                final int defenderRoll = r.nextInt(6);
-                                if (attackerRoll > defenderRoll) {
+                                final int turnOrderRoll = r.nextInt(6);
+                                if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
                                     win = true;
-                                } else if (attackerRoll == defenderRoll) {
-                                    win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
+                                } else {
+                                    final int attackerRoll = r.nextInt(6);
+                                    final int defenderRoll = r.nextInt(6);
+                                    if (attackerRoll > defenderRoll) {
+                                        win = true;
+                                    } else if (attackerRoll == defenderRoll) {
+                                        win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
+                                    } else {
+                                        win = false;
+                                    }
                                 }
                             }
                             if (win) {
@@ -463,8 +471,7 @@ public class Server implements Runnable {
                         player.spendTokens(tokens);
                     }
                 });
-                final int spentTokens = response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum();
-                player.spendTokens(spentTokens);
+                player.spendTokens(response.getTokensUsed());
             }
         }
         phase = Phase.INCOME;

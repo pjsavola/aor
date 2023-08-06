@@ -27,13 +27,17 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public boolean validateResponse(ExpansionResponse response) {
-        if (response.getTokensUsed().values().stream().mapToInt(Integer::intValue).sum() + response.getTokensDisbanded() <= tokens) {
+        if (response.getTokensUsed() + response.getTokensDisbanded() <= tokens) {
             return false;
         }
 
         final PlayerState playerState = gameState.turnOrder.get(playerIndex);
+        final boolean cathedral = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
+        if (!cathedral && response.getCathedralused() != null) {
+            return false;
+        }
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
-        return response.getTokensUsed().entrySet().stream().allMatch(e -> {
+        return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
             final int capacityIdx = capacityMapKeys.indexOf(name);
@@ -88,6 +92,6 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public ExpansionResponse getDefaultResponse() {
-        return new ExpansionResponse(Collections.emptyMap(), tokens);
+        return new ExpansionResponse(Collections.emptyMap(), tokens, null);
     }
 }
