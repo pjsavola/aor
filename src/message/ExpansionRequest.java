@@ -36,6 +36,9 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         if (!cathedral && response.getCathedralused() != null) {
             return false;
         }
+        if (cathedral && response.getCathedralused() != null && playerState.cathedralUsed >= gameState.round) {
+            return false;
+        }
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();

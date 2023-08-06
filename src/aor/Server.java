@@ -441,21 +441,26 @@ public class Server implements Runnable {
                         if (existingTokens + tokens >= node.getSize()) {
                             final boolean proselytism = player.getAdvances().contains(Advance.proselytism);
                             final boolean win;
-                            if (proselytism && turnOrderRollRequirement == 1 || e.getKey().equals(response.getCathedralused())) {
+                            if (proselytism && turnOrderRollRequirement == 1) {
                                 win = true;
                             } else {
-                                final int turnOrderRoll = r.nextInt(6);
-                                if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
+                                if (e.getKey().equals(response.getCathedralused())) {
+                                    player.cathedralUsed = round;
                                     win = true;
                                 } else {
-                                    final int attackerRoll = r.nextInt(6);
-                                    final int defenderRoll = r.nextInt(6);
-                                    if (attackerRoll > defenderRoll) {
+                                    final int turnOrderRoll = r.nextInt(6);
+                                    if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
                                         win = true;
-                                    } else if (attackerRoll == defenderRoll) {
-                                        win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
                                     } else {
-                                        win = false;
+                                        final int attackerRoll = r.nextInt(6);
+                                        final int defenderRoll = r.nextInt(6);
+                                        if (attackerRoll > defenderRoll) {
+                                            win = true;
+                                        } else if (attackerRoll == defenderRoll) {
+                                            win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
+                                        } else {
+                                            win = false;
+                                        }
                                     }
                                 }
                             }
