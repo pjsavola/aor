@@ -8,16 +8,21 @@ import java.util.stream.Collectors;
 public class ExpansionRequest extends Request<ExpansionResponse> {
     public final int playerIndex;
     public final int tokens;
-    private final Set<String> reachableUnlimited;
-    private final Map<String, Integer> capacityMap;
+    private final List<String> reachableUnlimited;
+    private final List<String> capacityMapKeys;
+    private final List<Integer> capacityMapValues;
 
     public ExpansionRequest(GameState gameState, int playerIndex, int tokens, Set<Node> reachableUnlimited, Map<Node, Integer> capacityMap) {
         super("Expand", gameState);
         this.playerIndex = playerIndex;
         this.tokens = tokens;
-        this.reachableUnlimited = reachableUnlimited.stream().map(Node::getName).collect(Collectors.toSet());
-        this.capacityMap = new HashMap<>(capacityMap.size());
-        capacityMap.forEach((key, value) -> this.capacityMap.put(key.getName(), value));
+        this.reachableUnlimited = reachableUnlimited.stream().map(Node::getName).toList();
+        capacityMapKeys = new ArrayList<>(capacityMap.size());
+        capacityMapValues = new ArrayList<>(capacityMap.size());
+        capacityMap.forEach((key, value) -> {
+            capacityMapKeys.add(key.getName());
+            capacityMapValues.add(value);
+        });
     }
 
     @Override
@@ -31,7 +36,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         return response.getTokensUsed().entrySet().stream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
-            final int remainingCapacity = capacityMap.getOrDefault(name, 0);
+            final int capacityIdx = capacityMapKeys.indexOf(name);
+            final int remainingCapacity = capacityIdx == -1 ? 0 : capacityMapValues.get(capacityIdx);
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
@@ -41,7 +47,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     final int idx = p.areas.indexOf(node.getName());
                     if (idx != -1) totalTokenCount += p.tokens.get(idx);
                     final int newIdx = p.newAreas.indexOf(node.getName());
-                    if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx)
+                    if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx);
                 }
                 if (totalTokenCount + tokenCount < node.getSize()) {
                     return true;
