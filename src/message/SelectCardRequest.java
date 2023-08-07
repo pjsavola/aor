@@ -2,10 +2,13 @@ package message;
 
 import aor.Card;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 
 public class SelectCardRequest extends Request<IntegerResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final int[] indices;
     public final boolean optional;
 

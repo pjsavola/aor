@@ -2,10 +2,13 @@ package message;
 
 import aor.*;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ExpansionRequest extends Request<ExpansionResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public final int playerIndex;
     public final int tokens;
     private final List<String> reachableUnlimited;

@@ -2,11 +2,14 @@ package message;
 
 import aor.*;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public final int playerIndex;
 
     public PurchaseAdvancesRequest(GameState gameState, int playerIndex) {

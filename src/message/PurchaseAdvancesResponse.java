@@ -2,10 +2,13 @@ package message;
 
 import aor.Advance;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 
 public class PurchaseAdvancesResponse extends Response {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final int[] indices;
 
     public PurchaseAdvancesResponse(List<Advance> advances) {

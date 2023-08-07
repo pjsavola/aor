@@ -2,7 +2,11 @@ package message;
 
 import aor.Commodity;
 
+import java.io.Serial;
+
 public class CommodityReponse extends Response {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final Commodity commodity;
     private final int adjustment;
 

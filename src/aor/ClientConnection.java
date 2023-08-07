@@ -61,9 +61,18 @@ public class ClientConnection {
         if (isConnected()) {
             try {
                 oos.writeObject(request);
-                Object response;
+                Object response = null;
                 do {
-                    response = ois.readObject();
+                    try {
+                        response = ois.readObject();
+                    } catch (EOFException e) {
+                        // this is ok, no response yet
+                        try {
+                            Thread.sleep(heartBeatMs);
+                        } catch (InterruptedException exception) {
+                            e.printStackTrace();
+                        }
+                    }
                 } while (!(response instanceof Response));
                 return (U) response;
             } catch (IOException | ClassNotFoundException e) {

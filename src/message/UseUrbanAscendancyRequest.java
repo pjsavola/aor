@@ -2,8 +2,11 @@ package message;
 
 import aor.GameState;
 
-public class UseUrbanAscendancyRequest extends Request<BooleanResponse> {
+import java.io.Serial;
 
+public class UseUrbanAscendancyRequest extends Request<BooleanResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public UseUrbanAscendancyRequest(GameState gameState) {
         super("Use Urban Ascendancy?", gameState);
     }

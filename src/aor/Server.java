@@ -113,6 +113,7 @@ public class Server implements Runnable {
     @Override
     public void run() {
         while (phase != Phase.END) {
+            System.err.println("Round " + round + " " + phase + " begins");
             switch (phase) {
                 case DRAFT -> draftPhase();
                 case SELECT_CAPITAL -> selectCapitalPhase();

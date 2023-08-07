@@ -1,10 +1,12 @@
 package aor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameState implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     public int epoch;
     public int deckSize;

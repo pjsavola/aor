@@ -2,8 +2,11 @@ package message;
 
 import aor.GameState;
 
-public class SelectHolyIndulgencePaymentRequest extends Request<BooleanResponse> {
+import java.io.Serial;
 
+public class SelectHolyIndulgencePaymentRequest extends Request<BooleanResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public SelectHolyIndulgencePaymentRequest(GameState gameState) {
         super("Not enough tokens to pay off Holy Indulgence. Pay remaining tokens with cash?", gameState);
     }

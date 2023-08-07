@@ -2,7 +2,11 @@ package message;
 
 import aor.GameState;
 
+import java.io.Serial;
+
 public class SelectAreaRequest extends Request<IntegerResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public SelectAreaRequest(GameState gameState) {
         super("Select area for Black Death", gameState);
     }

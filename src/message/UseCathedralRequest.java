@@ -2,8 +2,11 @@ package message;
 
 import aor.GameState;
 
-public class UseCathedralRequest extends Request<BooleanResponse> {
+import java.io.Serial;
 
+public class UseCathedralRequest extends Request<BooleanResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public UseCathedralRequest(GameState gameState) {
         super("Use Cathedral to defend?", gameState);
     }

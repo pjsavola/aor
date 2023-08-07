@@ -3,9 +3,12 @@ package message;
 import aor.GameState;
 import aor.Node;
 
+import java.io.Serial;
 import java.util.*;
 
 public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public final List<String> options;
     public final int count;
     public final int asiaLimit;

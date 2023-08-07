@@ -1,11 +1,14 @@
 package message;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 public class ExpansionResponse extends Response {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final List<String> tokensUsedKeys;
     private final List<Integer> tokensUsedValues;
     private final String cathedralUsed;

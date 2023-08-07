@@ -2,15 +2,18 @@ package message;
 
 import aor.GameState;
 
-public class UpgradeShipsRequest extends Request<BooleanResponse> {
+import java.io.Serial;
 
+public class UpgradeShipsRequest extends Request<BooleanResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public UpgradeShipsRequest(GameState gameState) {
         super("Upgrade Ships?", gameState);
     }
 
     @Override
     public boolean validateResponse(BooleanResponse response) {
-        return true;
+        return response != null;
     }
 
     @Override

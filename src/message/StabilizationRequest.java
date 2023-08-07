@@ -2,8 +2,11 @@ package message;
 
 import aor.GameState;
 
-public class StabilizationRequest extends Request<BooleanResponse> {
+import java.io.Serial;
 
+public class StabilizationRequest extends Request<BooleanResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public StabilizationRequest(GameState gameState) {
         super("Stabilize using cash?", gameState);
     }

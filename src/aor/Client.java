@@ -34,6 +34,7 @@ public class Client implements Runnable {
             } catch (EOFException e) {
                 // This is ok, no objects to read
             } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
                 System.err.println("Error when reading object input from server");
                 break;
             }

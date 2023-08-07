@@ -2,11 +2,14 @@ package message;
 
 import aor.GameState;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class UseRenaissanceRequest extends Request<IntegerResponse> {
+    @Serial
+    private static final long serialVersionUID = 1L;
     public final List<Integer> options;
 
     public UseRenaissanceRequest(GameState gameState, Set<Integer> options) {

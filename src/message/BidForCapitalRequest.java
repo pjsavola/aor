@@ -2,11 +2,13 @@ package message;
 
 import aor.Card;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 
 public class BidForCapitalRequest extends Request<IntegerResponse> {
-
+    @Serial
+    private static final long serialVersionUID = 1L;
     public BidForCapitalRequest() {
         super("Bid for Capital");
     }
