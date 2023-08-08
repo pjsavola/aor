@@ -172,13 +172,17 @@ public class Server implements Runnable {
         players.clear();
         while (!selectionOrder.isEmpty()) {
             int highestBid = -1;
-            int index = -1;
+            List<Integer> highestIndices = new ArrayList<>();
             for (int i = 0; i < bids.size(); ++i) {
                 if (bids.get(i) > highestBid) {
+                    highestIndices.clear();
                     highestBid = bids.get(i);
-                    index = i;
+                }
+                if (bids.get(i) >= highestBid) {
+                    highestIndices.add(i);
                 }
             }
+            final int index = highestIndices.remove(r.nextInt(highestIndices.size()));
             bids.remove(index);
             final Player player = selectionOrder.remove(index);
             player.adjustCash(-highestBid);

@@ -6,8 +6,6 @@ import java.io.Serial;
 import java.io.Serializable;
 
 public abstract class Request<U extends Response> implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
     public final String info;
     public final GameState gameState;
 

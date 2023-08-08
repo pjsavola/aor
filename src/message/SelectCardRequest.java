@@ -5,6 +5,7 @@ import aor.Card;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SelectCardRequest extends Request<IntegerResponse> {
     @Serial
@@ -30,5 +31,10 @@ public class SelectCardRequest extends Request<IntegerResponse> {
     @Override
     public IntegerResponse getDefaultResponse() {
         return new IntegerResponse(optional ? -1 : 0);
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.stream(indices).mapToObj(Integer::toString).collect(Collectors.joining(" "));
     }
 }

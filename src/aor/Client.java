@@ -11,14 +11,17 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class Client implements Runnable {
+    private static int counter;
     private final ObjectOutputStream oos;
     private final ObjectInputStream ois;
     private final Socket socket;
+    private final int index;
 
     public Client(Socket socket) throws IOException {
         this.socket = socket;
         ois = new ObjectInputStream(socket.getInputStream());
         oos = new ObjectOutputStream(socket.getOutputStream());
+        index = counter++;
     }
 
     @Override
@@ -27,8 +30,10 @@ public class Client implements Runnable {
             try {
                 final Object message = ois.readObject();
                 if (message instanceof Request) {
+                    System.err.println("Client " + index + " received request " + message.getClass().getSimpleName());
                     oos.writeObject(getResponse((Request<?>) message));
                 } else if (message instanceof Notification) {
+                    System.err.println("Client " + index + " received notification " + message.getClass().getSimpleName());
                     //return handleNotification((Notification) message);
                 }
             } catch (EOFException e) {
