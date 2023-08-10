@@ -5,6 +5,7 @@ import aor.Card;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class BidForCapitalRequest extends Request<IntegerResponse> {
     @Serial
@@ -20,6 +21,6 @@ public class BidForCapitalRequest extends Request<IntegerResponse> {
 
     @Override
     public IntegerResponse getDefaultResponse() {
-        return new IntegerResponse(0);
+        return new IntegerResponse(new Random().nextInt(6));
     }
 }

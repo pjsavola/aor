@@ -139,10 +139,6 @@ public class Server implements Runnable {
             hands.add(hand);
             asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", hand, false)));
         }
-        if (players.size() <= 4) {
-            deck.addAll(delayedCards);
-            delayedCards.clear();
-        }
         for (int i = 0; i < playerCount; ++i) {
             final int index = asyncDiscards.get(i).get().getInt();
             final List<Card> hand = hands.get(i);
@@ -155,6 +151,13 @@ public class Server implements Runnable {
                 }
             }
         }
+        System.err.println("Initial draft completed.");
+        if (players.size() <= 4) {
+            System.err.println("Delayed cards " + delayedCards.stream().map(Card::getName).collect(Collectors.joining(", ")) + " added to the deck.");
+            deck.addAll(delayedCards);
+            delayedCards.clear();
+        }
+        System.err.println("Deck 1 is shuffled.");
         Collections.shuffle(deck, r);
         phase = Phase.SELECT_CAPITAL;
     }
@@ -172,27 +175,26 @@ public class Server implements Runnable {
         players.clear();
         while (!selectionOrder.isEmpty()) {
             int highestBid = -1;
-            List<Integer> highestIndices = new ArrayList<>();
+            int index = -1;
             for (int i = 0; i < bids.size(); ++i) {
                 if (bids.get(i) > highestBid) {
-                    highestIndices.clear();
+                    index = i;
                     highestBid = bids.get(i);
                 }
-                if (bids.get(i) >= highestBid) {
-                    highestIndices.add(i);
-                }
             }
-            final int index = highestIndices.remove(r.nextInt(highestIndices.size()));
             bids.remove(index);
             final Player player = selectionOrder.remove(index);
-            player.adjustCash(-highestBid);
             options.add(Node.CityState.values()[players.size()]);
             players.add(player);
             turnOrder.add(player);
+            System.err.println(player + " bids " + highestBid + " for capital.");
+            player.adjustCash(-highestBid);
         }
         for (Player player : turnOrder) {
             final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
+            System.err.println(player + " picks " + capital + ".");
             player.selectCapital(capital);
+            Node.nodeMap.values().stream().filter(n -> n.getCapital() == capital).findAny().ifPresent(player::addCity);
             options.remove(capital);
         }
         phase = Phase.ORDER_OF_PLAY;
@@ -222,6 +224,7 @@ public class Server implements Runnable {
             player.writtenCash = player.getCash();
             player.addTokens(lowestBid);
             turnOrder.add(players.get(index));
+            System.err.println(player + " purchases " + lowestBid + " tokens. Written cash: " + player.writtenCash);
         }
         phase = round == 1 ? Phase.PLAY_CARD : Phase.DRAW_CARD;
     }
@@ -307,6 +310,7 @@ public class Server implements Runnable {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
                 final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("PLay 1 card?", playableCards, true)).get().getInt();
                 if (cardIndex == -1) {
+                    System.err.println(player + " passes, " + player.cards.size() + " cards remaining.");
                     break;
                 } else {
                     final Card card = playableCards.get(cardIndex);
@@ -334,6 +338,7 @@ public class Server implements Runnable {
             if (response != null && response.get().getBool()) {
                 turnOrder.get(i).adjustCash(-10);
                 ++turnOrder.get(i).shipLevel;
+                System.err.println(turnOrder.get(i) + " Pays 10 cash and upgrades ships to level " + turnOrder.get(i).shipLevel);
             }
         }
 
@@ -647,7 +652,8 @@ public class Server implements Runnable {
                         targets = options.toArray(String[]::new);
                     }
                     for (String target : targets) {
-                        loser.getCities().filter(c -> c.getName().equals(target)).forEach(n -> {
+                        final List<Node> lostCities = loser.getCities().filter(c -> c.getName().equals(target)).toList();
+                        lostCities.forEach(n -> {
                             loser.remove(n);
                             winner.addCity(n);
                         });

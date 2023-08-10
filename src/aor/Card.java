@@ -27,6 +27,10 @@ public abstract class Card {
         return index;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public boolean canPlay(Server game) {
         return !game.unplayableCards.contains(this);
     }

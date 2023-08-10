@@ -237,7 +237,6 @@ public class Player {
     }
 
     public void adjustCash(int delta) {
-        System.err.println(this + (delta > 0 ? " gets " : " loses ") + Math.abs(delta) + " cash");
         cash += delta;
     }
 
