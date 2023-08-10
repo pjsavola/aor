@@ -160,7 +160,7 @@ public class Node {
         }
     }
 
-    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens, Set<Node> blockedNodes) {
+    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens, Set<Node> blockedNodes, int playerCount) {
         final Map<Line, Integer> borderDistances = new HashMap<>();
         final Map<Line, Integer> borderDistancesWithHeavens = new HashMap<>();
         final Deque<Work> work = new ArrayDeque<>();
@@ -207,7 +207,7 @@ public class Node {
                 }
                 for (Node neighbor : border.nodes) {
                     if (neighbor == node) continue;
-                    if (blockedNodes.contains(neighbor)) continue;
+                    if (6 - neighbor.region >= playerCount) continue;
 
                     boolean heavensUsed = w.heavensUsed;
                     if (neighbor.commodity == null && neighbor.size == 0) {
@@ -218,7 +218,9 @@ public class Node {
                         final Map<Line, Integer> map = heavensUsed ? borderDistancesWithHeavens : borderDistances;
                         map.put(border, distance + 1);
                         if (range > distance) {
-                            work.add(new Work(neighbor, distance + 1, useShips ? border : null, heavensUsed));
+                            if (!blockedNodes.contains(neighbor)) {
+                                work.add(new Work(neighbor, distance + 1, useShips ? border : null, heavensUsed));
+                            }
                             result.add(neighbor);
                         }
                     }

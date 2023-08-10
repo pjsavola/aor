@@ -50,10 +50,9 @@ public class ClientConnection {
         oos = null;
     }
 
-    public synchronized <N extends Notification> void notify(N notification) {
+    public <N extends Notification> void notify(N notification) {
         if (oos != null) {
             try {
-                System.err.println("Server " + index + " sends notification " + notification);
                 oos.writeObject(notification);
             } catch (IOException e) {
                 System.err.println("Error when notifying Client " + socket.getInetAddress());
@@ -62,16 +61,14 @@ public class ClientConnection {
     }
 
     @SuppressWarnings("unchecked")
-    public synchronized <T extends Request<U>, U extends Response> U request(T request) {
+    public <T extends Request<U>, U extends Response> U request(T request) {
         if (isConnected()) {
             try {
-                System.err.println("Server " + index + " sends request " + request);
                 oos.writeObject(request);
                 Object response;
                 do {
                     response = getResponse();
                 } while (!(response instanceof Response));
-                System.err.println("Server " + index + " received response " + response.getClass().getSimpleName());
                 return (U) response;
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

@@ -30,10 +30,8 @@ public class Client implements Runnable {
             try {
                 final Object message = ois.readObject();
                 if (message instanceof Request) {
-                    System.err.println("Client " + index + " received request " + message.getClass().getSimpleName());
                     oos.writeObject(getResponse((Request<?>) message));
                 } else if (message instanceof Notification) {
-                    System.err.println("Client " + index + " received notification " + message.getClass().getSimpleName());
                     //return handleNotification((Notification) message);
                 }
             } catch (EOFException e) {

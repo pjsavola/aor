@@ -7,6 +7,7 @@ import message.Response;
 import java.sql.ClientInfoStatus;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 public class Player {
@@ -89,11 +90,15 @@ public class Player {
     }
 
     public Stream<Node> getTokenAreas() {
-        return areas.entrySet().stream().filter(e -> e.getKey().getSize() > e.getValue()).map(Map.Entry::getKey);
+        return areas.entrySet().stream().filter(e -> e.getKey().getSize() > e.getValue() || e.getValue() == 1).map(Map.Entry::getKey);
+    }
+
+    public Stream<Node> getFullAreas() {
+        return areas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue()).map(Map.Entry::getKey);
     }
 
     public Stream<Node> getCities() {
-        return areas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue()).map(Map.Entry::getKey);
+        return areas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue() && e.getValue() > 1).map(Map.Entry::getKey);
     }
 
     public void reduceCity(Node node) {
@@ -112,7 +117,7 @@ public class Player {
     }
 
     public int getNewCityCount() {
-        return (int) newAreas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue()).count();
+        return (int) newAreas.entrySet().stream().filter(e -> e.getKey().getSize() == e.getValue() && e.getValue() > 1).count();
     }
 
     public PlayerState getState() {
@@ -145,7 +150,11 @@ public class Player {
     }
 
     public <T extends Notification> void notify(T notification) {
-        CompletableFuture.runAsync(() -> client.notify(notification));
+        CompletableFuture.runAsync(() -> client.notify(notification)).join();
+    }
+
+    public <T extends Notification> void notifyOthers(T notification) {
+        game.players.stream().filter(p -> p != this).forEach(p -> notify(notification));
     }
 
     public void selectCapital(Node.CityState capital) {
@@ -228,14 +237,17 @@ public class Player {
     }
 
     public void adjustCash(int delta) {
+        System.err.println(this + (delta > 0 ? " gets " : " loses ") + Math.abs(delta) + " cash");
         cash += delta;
     }
 
     public void adjustMisery(int delta) {
         if (chaos) return;
 
+        System.err.println(this + " gains " + delta + " misery");
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
+            System.err.println(this + " goes to chaos. Remaining " + cards.size() + " cards are discarded.");
             chaos = true;
             cards.forEach(game::moveToNextDeck);
             cards.clear();
@@ -262,5 +274,10 @@ public class Player {
         final int commerce = (int) advances.stream().filter(a -> a.category == Advance.Category.COMMERCE).count();
         final int communications = (int) advances.stream().filter(a -> a.category == Advance.Category.COMMUNICATION).count();
         return Math.min(Math.min(civics, commerce), communications);
+    }
+
+    @Override
+    public String toString() {
+        return "Player " + (game.players.indexOf(this) + 1);
     }
 }

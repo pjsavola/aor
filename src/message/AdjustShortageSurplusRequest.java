@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class AdjustShortageSurplusRequest extends Request<CommodityReponse> {
+public class AdjustShortageSurplusRequest extends Request<CommodityResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
     private final List<Commodity> options;
@@ -19,12 +19,12 @@ public class AdjustShortageSurplusRequest extends Request<CommodityReponse> {
     }
 
     @Override
-    public boolean validateResponse(CommodityReponse response) {
+    public boolean validateResponse(CommodityResponse response) {
         return response.getCommodity() == null || (options.contains(response.getCommodity()) && Math.abs(response.getAdjustment()) == 1);
     }
 
     @Override
-    public CommodityReponse getDefaultResponse() {
-        return new CommodityReponse(null);
+    public CommodityResponse getDefaultResponse() {
+        return new CommodityResponse(null);
     }
 }

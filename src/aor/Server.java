@@ -234,7 +234,7 @@ public class Server implements Runnable {
             for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             if (!options.isEmpty()) {
-                final CommodityReponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
+                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
                 if (selectedCommodity == null) {
                     break;
@@ -248,7 +248,7 @@ public class Server implements Runnable {
         if (turnOrder.get(turnOrder.size() - 1).getAdvances().contains(Advance.windWaterMill)) {
             final Player player = turnOrder.get(turnOrder.size() - 1);
             final Set<Commodity> options = Set.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.WINE, Commodity.METAL);
-            final CommodityReponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options)).get();
+            final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options)).get();
             final Commodity selectedCommodity = commodityReponse.getCommodity();
             if (selectedCommodity != null) {
                 if (commodityReponse.getAdjustment() > 0) {
@@ -409,21 +409,22 @@ public class Server implements Runnable {
             final boolean useHeavens = player.getAdvances().contains(Advance.heavens);
             final int shipRange = player.getAdvances().contains(Advance.seaworthyVessels) ? Integer.MAX_VALUE : player.shipLevel * 2;
             final int shipCapacity = player.getAdvances().contains(Advance.oceanNavigation) ? Integer.MAX_VALUE : player.shipLevel * 2 + (player.getAdvances().contains(Advance.seaworthyVessels) ? 8 : 0);
-            final Set<Node> allCities = new HashSet<>();
-            players.forEach(p -> p.getCities().forEach(allCities::add));
 
             while (player.getUsableTokens() > 0) {
                 final Set<Node> reachableLimited = new HashSet<>();
                 final Set<Node> reachableUnlimited = new HashSet<>();
+                final Set<Node> fullAreas = new HashSet<>();
+                players.forEach(p -> p.getCities().forEach(fullAreas::add));
+
                 final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
                 if (shipRange == Integer.MAX_VALUE) {
                     if (shipCapacity == Integer.MAX_VALUE) Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
                     else Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableLimited::add);
                 }
                 player.getAreas().forEach(node -> {
-                    reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, allCities));
+                    reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, fullAreas, playerCount));
                     if (shipRange != Integer.MAX_VALUE) {
-                        reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet()));
+                        reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet(), playerCount));
                     }
                 });
                 final Map<Node, Integer> capacityMap = new HashMap<>();
@@ -744,8 +745,14 @@ public class Server implements Runnable {
 
     public void commodityPlayed(Commodity commodity) {
         int adjustment = 0;
-        if (surpluses.remove(commodity)) --adjustment;
-        if (shortages.remove(commodity)) ++adjustment;
+        if (surpluses.remove(commodity)) {
+            System.err.println(commodity + " surplus used");
+            --adjustment;
+        }
+        if (shortages.remove(commodity)) {
+            System.err.println(commodity + " shortage used");
+            ++adjustment;
+        }
         for (Player player : players) {
             int count = player.getCommodityCount(commodity);
             if (count > 0) {

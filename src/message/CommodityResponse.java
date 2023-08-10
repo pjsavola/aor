@@ -4,17 +4,17 @@ import aor.Commodity;
 
 import java.io.Serial;
 
-public class CommodityReponse extends Response {
+public class CommodityResponse extends Response {
     @Serial
     private static final long serialVersionUID = 1L;
     private final Commodity commodity;
     private final int adjustment;
 
-    public CommodityReponse(Commodity commodity) {
+    public CommodityResponse(Commodity commodity) {
         this(commodity, 0);
     }
 
-    public CommodityReponse(Commodity commodity, int adjustment) {
+    public CommodityResponse(Commodity commodity, int adjustment) {
         this.commodity = commodity;
         this.adjustment = adjustment;
     }

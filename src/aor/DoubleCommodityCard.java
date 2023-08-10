@@ -1,5 +1,11 @@
 package aor;
 
+import message.CommodityResponse;
+import message.SelectCommodityRequest;
+
+import java.util.List;
+import java.util.Set;
+
 public class DoubleCommodityCard extends Card {
     private final Commodity commodity1;
     private final Commodity commodity2;
@@ -13,6 +19,8 @@ public class DoubleCommodityCard extends Card {
     @Override
     public void play(Server game, Player player) {
         super.play(game, player);
-        game.commodityPlayed(commodity1);
+        final Commodity commodity = new FutureOrDefault<>(player, new SelectCommodityRequest(game.getGameState(), List.of(commodity1, commodity2))).get().getCommodity();
+        System.err.println("Played as " + commodity);
+        game.commodityPlayed(commodity);
     }
 }
