@@ -12,6 +12,7 @@ public class PlayerState implements Serializable {
     public int cash;
     public int writtenCash;
     public int misery;
+    public boolean chaos;
     public int cathedralUsed;
     public int[] advances;
     public List<Integer> ownedPatronageCards = new ArrayList<>();

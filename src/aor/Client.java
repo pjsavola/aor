@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.*;
 import java.util.List;
 
 public class Client extends Board implements Runnable {
@@ -137,6 +138,19 @@ public class Client extends Board implements Runnable {
             final int epochWidth = g.getFontMetrics().stringWidth(epoch.toString());
             g.drawString(epoch.toString(), 960 - epochWidth / 2, 350);
         }
+
+        final Map<Integer, Set<Capital>> miseryMap = new HashMap<>();
+        for (PlayerState playerState : gameState.turnOrder) {
+            final int miseryStep = playerState.chaos ? Player.miserySteps.length : playerState.misery;
+            miseryMap.putIfAbsent(miseryStep, new HashSet<>());
+            miseryMap.get(miseryStep).add(playerState.capital);
+        }
+        miseryMap.forEach((miseryStep, capitals) -> {
+            int x = 1067;
+            int y = 146;
+            g.setColor(Color.GREEN);
+            g.fillRect(x, y, 14, 14);
+        });
     }
 
     public void handleRequest(SelectCardRequest request) {

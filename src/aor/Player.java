@@ -125,6 +125,7 @@ public class Player {
         state.cash = cash;
         state.writtenCash = writtenCash;
         state.misery = misery;
+        state.chaos = chaos;
         state.cathedralUsed = cathedralUsed;
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
         areas.forEach((key, value) -> {

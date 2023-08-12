@@ -137,7 +137,7 @@ public class Server implements Runnable {
         for (Player player : players) {
             final List<Card> hand = List.of(drawCard(), drawCard(), drawCard());
             hands.add(hand);
-            asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", hand, false)));
+            asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", null, hand, false)));
         }
         for (int i = 0; i < playerCount; ++i) {
             final int index = asyncDiscards.get(i).get().getInt();
@@ -207,8 +207,8 @@ public class Server implements Runnable {
     }
 
     private void orderOfPlayPhase() {
-        turnOrder.clear();
         final GameState gameState = getGameState();
+        turnOrder.clear();
         final List<FutureOrDefault<BidForTurnOrderRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : players) {
             asyncBids.add(new FutureOrDefault<>(player, new BidForTurnOrderRequest(gameState, player.getCash())));
@@ -290,7 +290,7 @@ public class Server implements Runnable {
         final List<FutureOrDefault<SelectCardRequest, IntegerResponse>> masterArtResponses = new ArrayList<>();
         for (Player player : turnOrder) {
             if (!player.cards.isEmpty() && player.getAdvances().contains(Advance.masterArt)) {
-                masterArtResponses.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card with Master Art?", player.cards, true)));
+                masterArtResponses.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card with Master Art?", getGameState(), player.cards, true)));
             } else {
                 masterArtResponses.add(null);
             }
@@ -314,7 +314,7 @@ public class Server implements Runnable {
             resolveWar(player);
             while (!player.cards.isEmpty()) {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
-                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", playableCards, true)).get().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", getGameState(), playableCards, true)).get().getInt();
                 if (cardIndex == -1) {
                     log(player + " passes, " + player.cards.size() + " cards remaining.");
                     break;
@@ -572,7 +572,7 @@ public class Server implements Runnable {
             resolveWar(player);
             player.cards.removeIf(c -> !c.canPlay(this));
             while (!player.cards.isEmpty()) {
-                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", player.cards, false)).get().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", getGameState(), player.cards, false)).get().getInt();
                 final Card card = player.cards.remove(cardIndex);
                 card.play(this, player);
             }
@@ -623,7 +623,7 @@ public class Server implements Runnable {
                         .map(c -> (WeaponCard) c)
                         .filter(c -> c.power > opponentBestWeapon).toList());
                 while (!playableWeapons.isEmpty()) {
-                    final int index = new FutureOrDefault<>(currentPlayer, new SelectCardRequest("Play weapons for war?", playableWeapons, true)).get().getInt();
+                    final int index = new FutureOrDefault<>(currentPlayer, new SelectCardRequest("Play weapons for war?", getGameState(), playableWeapons, true)).get().getInt();
                     if (index == -1) {
                         break;
                     } else {

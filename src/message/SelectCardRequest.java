@@ -2,6 +2,7 @@ package message;
 
 import aor.Card;
 import aor.Client;
+import aor.GameState;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -14,8 +15,8 @@ public class SelectCardRequest extends Request<IntegerResponse> {
     private final int[] indices;
     public final boolean optional;
 
-    public SelectCardRequest(String info, List<? extends Card> cards, boolean optional) {
-        super(info);
+    public SelectCardRequest(String info, GameState gameState, List<? extends Card> cards, boolean optional) {
+        super(info, gameState);
         indices = cards.stream().map(Card::getIndex).mapToInt(Integer::intValue).toArray();
         this.optional = optional;
     }
