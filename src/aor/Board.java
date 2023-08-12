@@ -129,4 +129,8 @@ public class Board extends JPanel {
     protected Rectangle getDrawDeckBounds() {
         return new Rectangle(scale(2935), scale(839), scale(323), scale(516));
     }
+
+    protected Rectangle getMiserySlotBounds() {
+        return new Rectangle(scale(3432), scale(471), scale(45), scale(45));
+    }
 }

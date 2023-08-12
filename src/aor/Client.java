@@ -145,11 +145,23 @@ public class Client extends Board implements Runnable {
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
             miseryMap.get(miseryStep).add(playerState.capital);
         }
+        final Rectangle miseryBounds = getMiserySlotBounds();
         miseryMap.forEach((miseryStep, capitals) -> {
-            int x = 1067;
-            int y = 146;
-            g.setColor(Color.GREEN);
-            g.fillRect(x, y, 14, 14);
+            int dx = 0;
+            int dy = 0;
+            if (miseryStep % 2 != 0) {
+                dx -= miseryBounds.width * 14 / 10;
+                dy += miseryBounds.height * 7 / 10;
+            }
+            dy += miseryBounds.height * miseryStep * 14 / 20;
+            for (Capital capital : capitals) {
+                g.setColor(Color.BLACK);
+                g.drawRect(miseryBounds.x + dx, miseryBounds.y + dy, miseryBounds.width, miseryBounds.height);
+                g.setColor(capital.getColor());
+                g.fillRect(miseryBounds.x + dx, miseryBounds.y + dy, miseryBounds.width, miseryBounds.height);
+                dx -= 2;
+                dy -= 2;
+            }
         });
     }
 
