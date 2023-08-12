@@ -1,6 +1,7 @@
 package message;
 
 import aor.Card;
+import aor.Client;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -22,5 +23,10 @@ public class BidForCapitalRequest extends Request<IntegerResponse> {
     @Override
     public IntegerResponse getDefaultResponse() {
         return new IntegerResponse(new Random().nextInt(6));
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

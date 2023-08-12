@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 
 import java.io.Serial;
@@ -19,5 +20,10 @@ public class SelectAreaRequest extends Request<IntegerResponse> {
     @Override
     public IntegerResponse getDefaultResponse() {
         return new IntegerResponse(8);
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

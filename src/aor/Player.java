@@ -243,13 +243,14 @@ public class Player {
     public void adjustMisery(int delta) {
         if (chaos) return;
 
-        System.err.println(this + " gains " + delta + " misery");
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
             System.err.println(this + " goes to chaos. Remaining " + cards.size() + " cards are discarded.");
             chaos = true;
             cards.forEach(game::moveToNextDeck);
             cards.clear();
+        } else {
+            game.log(this + " gains " + delta + " misery. Now at " + miserySteps[misery]);
         }
     }
 
@@ -277,6 +278,6 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player " + (game.players.indexOf(this) + 1);
+        return capital == null ? ("Player " + (game.players.indexOf(this) + 1)) : capital.name();
     }
 }

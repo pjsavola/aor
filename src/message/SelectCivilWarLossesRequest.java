@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 
 import java.io.Serial;
@@ -20,5 +21,10 @@ public class SelectCivilWarLossesRequest extends Request<BooleanResponse> {
     @Override
     public BooleanResponse getDefaultResponse() {
         return new BooleanResponse(true);
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

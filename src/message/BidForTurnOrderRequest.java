@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 
 import java.io.Serial;
@@ -22,5 +23,10 @@ public class BidForTurnOrderRequest extends Request<IntegerResponse> {
     @Override
     public IntegerResponse getDefaultResponse() {
         return new IntegerResponse(0);
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

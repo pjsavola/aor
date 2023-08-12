@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 
 import java.io.Serial;
@@ -18,7 +19,13 @@ public abstract class Request<U extends Response> implements Serializable {
         this.gameState = gameState;
     }
 
+    public String getInfo() {
+        return info;
+    }
+
     public abstract boolean validateResponse(U response);
 
     public abstract U getDefaultResponse();
+
+    public abstract void handleRequest(Client client);
 }

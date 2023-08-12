@@ -100,4 +100,9 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     public ExpansionResponse getDefaultResponse() {
         return new ExpansionResponse(Collections.emptyMap(), tokens, null);
     }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
+    }
 }

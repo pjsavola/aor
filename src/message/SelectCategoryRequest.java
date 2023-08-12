@@ -1,6 +1,7 @@
 package message;
 
 import aor.Advance;
+import aor.Client;
 import aor.GameState;
 
 import java.io.Serial;
@@ -27,5 +28,10 @@ public class SelectCategoryRequest extends Request<CategoryResponse> {
     @Override
     public CategoryResponse getDefaultResponse() {
         return new CategoryResponse(null);
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

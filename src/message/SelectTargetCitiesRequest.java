@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 import aor.Node;
 
@@ -37,5 +38,10 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     @Override
     public SelectTargetCitiesResponse getDefaultResponse() {
         return new SelectTargetCitiesResponse(new String[] { options.iterator().next() });
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

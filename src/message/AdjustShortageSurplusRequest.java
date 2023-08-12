@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.Commodity;
 import aor.GameState;
 
@@ -26,5 +27,10 @@ public class AdjustShortageSurplusRequest extends Request<CommodityResponse> {
     @Override
     public CommodityResponse getDefaultResponse() {
         return new CommodityResponse(null);
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

@@ -42,7 +42,7 @@ public abstract class Card {
     }
 
     public void play(Server game, Player player) {
-        System.err.println(player + " played " + name);
+        game.log(player + " played " + name);
         player.notifyOthers(new CardPlayNotification(this, game.players.indexOf(player)));
         game.playedCards.add(this);
         if (game.getEpoch() >= epoch) {

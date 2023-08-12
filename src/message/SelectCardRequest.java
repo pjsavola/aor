@@ -1,6 +1,7 @@
 package message;
 
 import aor.Card;
+import aor.Client;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -36,5 +37,10 @@ public class SelectCardRequest extends Request<IntegerResponse> {
     @Override
     public String toString() {
         return Arrays.stream(indices).mapToObj(Integer::toString).collect(Collectors.joining(" "));
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

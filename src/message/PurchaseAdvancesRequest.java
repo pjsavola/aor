@@ -76,4 +76,9 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
     public PurchaseAdvancesResponse getDefaultResponse() {
         return new PurchaseAdvancesResponse(Collections.emptyList());
     }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
+    }
 }

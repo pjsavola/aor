@@ -1,5 +1,6 @@
 package message;
 
+import aor.Client;
 import aor.GameState;
 import aor.Node;
 
@@ -26,5 +27,10 @@ public class SelectCapitalRequest extends Request<CapitalResponse> {
     @Override
     public CapitalResponse getDefaultResponse() {
         return new CapitalResponse(options.iterator().next());
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }

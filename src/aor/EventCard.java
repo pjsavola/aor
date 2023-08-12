@@ -45,7 +45,9 @@ public class EventCard extends Card {
                 game.players.stream().filter(p -> p != game.enlightenedRuler && !p.getAdvances().contains(Advance.lawsOfMatter)).forEach(p -> targets.put(p.getCapital(), p));
                 final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Alchemist's Gold", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
-                target.adjustCash(-(target.writtenCash + 1) / 2);
+                final int loss = (target.writtenCash + 1) / 2;
+                game.log(target + " lost " + loss + " cash.");
+                target.adjustCash(-loss);
             }
             case CIVIL_WAR -> {
                 final Map<Node.CityState, Player> targets = new HashMap<>();

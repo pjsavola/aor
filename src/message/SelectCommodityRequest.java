@@ -1,6 +1,7 @@
 package message;
 
 import aor.Advance;
+import aor.Client;
 import aor.Commodity;
 import aor.GameState;
 
@@ -28,5 +29,10 @@ public class SelectCommodityRequest extends Request<CommodityResponse> {
     @Override
     public CommodityResponse getDefaultResponse() {
         return new CommodityResponse(options.get(0));
+    }
+
+    @Override
+    public void handleRequest(Client client) {
+        client.handleRequest(this);
     }
 }
