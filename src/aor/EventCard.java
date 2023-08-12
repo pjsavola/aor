@@ -67,7 +67,7 @@ public class EventCard extends Card {
                 for (Player p : game.players) p.getCities().filter(n -> n.getCapital() == capital).findAny().ifPresent(p::reduceCity);
             }
             case ENLIGHTENED_RULER -> game.enlightenedRuler = player;
-            case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 4 : 3) - p.getCommodityCount(Commodity.GRAIN))));
+            case FAMINE -> game.players.forEach(p -> p.adjustMisery(Math.max(0, (p.getAdvances().contains(Advance.improvedAgriculture) ? 3 : 4) - p.getCommodityCount(Commodity.GRAIN))));
             case MYSTICISM_ABOUNDS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery(4 - (int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.SCIENCE).count()));
             case PAPAL_DECREE -> {
                 final Set<Advance.Category> allowedCategories = Set.of(Advance.Category.SCIENCE, Advance.Category.RELIGION, Advance.Category.EXPLORATION);

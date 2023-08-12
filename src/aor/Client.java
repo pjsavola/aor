@@ -151,10 +151,10 @@ public class Client extends Board implements Runnable {
             int dx = 0;
             int dy = 0;
             if (miseryStep % 2 != 0) {
-                dx -= miseryBounds.width * 14 / 10;
-                dy += miseryBounds.height * 7 / 10;
+                dx -= miseryBounds.width * 18 / 10;
+                dy += miseryBounds.height;
             }
-            dy += miseryBounds.height * miseryStep * 14 / 20;
+            dy += miseryBounds.height * (miseryStep / 2) * 2;
             for (Capital capital : capitals) {
                 g.setColor(Color.BLACK);
                 g.drawRect(miseryBounds.x + dx, miseryBounds.y + dy, miseryBounds.width, miseryBounds.height);
