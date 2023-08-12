@@ -526,9 +526,9 @@ public class Server implements Runnable {
         else return -defenderModifier;
     }
 
-    private static int getTurnOrderThreshold(int i, int playerCount) {
+    public static int getTurnOrderThreshold(int i, int playerCount) {
         final int[][] tables = {{2, 4, 6}, {1, 3, 5, 6}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5, 6}};
-        return tables[playerCount][i];
+        return tables[playerCount - 3][i];
     }
 
     private void incomePhase() {

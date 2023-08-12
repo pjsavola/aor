@@ -141,6 +141,7 @@ public class Client extends Board implements Runnable {
 
         final Map<Integer, Set<Capital>> miseryMap = new HashMap<>();
         for (PlayerState playerState : gameState.turnOrder) {
+            if (playerState.capital == null) continue;
             final int miseryStep = playerState.chaos ? Player.miserySteps.length : playerState.misery;
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
             miseryMap.get(miseryStep).add(playerState.capital);
@@ -163,6 +164,19 @@ public class Client extends Board implements Runnable {
                 dy -= 2;
             }
         });
+
+        final Rectangle turnOrderBounds = getTurnOrderBounds();
+        for (int i = 0; i < gameState.turnOrder.size(); ++i) {
+            final PlayerState playerState = gameState.turnOrder.get(i);
+            if (playerState.capital == null) continue;
+            final int order = Server.getTurnOrderThreshold(i, gameState.turnOrder.size());
+            int dx = 0;
+            int dy = (order - 1) * turnOrderBounds.height * 24 / 10;
+            g.setColor(Color.BLACK);
+            g.drawRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, turnOrderBounds.width, turnOrderBounds.height);
+            g.setColor(playerState.capital.getColor());
+            g.fillRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, turnOrderBounds.width, turnOrderBounds.height);
+        }
     }
 
     public void handleRequest(SelectCardRequest request) {
