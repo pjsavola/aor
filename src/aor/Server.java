@@ -191,8 +191,14 @@ public class Server implements Runnable {
             player.adjustCash(-highestBid);
         }
         for (Player player : turnOrder) {
-            final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
-            log(player + " picks " + capital + ".");
+            final Node.CityState capital;
+            if (options.size() > 1) {
+                capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
+                log(player + " picks " + capital + ".");
+            } else {
+                capital = options.iterator().next();
+                log(player + " picks the last remaining option " + capital + ".");
+            }
             player.selectCapital(capital);
             Node.nodeMap.values().stream().filter(n -> n.getCapital() == capital).findAny().ifPresent(player::addCity);
             options.remove(capital);
