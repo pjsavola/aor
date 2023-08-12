@@ -125,4 +125,8 @@ public class Board extends JPanel {
     public Dimension getPreferredSize() {
         return size;
     }
+
+    protected Rectangle getDrawDeckBounds() {
+        return new Rectangle(scale(2935), scale(839), scale(323), scale(516));
+    }
 }

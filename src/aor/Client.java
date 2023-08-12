@@ -123,9 +123,9 @@ public class Client extends Board implements Runnable {
         if (gameState == null) return;
 
         if (gameState.deckSize > 0) {
-            // TODO: Define placement in map editor
             g.setColor(Color.BLACK);
-            g.fillRect(910, 260, 100, 160);
+            final Rectangle bounds = getDrawDeckBounds();
+            g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.PLAIN, 12));
             final String cardCount = Integer.toString(gameState.deckSize);
