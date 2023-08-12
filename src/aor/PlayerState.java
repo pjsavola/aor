@@ -7,7 +7,7 @@ import java.util.*;
 public class PlayerState implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    public Node.CityState capital;
+    public Capital capital;
     public int numberOfCards;
     public int cash;
     public int writtenCash;

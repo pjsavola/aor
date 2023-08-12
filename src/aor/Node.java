@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.List;
 
 public class Node {
-    public enum CityState { VENICE, GENOA, BARCELONA, PARIS, LONDON, HAMBURG };
+    ;
 
     public static Map<String, Node> nodeMap = new HashMap<>();
     private List<Line> borders;
@@ -14,12 +14,12 @@ public class Node {
     private int size;
     private Commodity commodity;
     private List<Commodity> specialCommodities;
-    private CityState capital;
+    private Capital capital;
     private int region;
     private final Set<Node> supports = new HashSet<>();
     private final Set<Node> supportNodes = new HashSet<>();
 
-    public void init(List<Line> borders, String name, int size, Commodity commodity, CityState capital, int region) {
+    public void init(List<Line> borders, String name, int size, Commodity commodity, Capital capital, int region) {
         this.borders = new ArrayList<>(borders);
         this.name = name;
         this.size = size;
@@ -69,7 +69,7 @@ public class Node {
         return name;
     }
 
-    public CityState getCapital() {
+    public Capital getCapital() {
         return capital;
     }
 
@@ -265,7 +265,7 @@ public class Node {
         final int commodityIdx = Integer.parseInt(s[idx++]);
         final Commodity commodity = commodityIdx == 0 ? null : Commodity.values()[commodityIdx - 1];
         final int capitalIdx = Integer.parseInt(s[idx++]);
-        final CityState capital = capitalIdx == 0 ? null : CityState.values()[capitalIdx - 1];
+        final Capital capital = capitalIdx == 0 ? null : Capital.values()[capitalIdx - 1];
         final int region = Integer.parseInt(s[idx++]);
         node.init(borders, name, size, commodity, capital, region);
         int supportCount = Integer.parseInt(s[idx++]);

@@ -41,18 +41,18 @@ public class EventCard extends Card {
         super.play(game, player);
         switch (type) {
             case ALCHEMISTS_GOLD -> {
-                final Map<Node.CityState, Player> targets = new HashMap<>();
+                final Map<Capital, Player> targets = new HashMap<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler && !p.getAdvances().contains(Advance.lawsOfMatter)).forEach(p -> targets.put(p.getCapital(), p));
-                final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Alchemist's Gold", game.getGameState(), targets.keySet())).get().getCapital();
+                final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Alchemist's Gold", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
                 final int loss = (target.writtenCash + 1) / 2;
                 game.log(target + " lost " + loss + " cash.");
                 target.adjustCash(-loss);
             }
             case CIVIL_WAR -> {
-                final Map<Node.CityState, Player> targets = new HashMap<>();
+                final Map<Capital, Player> targets = new HashMap<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> targets.put(p.getCapital(), p));
-                final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Civil War", game.getGameState(), targets.keySet())).get().getCapital();
+                final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Civil War", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
                 target.adjustMisery(1);
                 game.civilWar = target;
@@ -105,10 +105,10 @@ public class EventCard extends Card {
                 player.adjustMisery(1);
             }
             case WAR -> {
-                final Map<Node.CityState, Player> targets = new HashMap<>();
+                final Map<Capital, Player> targets = new HashMap<>();
                 game.players.stream().filter(p -> p != player).forEach(p -> targets.put(p.getCapital(), p));
                 if (!targets.isEmpty()) {
-                    final Node.CityState capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for War!", game.getGameState(), targets.keySet())).get().getCapital();
+                    final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for War!", game.getGameState(), targets.keySet())).get().getCapital();
                     final Player target = targets.get(capital);
                     game.war1 = player;
                     game.war2 = target;

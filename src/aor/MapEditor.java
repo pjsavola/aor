@@ -177,9 +177,9 @@ public class MapEditor extends JPanel {
                                     final JComboBox<Commodity> commoditySelector = new JComboBox<>(commodityChoices);
                                     panel.add(commoditySelector);
                                     panel.add(new JLabel("Capital"));
-                                    final Node.CityState[] capitalChoices = new Node.CityState[Node.CityState.values().length + 1];
-                                    System.arraycopy(Node.CityState.values(), 0, capitalChoices, 1, Node.CityState.values().length);
-                                    final JComboBox<Node.CityState> capitalSelector = new JComboBox<>(capitalChoices);
+                                    final Capital[] capitalChoices = new Capital[Capital.values().length + 1];
+                                    System.arraycopy(Capital.values(), 0, capitalChoices, 1, Capital.values().length);
+                                    final JComboBox<Capital> capitalSelector = new JComboBox<>(capitalChoices);
                                     panel.add(capitalSelector);
                                     panel.add(new JLabel("Region"));
                                     final JTextField regionField = new JTextField();
@@ -193,7 +193,7 @@ public class MapEditor extends JPanel {
                                         final String size = sizeField.getText();
                                         final String region = regionField.getText();
                                         final Commodity commodity = (Commodity) commoditySelector.getSelectedItem();
-                                        final Node.CityState capital = (Node.CityState) capitalSelector.getSelectedItem();
+                                        final Capital capital = (Capital) capitalSelector.getSelectedItem();
                                         node.init(borders, name, size.isEmpty() ? 0 : Integer.parseInt(size), commodity, capital, region.isEmpty() ? 0 : Integer.parseInt(region));
                                         nodes.add(node);
                                         dialog.setVisible(false);

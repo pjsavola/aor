@@ -170,7 +170,7 @@ public class Server implements Runnable {
             asyncBids.add(new FutureOrDefault<>(player, new BidForCapitalRequest()));
         }
         final List<Integer> bids = new ArrayList<>(playerCount);
-        final Set<Node.CityState> options = new HashSet<>(playerCount);
+        final Set<Capital> options = new HashSet<>(playerCount);
         asyncBids.stream().map(FutureOrDefault::get).mapToInt(IntegerResponse::getInt).forEach(bids::add);
         players.clear();
         while (!selectionOrder.isEmpty()) {
@@ -184,14 +184,14 @@ public class Server implements Runnable {
             }
             bids.remove(index);
             final Player player = selectionOrder.remove(index);
-            options.add(Node.CityState.values()[players.size()]);
+            options.add(Capital.values()[players.size()]);
             players.add(player);
             turnOrder.add(player);
             log(player + " bids " + highestBid + " for capital.");
             player.adjustCash(-highestBid);
         }
         for (Player player : turnOrder) {
-            final Node.CityState capital;
+            final Capital capital;
             if (options.size() > 1) {
                 capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
                 log(player + " picks " + capital + ".");

@@ -1,19 +1,19 @@
 package message;
 
-import aor.Node;
+import aor.Capital;
 
 import java.io.Serial;
 
 public class CapitalResponse extends Response {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final Node.CityState capital;
+    private final Capital capital;
 
-    public CapitalResponse(Node.CityState capital) {
+    public CapitalResponse(Capital capital) {
         this.capital = capital;
     }
 
-    public Node.CityState getCapital() {
+    public Capital getCapital() {
         return capital;
     }
 }

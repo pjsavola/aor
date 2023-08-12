@@ -9,7 +9,6 @@ import java.awt.event.KeyListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class Client extends Board implements Runnable {
     private static int counter;
@@ -174,9 +173,9 @@ public class Client extends Board implements Runnable {
     public void handleRequest(SelectCapitalRequest request) {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
-        final List<Node.CityState> options = request.options;
+        final List<Capital> options = request.options;
         for (int i = 0; i < options.size(); ++i) {
-            final Node.CityState capital = options.get(i);
+            final Capital capital = options.get(i);
             final JButton button = new JButton(capital.name());
             button.addActionListener(l -> {
                 dialog.setVisible(false);

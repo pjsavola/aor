@@ -4,10 +4,8 @@ import message.Notification;
 import message.Request;
 import message.Response;
 
-import java.sql.ClientInfoStatus;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 public class Player {
@@ -22,7 +20,7 @@ public class Player {
     private List<Advance> newAdvances = new ArrayList<>();
     List<Card> cards = new ArrayList<>();
 
-    private Node.CityState capital;
+    private Capital capital;
     private Map<Node, Integer> areas = new HashMap<>();
     private Map<Node, Integer> newAreas = new HashMap<>();
     private int remainingTokens = maxTokenCount;
@@ -141,7 +139,7 @@ public class Player {
         return state;
     }
 
-    public Node.CityState getCapital() {
+    public Capital getCapital() {
         return capital;
     }
 
@@ -157,7 +155,7 @@ public class Player {
         game.players.stream().filter(p -> p != this).forEach(p -> notify(notification));
     }
 
-    public void selectCapital(Node.CityState capital) {
+    public void selectCapital(Capital capital) {
         this.capital = capital;
     }
 
