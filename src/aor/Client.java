@@ -4,33 +4,56 @@ import message.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.*;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class Client implements Runnable {
+public class Client extends Board implements Runnable {
     private static int counter;
     private final ObjectOutputStream oos;
     private final ObjectInputStream ois;
     private final Socket socket;
     private final int index;
     private final JFrame frame;
-    private final JPanel board;
     private final boolean ai;
+    private GameState gameState;
     private volatile Response response;
 
-    public Client(Socket socket, JFrame frame, JPanel board, boolean ai) throws IOException {
+    public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
+        super(frame, "map.jpg");
+
         this.socket = socket;
         ois = new ObjectInputStream(socket.getInputStream());
         oos = new ObjectOutputStream(socket.getOutputStream());
         index = counter++;
         this.frame = frame;
-        this.board = board;
         this.ai = ai;
+        if (!ai) {
+            load(new File("map.dat"));
+            frame.addKeyListener(new KeyListener() {
+                @Override
+                public void keyTyped(KeyEvent e) {
+                }
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                        esc();
+                    }
+                }
+                @Override
+                public void keyReleased(KeyEvent e) {
+                }
+            });
+            frame.setTitle("Age of Renaissance");
+            frame.setContentPane(this);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setUndecorated(true);
+            frame.pack();
+            frame.setVisible(true);
+        }
     }
 
     @Override
@@ -80,7 +103,9 @@ public class Client implements Runnable {
             return request.getDefaultResponse();
         }
         response = null;
+        gameState = request.gameState;
         request.handleRequest(this);
+        repaint();
         while (response == null) {
             try {
                 Thread.sleep(200);
@@ -91,12 +116,37 @@ public class Client implements Runnable {
         return (U) response;
     }
 
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+
+        if (gameState == null) return;
+
+        if (gameState.deckSize > 0) {
+
+            g.setColor(Color.BLACK);
+            g.fillRect(910, 260, 100, 160);
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.PLAIN, 12));
+            final String cardCount = Integer.toString(gameState.deckSize);
+            final int cardCountWidth = g.getFontMetrics().stringWidth(cardCount);
+            g.drawString(cardCount, 960 - cardCountWidth / 2, 300);
+            g.setColor(Color.YELLOW);
+            g.setFont(new Font("Times New Roman", Font.BOLD, 24));
+            StringBuilder epoch = new StringBuilder();
+            epoch.append("I".repeat(Math.max(0, gameState.epoch)));
+            final int epochWidth = g.getFontMetrics().stringWidth(epoch.toString());
+            g.drawString(epoch.toString(), 960 - epochWidth / 2, 350);
+        }
+    }
+
     public void handleRequest(SelectCardRequest request) {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Card> cards = request.getCards();
         if (request.optional) {
             final JButton button = new JButton("Pass");
+            button.setForeground(Color.RED);
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();

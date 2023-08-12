@@ -308,7 +308,7 @@ public class Server implements Runnable {
             resolveWar(player);
             while (!player.cards.isEmpty()) {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
-                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("PLay 1 card?", playableCards, true)).get().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", playableCards, true)).get().getInt();
                 if (cardIndex == -1) {
                     log(player + " passes, " + player.cards.size() + " cards remaining.");
                     break;
