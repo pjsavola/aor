@@ -20,15 +20,17 @@ public class Client implements Runnable {
     private final int index;
     private final JFrame frame;
     private final JPanel board;
+    private final boolean ai;
     private volatile Response response;
 
-    public Client(Socket socket, JFrame frame, JPanel board) throws IOException {
+    public Client(Socket socket, JFrame frame, JPanel board, boolean ai) throws IOException {
         this.socket = socket;
         ois = new ObjectInputStream(socket.getInputStream());
         oos = new ObjectOutputStream(socket.getOutputStream());
         index = counter++;
         this.frame = frame;
         this.board = board;
+        this.ai = ai;
     }
 
     @Override
@@ -74,6 +76,9 @@ public class Client implements Runnable {
 
 
     private <T extends Request<U>, U extends Response> U getResponse(T request) {
+        if (ai) {
+            return request.getDefaultResponse();
+        }
         response = null;
         request.handleRequest(this);
         while (response == null) {
@@ -121,12 +126,12 @@ public class Client implements Runnable {
         final JPanel panel = new JPanel();
         final List<Node.CityState> options = request.options;
         for (int i = 0; i < options.size(); ++i) {
-            final int index = i;
-            final JButton button = new JButton();
+            final Node.CityState capital = options.get(i);
+            final JButton button = new JButton(capital.name());
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
-                response = new IntegerResponse(index);
+                response = new CapitalResponse(capital);
             });
             panel.add(button);
         }
@@ -142,12 +147,12 @@ public class Client implements Runnable {
         final JPanel panel = new JPanel();
         final List<Commodity> options = request.options;
         for (int i = 0; i < options.size(); ++i) {
-            final int index = i;
-            final JButton button = new JButton();
+            final Commodity commodity = options.get(i);
+            final JButton button = new JButton(commodity.name());
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
-                response = new IntegerResponse(index);
+                response = new CommodityResponse(commodity);
             });
             panel.add(button);
         }
@@ -172,12 +177,12 @@ public class Client implements Runnable {
             panel.add(button);
         }
         for (int i = 0; i < categories.size(); ++i) {
-            final int index = i;
-            final JButton button = new JButton(categories.get(i).name());
+            final Advance.Category category = categories.get(i);
+            final JButton button = new JButton(category.name());
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
-                response = new IntegerResponse(index);
+                response = new CategoryResponse(category);
             });
             panel.add(button);
         }
@@ -225,6 +230,7 @@ public class Client implements Runnable {
         final JPanel panel = new JPanel();
         panel.add(new JLabel("Bid:"));
         final JTextField field = new JTextField();
+        field.setPreferredSize(new Dimension(100, 20));
         panel.add(field);
         final JButton button = new JButton("Confirm");
         panel.add(button);
