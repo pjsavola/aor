@@ -12,7 +12,7 @@ public class GameState implements Serializable {
     public int deckSize;
     public int round;
     public Server.Phase phase;
-    public List<PlayerState> turnOrder = new ArrayList<>();
+    public List<PlayerState> players = new ArrayList<>();
     public List<Commodity> shortages = new ArrayList<>();
     public List<Commodity> surpluses = new ArrayList<>();
     public Advance.Category bannedCategory;

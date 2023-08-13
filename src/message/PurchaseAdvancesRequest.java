@@ -4,7 +4,6 @@ import aor.*;
 
 import java.io.Serial;
 import java.util.*;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
@@ -19,7 +18,7 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
 
     @Override
     public boolean validateResponse(PurchaseAdvancesResponse response) {
-        final PlayerState playerState = gameState.turnOrder.get(playerIndex);
+        final PlayerState playerState = gameState.players.get(playerIndex);
         int cash = playerState.cash;
         int misery = playerState.misery;
         final Set<Advance> advances = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).collect(Collectors.toSet());

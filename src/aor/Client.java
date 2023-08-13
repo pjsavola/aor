@@ -142,7 +142,7 @@ public class Client extends Board implements Runnable {
 
         // Render misery track
         final Map<Integer, Set<Capital>> miseryMap = new HashMap<>();
-        for (PlayerState playerState : gameState.turnOrder) {
+        for (PlayerState playerState : gameState.players) {
             if (playerState.capital == null) continue;
             final int miseryStep = playerState.chaos ? Player.miserySteps.length : playerState.misery;
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
@@ -166,10 +166,10 @@ public class Client extends Board implements Runnable {
 
         // Render turn order
         final Point turnOrderLocation = getTurnOrderLocation();
-        for (int i = 0; i < gameState.turnOrder.size(); ++i) {
-            final PlayerState playerState = gameState.turnOrder.get(i);
+        for (int i = 0; i < gameState.players.size(); ++i) {
+            final PlayerState playerState = gameState.players.get(i);
             if (playerState.capital == null) continue;
-            final int order = Server.getTurnOrderThreshold(i, gameState.turnOrder.size());
+            final int order = Server.getTurnOrderThreshold(i, gameState.players.size());
             int dx = 0;
             int dy = (order - 1) * getTokenSize() * 24 / 10;
             renderToken(g, playerState.capital, turnOrderLocation.x + dx, turnOrderLocation.y + dy, false, false);
@@ -179,7 +179,7 @@ public class Client extends Board implements Runnable {
         final int sz = getCitySize();
         final Map<Node, Map<Capital, Integer>> tokenMap = new HashMap<>();
         final Map<Node, Map<Capital, Integer>> newTokenMap = new HashMap<>();
-        for (PlayerState playerState : gameState.turnOrder) {
+        for (PlayerState playerState : gameState.players) {
             for (int i = 0; i < playerState.areas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.areas.get(i));
                 final int tokens = playerState.tokens.get(i);
@@ -187,9 +187,9 @@ public class Client extends Board implements Runnable {
                 if ((node.getSize() == tokens) && node.getSize() > 1) {
                     g.setColor(playerState.capital.getColor());
                     g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
-                    g.setColor(Color.WHITE);
                     g.setColor(Color.BLACK);
                     g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                    renderLetter(g, playerState.capital, p.x, p.y, 0);
                 } else {
                     tokenMap.putIfAbsent(node, new HashMap<>());
                     tokenMap.get(node).put(playerState.capital, tokens);
@@ -207,6 +207,7 @@ public class Client extends Board implements Runnable {
                     g.fillOval(p.x - whiteSz / 2, p.y - whiteSz / 2, whiteSz, whiteSz);
                     g.setColor(Color.BLACK);
                     g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                    renderLetter(g, playerState.capital, p.x, p.y, 0);
                 } else {
                     newTokenMap.putIfAbsent(node, new HashMap<>());
                     newTokenMap.get(node).put(playerState.capital, newTokens);
@@ -232,7 +233,7 @@ public class Client extends Board implements Runnable {
 
         // Render shipping
         final Map<Integer, Set<Capital>> shippingMap = new HashMap<>();
-        for (PlayerState playerState : gameState.turnOrder) {
+        for (PlayerState playerState : gameState.players) {
             if (playerState.capital == null) continue;
             int level = 0;
             if (Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.seaworthyVessels)) ++level;
@@ -269,7 +270,7 @@ public class Client extends Board implements Runnable {
         // Render resource production
         for (Commodity commodity : Commodity.values()) {
             final Map<Integer, Set<Capital>> productionMap = new HashMap<>();
-            for (PlayerState playerState : gameState.turnOrder) {
+            for (PlayerState playerState : gameState.players) {
                 if (playerState.capital == null) continue;
                 int count = 0;
                 for (int i = 0; i < playerState.areas.size(); ++i) {
@@ -306,7 +307,7 @@ public class Client extends Board implements Runnable {
         int y = 0;
         g.setFont(new Font("Arial", Font.PLAIN, 12));
         final int h = g.getFontMetrics().getHeight();
-        for (PlayerState playerState : gameState.turnOrder) {
+        for (PlayerState playerState : gameState.players) {
             if (playerState.capital == null) continue;
 
             int x = size.width - 195;

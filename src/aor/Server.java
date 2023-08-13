@@ -689,14 +689,14 @@ public class Server implements Runnable {
         state.surpluses.addAll(surpluses);
         state.bannedCategory = bannedCategory;
         state.playedCards = playedCards.stream().mapToInt(Card::getIndex).toArray();
-        turnOrder.forEach(p -> state.turnOrder.add(p.getState()));
+        players.forEach(p -> state.players.add(p.getState()));
         state.patronageCards = new int[patronageQueue.size()];
         state.patronageUsesRemaining = new int[patronageQueue.size()];
         for (int i = 0; i < patronageQueue.size(); ++i) {
             state.patronageCards[i] = patronageQueue.get(i).getIndex();
             state.patronageUsesRemaining[i] = patronageQueue.get(i).usesRemaining;
-            final int playerIdx = turnOrder.indexOf(patronageQueue.get(i).owner);
-            state.turnOrder.get(playerIdx).ownedPatronageCards.add(state.patronageCards[i]);
+            final int playerIdx = players.indexOf(patronageQueue.get(i).owner);
+            state.players.get(playerIdx).ownedPatronageCards.add(state.patronageCards[i]);
         }
         return state;
     }

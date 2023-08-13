@@ -4,7 +4,6 @@ import aor.*;
 
 import java.io.Serial;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ExpansionRequest extends Request<ExpansionResponse> {
     @Serial
@@ -34,7 +33,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             return false;
         }
 
-        final PlayerState playerState = gameState.turnOrder.get(playerIndex);
+        final PlayerState playerState = gameState.players.get(playerIndex);
         final boolean cathedral = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         if (!cathedral && response.getCathedralused() != null) {
             return false;
@@ -52,8 +51,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
                 int totalTokenCount = 0;
-                for (int i = 0; i < gameState.turnOrder.size(); ++i) {
-                    final PlayerState p = gameState.turnOrder.get(i);
+                for (int i = 0; i < gameState.players.size(); ++i) {
+                    final PlayerState p = gameState.players.get(i);
                     final int idx = p.areas.indexOf(node.getName());
                     if (idx != -1) totalTokenCount += p.tokens.get(idx);
                     final int newIdx = p.newAreas.indexOf(node.getName());
@@ -64,10 +63,10 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                 }
 
                 int requiredTokens = node.getSize();
-                for (int i = 0; i < gameState.turnOrder.size(); ++i) {
+                for (int i = 0; i < gameState.players.size(); ++i) {
                     if (i == playerIndex) continue;
 
-                    final PlayerState p = gameState.turnOrder.get(i);
+                    final PlayerState p = gameState.players.get(i);
                     int defenderTokens = 0;
                     final int idx = p.areas.indexOf(node.getName());
                     if (idx != -1) defenderTokens += p.tokens.get(idx);
