@@ -19,6 +19,16 @@ public class Board extends JPanel {
 
     private Point cursor;
 
+    private static final Set<Point> pointCache = new HashSet<>();
+
+    private Point p(int x, int y) {
+        final Point p = new Point(x, y);
+        if (pointCache.add(p)) {
+            return p;
+        }
+        return pointCache.stream().filter(a -> a.equals(p)).findAny().orElse(null);
+    }
+
     Board(JFrame frame, String imagePath) {
         this.frame = frame;
         final ImageIcon icon = new ImageIcon(imagePath);
@@ -85,7 +95,7 @@ public class Board extends JPanel {
                     nodeData.add(str);
                 } else {
                     final int[] s = Arrays.stream(str.split(" ")).mapToInt(Integer::parseInt).toArray();
-                    final Line line = new Line(new Point(scale(s[0]), scale(s[1])), new Point(scale(s[2]), scale(s[3])), s[4] == 1);
+                    final Line line = new Line(p(scale(s[0]), scale(s[1])), p(scale(s[2]), scale(s[3])), s[4] == 1);
                     newLines.add(line);
                 }
             }
@@ -110,8 +120,6 @@ public class Board extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         g.drawImage(mapImage, 0, 0, null);
-        Set<Point> renderedPoints = new HashSet<>();
-        g.setColor(Color.GREEN.darker());
         if (cursor != null) {
             for (Node node : Node.nodeMap.values()) {
                 if (node.contains(cursor)) {
