@@ -1,5 +1,6 @@
 package aor;
 
+import java.awt.*;
 import java.util.Set;
 
 public class LeaderCard extends Card {
@@ -49,5 +50,22 @@ public class LeaderCard extends Card {
         owner = player;
         usesRemaining = game.patronageQueue.size();
         game.patronageQueue.add(this);
+    }
+
+    @Override
+    public void render(Graphics g, int x, int y, int width, int height) {
+        super.render(g, x, y, width, height);
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        int dx = 5;
+        int dy = 60;
+        for (Advance advance : advances) {
+            g.drawString(advance.name, x + dx, y + dy);
+            dy += g.getFontMetrics().getHeight();
+        }
+        dy += g.getFontMetrics().getHeight();
+        String s = Integer.toString(-amount);
+        if (boostedAmount > 0) s += " (" + -boostedAmount + ")";
+        g.drawString(s, x + dx, y + dy);
     }
 }
