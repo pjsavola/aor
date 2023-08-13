@@ -12,7 +12,7 @@ public class Player {
 
     public static final int[] miserySteps = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000 };
     private final Server game;
-    private static final int maxTokenCount = 36;
+    public static final int maxTokenCount = 36;
     private int cash = 40;
     int writtenCash;
     int misery;
@@ -129,6 +129,8 @@ public class Player {
         state.cathedralUsed = cathedralUsed;
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
         state.shipLevel = shipLevel;
+        state.usableTokens = usableTokens;
+        state.remainingTokens = remainingTokens;
         areas.forEach((key, value) -> {
             state.areas.add(key.getName());
             state.tokens.add(value);

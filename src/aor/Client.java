@@ -310,6 +310,12 @@ public class Client extends Board implements Runnable {
         for (PlayerState playerState : gameState.players) {
             if (playerState.capital == null) continue;
 
+            //final int tokens = playerState.getAreas().entrySet().stream().filter(e -> e.getValue() < e.getKey().getSize() || e.getValue() == 1).map(Map.Entry::getValue).mapToInt(Integer::intValue).sum();
+            //final int newTokens = playerState.getNewAreas().entrySet().stream().filter(e -> e.getValue() < e.getKey().getSize() || e.getValue() == 1).map(Map.Entry::getValue).mapToInt(Integer::intValue).sum();
+            //final int remaining = Player.maxTokenCount - tokens - newTokens;
+            final long cities = playerState.getAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
+            final long newCities = playerState.getNewAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
+            final int points = playerState.getAdvances().map(Advance::getBaseCost).mapToInt(Integer::intValue).sum() + playerState.cash - (playerState.chaos ? 1000 : Player.miserySteps[playerState.misery]);
             int x = size.width - 195;
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
@@ -321,15 +327,15 @@ public class Client extends Board implements Runnable {
             g.setFont(new Font("Arial", Font.PLAIN, 12));
             g.drawString("Cash: " + playerState.cash + " (" + playerState.writtenCash + " written)", x, y + dy);
             dy += h;
-            g.drawString("Tokens: ", x, y + dy);
+            g.drawString("Tokens: " + (playerState.remainingTokens + playerState.usableTokens) + " (" + playerState.usableTokens + " usable)", x, y + dy);
             dy += h;
-            g.drawString("Cities: ", x, y + dy);
+            g.drawString("Cities: " + (cities + newCities) + " (" + newCities + " new)", x, y + dy);
             dy += h;
             g.drawString("Cards: " + playerState.numberOfCards, x, y + dy);
             dy += h;
             g.drawString("Advances: " + playerState.advances.length + " / " + Advance.allAdvances.size(), x, y + dy);
             dy += h;
-            g.drawString("Points: ", x, y + dy);
+            g.drawString("Points: " + points, x, y + dy);
             y += 100;
         }
     }

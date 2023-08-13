@@ -76,4 +76,8 @@ public class Advance {
         cost -= Math.min(cost, advances.stream().filter(a -> a.category == category).map(a -> a.credits).mapToInt(Integer::intValue).sum());
         return cost;
     }
+
+    public int getBaseCost() {
+        return cost;
+    }
 }
