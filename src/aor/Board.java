@@ -5,7 +5,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.List;
 import java.util.*;
@@ -138,16 +137,20 @@ public class Board extends JPanel {
         return new Rectangle(scale(2935), scale(839), scale(323), scale(516));
     }
 
-    protected Point getMiserySlot() {
+    protected Point getMiseryTrackLocation() {
         return new Point(scale(3432), scale(471));
     }
 
-    protected Point getTurnOrder() {
+    protected Point getTurnOrderLocation() {
         return new Point(scale(3616), scale(505));
     }
 
-    protected Point getShipping() {
+    protected Point getShippingLocation() {
         return new Point(scale(129), scale(194));
+    }
+
+    protected Point getCommodityTrackLocation() {
+        return new Point(scale(97), scale(1871));
     }
 
     protected int getCitySize() {

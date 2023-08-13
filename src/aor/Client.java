@@ -148,7 +148,7 @@ public class Client extends Board implements Runnable {
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
             miseryMap.get(miseryStep).add(playerState.capital);
         }
-        final Point miseryTrackLocation = getMiserySlot();
+        final Point miseryTrackLocation = getMiseryTrackLocation();
         miseryMap.forEach((miseryStep, capitals) -> {
             int dx = 0;
             int dy = 0;
@@ -165,7 +165,7 @@ public class Client extends Board implements Runnable {
         });
 
         // Render turn order
-        final Point turnOrderLocation = getTurnOrder();
+        final Point turnOrderLocation = getTurnOrderLocation();
         for (int i = 0; i < gameState.turnOrder.size(); ++i) {
             final PlayerState playerState = gameState.turnOrder.get(i);
             if (playerState.capital == null) continue;
@@ -245,8 +245,8 @@ public class Client extends Board implements Runnable {
             final int level = totalLevel % 5;
             if (level == 0) return;
 
-            int x = getShipping().x;
-            int y = getShipping().y;
+            int x = getShippingLocation().x;
+            int y = getShippingLocation().y;
             x += (level - 1) * getTokenSize() * 3;
             if (level > 2) x+= getTokenSize() * 2 / 3;
             y += (totalLevel / 5) * getTokenSize() * 6;
@@ -267,6 +267,40 @@ public class Client extends Board implements Runnable {
         });
 
         // Render resource production
+        for (Commodity commodity : Commodity.values()) {
+            final Map<Integer, Set<Capital>> productionMap = new HashMap<>();
+            for (PlayerState playerState : gameState.turnOrder) {
+                if (playerState.capital == null) continue;
+                int count = 0;
+                for (int i = 0; i < playerState.areas.size(); ++i) {
+                    final Node node = Node.nodeMap.get(playerState.areas.get(i));
+                    if (node.hasCommodity(commodity)) {
+                        final int tokens = playerState.tokens.get(i);
+                        if (tokens == node.getSize()) ++count;
+                    }
+                }
+                for (int i = 0; i < playerState.newAreas.size(); ++i) {
+                    final Node node = Node.nodeMap.get(playerState.newAreas.get(i));
+                    if (node.hasCommodity(commodity)) {
+                        final int tokens = playerState.newTokens.get(i);
+                        if (tokens == node.getSize()) ++count;
+                    }
+                }
+                productionMap.putIfAbsent(count, new HashSet<>());
+                productionMap.get(count).add(playerState.capital);
+            }
+            productionMap.forEach((count, capitals) -> {
+                int x = getCommodityTrackLocation().x + getTokenSize() * 5 / 2 * count;
+                int y = getCommodityTrackLocation().y + getTokenSize() * 99 / 40 * commodity.ordinal();
+                int dx = 0;
+                int dy = 0;
+                for (Capital capital : capitals) {
+                    renderToken(g, capital, x + dx, y + dy, false, false);
+                    dx -= 2;
+                    dy -= 2;
+                }
+            });
+        }
     }
 
     public void handleRequest(SelectCardRequest request) {
