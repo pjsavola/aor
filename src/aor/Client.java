@@ -122,6 +122,7 @@ public class Client extends Board implements Runnable {
 
         if (gameState == null) return;
 
+        // Render draw deck
         if (gameState.deckSize > 0) {
             g.setColor(Color.BLACK);
             final Rectangle bounds = getDrawDeckBounds();
@@ -139,6 +140,7 @@ public class Client extends Board implements Runnable {
             g.drawString(epoch.toString(), 960 - epochWidth / 2, 350);
         }
 
+        // Render misery track
         final Map<Integer, Set<Capital>> miseryMap = new HashMap<>();
         for (PlayerState playerState : gameState.turnOrder) {
             if (playerState.capital == null) continue;
@@ -157,14 +159,15 @@ public class Client extends Board implements Runnable {
             dy += miseryBounds.height * (miseryStep / 2) * 2;
             for (Capital capital : capitals) {
                 g.setColor(Color.BLACK);
-                g.drawRect(miseryBounds.x + dx, miseryBounds.y + dy, miseryBounds.width, miseryBounds.height);
+                g.drawRect(miseryBounds.x + dx, miseryBounds.y + dy, getTokenSize(), getTokenSize());
                 g.setColor(capital.getColor());
-                g.fillRect(miseryBounds.x + dx, miseryBounds.y + dy, miseryBounds.width, miseryBounds.height);
+                g.fillRect(miseryBounds.x + dx, miseryBounds.y + dy, getTokenSize(), getTokenSize());
                 dx -= 2;
                 dy -= 2;
             }
         });
 
+        // Render turn order
         final Rectangle turnOrderBounds = getTurnOrderBounds();
         for (int i = 0; i < gameState.turnOrder.size(); ++i) {
             final PlayerState playerState = gameState.turnOrder.get(i);
@@ -173,9 +176,25 @@ public class Client extends Board implements Runnable {
             int dx = 0;
             int dy = (order - 1) * turnOrderBounds.height * 24 / 10;
             g.setColor(Color.BLACK);
-            g.drawRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, turnOrderBounds.width, turnOrderBounds.height);
+            g.drawRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, getTokenSize(), getTokenSize());
             g.setColor(playerState.capital.getColor());
-            g.fillRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, turnOrderBounds.width, turnOrderBounds.height);
+            g.fillRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, getTokenSize(), getTokenSize());
+        }
+
+        // Render cities
+        final int sz = getCitySize();
+        for (PlayerState playerState : gameState.turnOrder) {
+            for (int i = 0; i < playerState.areas.size(); ++i) {
+                final Node node = Node.nodeMap.get(playerState.areas.get(i));
+                final int tokens = playerState.tokens.get(i);
+                final Point p = node.getMiddle();
+                if (node.getSize() == tokens && node.getSize() > 1) {
+                    g.setColor(playerState.capital.getColor());
+                    g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                    g.setColor(Color.BLACK);
+                    g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                }
+            }
         }
     }
 

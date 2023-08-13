@@ -252,8 +252,8 @@ public class Node {
     public void draw(Graphics g) {
         g.setColor(new Color(0x44FFFFFF, true));
         g.fillPolygon(polygon);
-        g.setColor(Color.BLACK);
-        g.fillOval(middle.x, middle.y, 10, 10);
+        //g.setColor(Color.BLACK);
+        //g.fillOval(middle.x, middle.y, 10, 10);
     }
 
     @Override
@@ -291,5 +291,9 @@ public class Node {
         node.init(borders, name, size, commodity, capital, region);
         int supportCount = Integer.parseInt(s[idx++]);
         while (supportCount-- > 0) node.addSupport(allNodes.get(Integer.parseInt(s[idx++])));
+    }
+
+    public Point getMiddle() {
+        return middle;
     }
 }

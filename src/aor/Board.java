@@ -139,10 +139,18 @@ public class Board extends JPanel {
     }
 
     protected Rectangle getMiserySlotBounds() {
-        return new Rectangle(scale(3432), scale(471), scale(45), scale(45));
+        return new Rectangle(scale(3432), scale(471), getTokenSize(), getTokenSize());
     }
 
     protected Rectangle getTurnOrderBounds() {
-        return new Rectangle(scale(3616), scale(505), scale(45), scale(45));
+        return new Rectangle(scale(3616), scale(505), getTokenSize(), getTokenSize());
+    }
+
+    protected int getCitySize() {
+        return scale(80);
+    }
+
+    protected int getTokenSize() {
+        return scale(45);
     }
 }
