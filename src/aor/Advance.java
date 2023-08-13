@@ -52,6 +52,7 @@ public class Advance {
         this.credits = credits;
         this.prerequisites = prerequisites;
         index = allAdvances.size();
+        allAdvances.add(this);
     }
 
     public int getIndex() {

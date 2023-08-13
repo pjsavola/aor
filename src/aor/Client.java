@@ -301,6 +301,36 @@ public class Client extends Board implements Runnable {
                 }
             });
         }
+
+        // Render player infos
+        int y = 0;
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        final int h = g.getFontMetrics().getHeight();
+        for (PlayerState playerState : gameState.turnOrder) {
+            if (playerState.capital == null) continue;
+
+            int x = size.width - 195;
+            int dy = h - 2;
+            g.setColor(playerState.capital.getColor());
+            g.fillRect(size.width - 200, y, 200, 100);
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 12));
+            g.drawString(playerState.capital.name(), x, y + dy);
+            dy += h;
+            g.setFont(new Font("Arial", Font.PLAIN, 12));
+            g.drawString("Cash: " + playerState.cash + " (" + playerState.writtenCash + " written)", x, y + dy);
+            dy += h;
+            g.drawString("Tokens: ", x, y + dy);
+            dy += h;
+            g.drawString("Cities: ", x, y + dy);
+            dy += h;
+            g.drawString("Cards: " + playerState.numberOfCards, x, y + dy);
+            dy += h;
+            g.drawString("Advances: " + playerState.advances.length + " / " + Advance.allAdvances.size(), x, y + dy);
+            dy += h;
+            g.drawString("Points: ", x, y + dy);
+            y += 100;
+        }
     }
 
     public void handleRequest(SelectCardRequest request) {

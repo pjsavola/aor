@@ -13,7 +13,7 @@ public class Board extends JPanel {
 
     private final JFrame frame;
     private final double scale;
-    private final Dimension size;
+    protected final Dimension size;
     private final Image mapImage;
 
     private Point cursor;
@@ -35,7 +35,7 @@ public class Board extends JPanel {
         scale = Math.min((double) rect.width / icon.getIconWidth(), (double) rect.height / icon.getIconHeight());
         final int mapWidth = scale(icon.getIconWidth());
         final int mapHeight = scale(icon.getIconHeight());
-        size = new Dimension(mapWidth, mapHeight);
+        size = new Dimension(mapWidth + 200, mapHeight);
         mapImage = ImageUtil.getScaledInstance(ImageUtil.toBufferedImage(icon.getImage()), mapWidth, mapHeight, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
         addMouseListener(new MouseListener() {
             @Override
