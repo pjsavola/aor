@@ -181,21 +181,68 @@ public class Client extends Board implements Runnable {
             g.fillRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, getTokenSize(), getTokenSize());
         }
 
-        // Render cities
+        // Render cities and tokens
         final int sz = getCitySize();
+        final Map<Node, Map<Capital, Integer>> tokenMap = new HashMap<>();
+        final Map<Node, Map<Capital, Integer>> newTokenMap = new HashMap<>();
         for (PlayerState playerState : gameState.turnOrder) {
             for (int i = 0; i < playerState.areas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.areas.get(i));
                 final int tokens = playerState.tokens.get(i);
                 final Point p = node.getMiddle();
-                if (node.getSize() == tokens && node.getSize() > 1) {
+                if ((node.getSize() == tokens) && node.getSize() > 1) {
                     g.setColor(playerState.capital.getColor());
                     g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                    g.setColor(Color.WHITE);
                     g.setColor(Color.BLACK);
                     g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                } else {
+                    tokenMap.putIfAbsent(node, new HashMap<>());
+                    tokenMap.get(node).put(playerState.capital, tokens);
+                }
+            }
+            for (int i = 0; i < playerState.newAreas.size(); ++i) {
+                final Node node = Node.nodeMap.get(playerState.newAreas.get(i));
+                final int newTokens = playerState.newTokens.get(i);
+                final Point p = node.getMiddle();
+                if (node.getSize() == newTokens && node.getSize() > 1) {
+                    g.setColor(playerState.capital.getColor());
+                    g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                    g.setColor(Color.WHITE);
+                    final int whiteSz = sz * 3 / 4;
+                    g.fillOval(p.x - whiteSz / 2, p.y - whiteSz / 2, whiteSz, whiteSz);
+                    g.setColor(Color.BLACK);
+                    g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
+                } else {
+                    newTokenMap.putIfAbsent(node, new HashMap<>());
+                    newTokenMap.get(node).put(playerState.capital, newTokens);
                 }
             }
         }
+
+        Node.nodeMap.values().forEach(node -> {
+            final int size = getTokenSize();
+            final int whiteSize = size * 3 / 4;
+            final Map<Capital, Integer> tokens = tokenMap.get(node);
+            final Map<Capital, Integer> newTokens = newTokenMap.get(node);
+            final Point d = new Point(0, 0);
+            if (tokens != null) tokens.forEach((capital, count) -> {
+                g.setColor(capital.getColor());
+                g.fillRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
+                g.setColor(Color.BLACK);
+                g.drawRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
+                d.setLocation(d.x - 3, d.y - 3);
+            });
+            if (newTokens != null) newTokens.forEach((capital, count) -> {
+                g.setColor(Color.BLACK);
+                g.drawRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
+                g.setColor(Color.WHITE);
+                g.fillRect(node.getMiddle().x - whiteSize / 2 + d.x, node.getMiddle().y - whiteSize / 2 + d.y, whiteSize, whiteSize);
+                g.setColor(capital.getColor());
+                g.fillRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
+                d.setLocation(d.x - 3, d.y - 3);
+            });
+        });
     }
 
     public void handleRequest(SelectCardRequest request) {
