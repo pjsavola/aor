@@ -233,6 +233,7 @@ public class Client extends Board implements Runnable {
         // Render shipping
         final Map<Integer, Set<Capital>> shippingMap = new HashMap<>();
         for (PlayerState playerState : gameState.turnOrder) {
+            if (playerState.capital == null) continue;
             int level = 0;
             if (Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.seaworthyVessels)) ++level;
             if (Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.oceanNavigation)) ++level;
@@ -244,10 +245,11 @@ public class Client extends Board implements Runnable {
             final int level = totalLevel % 5;
             if (level == 0) return;
 
-            int x = 100;
-            int y = 100;
+            int x = 40;
+            int y = 60;
             x += (level - 1) * getTokenSize() * 3;
-            y += (totalLevel / 5) * getTokenSize() * 5;
+            if (level > 2) x+= getTokenSize() * 2 / 3;
+            y += (totalLevel / 5) * getTokenSize() * 6;
 
             int dx = 0;
             int dy = 0;
@@ -255,14 +257,16 @@ public class Client extends Board implements Runnable {
             for (Capital capital : capitals) {
                 renderToken(g, capital, x + dx, y + dy, false, false);
                 ++index;
-                if (index > 3) {
+                if (index > 2) {
                     dy  = 0;
-                    dx += getTokenSize() + 2;
+                    dx += getTokenSize() + 3;
                 } else {
-                    dy += getTokenSize() + 2;
+                    dy += getTokenSize() + 3;
                 }
             }
         });
+
+        // Render resource production
     }
 
     public void handleRequest(SelectCardRequest request) {
