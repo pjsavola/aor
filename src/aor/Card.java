@@ -3,6 +3,7 @@ package aor;
 import message.CardNotification;
 import message.CardPlayNotification;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
 
 public abstract class Card {
     public static List<Card> allCards = new ArrayList<>();
-    private int index;
+    private final int index;
     private final String name;
     final boolean singleUse;
     private int epoch;
@@ -51,5 +52,20 @@ public abstract class Card {
                 game.unplayableCards.addAll(List.of(invalidates));
             }
         }
+    }
+
+    public void render(Graphics g, int x, int y, int width, int height) {
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(x, y, width, height);
+        g.setColor(Color.BLACK);
+        g.drawRect(x, y, width, height);
+        int w;
+        int fontSize = 16;
+        do {
+            g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+            w = g.getFontMetrics().stringWidth(name);
+            --fontSize;
+        } while (width - 10 < w);
+        g.drawString(name, x + (width - w) / 2, y + 20);
     }
 }

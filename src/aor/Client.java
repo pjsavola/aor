@@ -354,9 +354,21 @@ public class Client extends Board implements Runnable {
             });
             panel.add(button);
         }
+        final Rectangle bounds = getDrawDeckBounds();
         for (int i = 0; i < cards.size(); ++i) {
             final int index = i;
-            final JButton button = new JButton(cards.get(i).getName());
+            final Card card = cards.get(i);
+            final JButton button = new JButton(card.getName()) {
+                @Override
+                public void paint(Graphics g) {
+                    card.render(g, 0, 0, bounds.width, bounds.height);
+                }
+
+                @Override
+                public Dimension getPreferredSize() {
+                    return new Dimension(bounds.width, bounds.height);
+                }
+            };
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
