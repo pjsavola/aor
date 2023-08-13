@@ -18,6 +18,7 @@ public class Node {
     private int region;
     private final Set<Node> supports = new HashSet<>();
     private final Set<Node> supportNodes = new HashSet<>();
+    private Point middle;
 
     public void init(List<Line> borders, String name, int size, Commodity commodity, Capital capital, int region) {
         this.borders = new ArrayList<>(borders);
@@ -63,6 +64,24 @@ public class Node {
             yPoints[i] = p.y;
         }
         polygon = new Polygon(xPoints, yPoints, corners);
+        int totalX = 0;
+        int totalY = 0;
+        int totalLen = 0;
+        for (int i = 0; i < corners; ++i) {
+            int x1 = xPoints[i];
+            int y1 = yPoints[i];
+            int x2 = xPoints[(i + 1) % xPoints.length];
+            int y2 = yPoints[(i + 1) % yPoints.length];
+            int midX = (x1 + x2) / 2;
+            int midY = (y1 + y2) / 2;
+            int dx = x1 - x2;
+            int dy = y1 - y2;
+            int len = (int) (Math.sqrt(dx * dx + dy * dy) + 0.5);
+            totalX += len * midX;
+            totalY += len * midY;
+            totalLen += len;
+        }
+        middle = new Point(totalX / totalLen, totalY / totalLen);
     }
 
     public String getName() {
@@ -233,6 +252,8 @@ public class Node {
     public void draw(Graphics g) {
         g.setColor(new Color(0x44FFFFFF, true));
         g.fillPolygon(polygon);
+        g.setColor(Color.BLACK);
+        g.fillOval(middle.x, middle.y, 10, 10);
     }
 
     @Override
