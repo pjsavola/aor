@@ -15,6 +15,7 @@ public class PlayerState implements Serializable {
     public boolean chaos;
     public int cathedralUsed;
     public int[] advances;
+    public int shipLevel;
     public List<Integer> ownedPatronageCards = new ArrayList<>();
     public List<String> areas = new ArrayList<>();
     public List<Integer> tokens = new ArrayList<>();

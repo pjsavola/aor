@@ -128,6 +128,7 @@ public class Player {
         state.chaos = chaos;
         state.cathedralUsed = cathedralUsed;
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
+        state.shipLevel = shipLevel;
         areas.forEach((key, value) -> {
             state.areas.add(key.getName());
             state.tokens.add(value);

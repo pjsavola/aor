@@ -153,4 +153,21 @@ public class Board extends JPanel {
     protected int getTokenSize() {
         return scale(45);
     }
+
+    protected void renderToken(Graphics g, Capital capital, int x, int y, boolean newToken, boolean centralized) {
+        final int size = getTokenSize();
+        final int finalX = centralized ? x - size / 2 : x;
+        final int finalY = centralized ? y - size / 2 : y;
+        g.setColor(Color.BLACK);
+        g.drawRect(finalX, finalY, size, size);
+        if (newToken) {
+            final int whiteSize = size * 3 / 4;
+            final int finalWhiteX = centralized ? x - whiteSize / 2 : x;
+            final int finalWhiteY = centralized ? y - whiteSize / 2 : y;
+            g.setColor(Color.WHITE);
+            g.fillRect(finalWhiteX, finalWhiteY, whiteSize, whiteSize);
+        }
+        g.setColor(capital.getColor());
+        g.fillRect(finalX, finalY, size, size);
+    }
 }

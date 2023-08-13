@@ -158,10 +158,7 @@ public class Client extends Board implements Runnable {
             }
             dy += miseryBounds.height * (miseryStep / 2) * 2;
             for (Capital capital : capitals) {
-                g.setColor(Color.BLACK);
-                g.drawRect(miseryBounds.x + dx, miseryBounds.y + dy, getTokenSize(), getTokenSize());
-                g.setColor(capital.getColor());
-                g.fillRect(miseryBounds.x + dx, miseryBounds.y + dy, getTokenSize(), getTokenSize());
+                renderToken(g, capital, miseryBounds.x + dx, miseryBounds.y + dy, false, false);
                 dx -= 2;
                 dy -= 2;
             }
@@ -175,13 +172,10 @@ public class Client extends Board implements Runnable {
             final int order = Server.getTurnOrderThreshold(i, gameState.turnOrder.size());
             int dx = 0;
             int dy = (order - 1) * turnOrderBounds.height * 24 / 10;
-            g.setColor(Color.BLACK);
-            g.drawRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, getTokenSize(), getTokenSize());
-            g.setColor(playerState.capital.getColor());
-            g.fillRect(turnOrderBounds.x + dx, turnOrderBounds.y + dy, getTokenSize(), getTokenSize());
+            renderToken(g, playerState.capital, turnOrderBounds.x + dx, turnOrderBounds.y + dy, false, false);
         }
 
-        // Render cities and tokens
+        // Render cities, build data structures for tokens
         final int sz = getCitySize();
         final Map<Node, Map<Capital, Integer>> tokenMap = new HashMap<>();
         final Map<Node, Map<Capital, Integer>> newTokenMap = new HashMap<>();
@@ -220,6 +214,7 @@ public class Client extends Board implements Runnable {
             }
         }
 
+        // Render tokens
         Node.nodeMap.values().forEach(node -> {
             final int size = getTokenSize();
             final int whiteSize = size * 3 / 4;
@@ -227,21 +222,46 @@ public class Client extends Board implements Runnable {
             final Map<Capital, Integer> newTokens = newTokenMap.get(node);
             final Point d = new Point(0, 0);
             if (tokens != null) tokens.forEach((capital, count) -> {
-                g.setColor(capital.getColor());
-                g.fillRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
-                g.setColor(Color.BLACK);
-                g.drawRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
-                d.setLocation(d.x - 3, d.y - 3);
+                renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, false, true);
             });
             if (newTokens != null) newTokens.forEach((capital, count) -> {
-                g.setColor(Color.BLACK);
-                g.drawRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
-                g.setColor(Color.WHITE);
-                g.fillRect(node.getMiddle().x - whiteSize / 2 + d.x, node.getMiddle().y - whiteSize / 2 + d.y, whiteSize, whiteSize);
-                g.setColor(capital.getColor());
-                g.fillRect(node.getMiddle().x - size / 2 + d.x, node.getMiddle().y - size / 2 + d.y, size, size);
+                renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, true, true);
                 d.setLocation(d.x - 3, d.y - 3);
             });
+        });
+
+        // Render shipping
+        final Map<Integer, Set<Capital>> shippingMap = new HashMap<>();
+        for (PlayerState playerState : gameState.turnOrder) {
+            int level = 0;
+            if (Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.seaworthyVessels)) ++level;
+            if (Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.oceanNavigation)) ++level;
+            final int totalLevel = level * 5 + playerState.shipLevel;
+            shippingMap.putIfAbsent(totalLevel, new HashSet<>());
+            shippingMap.get(totalLevel).add(playerState.capital);
+        }
+        shippingMap.forEach((totalLevel, capitals) -> {
+            final int level = totalLevel % 5;
+            if (level == 0) return;
+
+            int x = 100;
+            int y = 100;
+            x += (level - 1) * getTokenSize() * 3;
+            y += (totalLevel / 5) * getTokenSize() * 5;
+
+            int dx = 0;
+            int dy = 0;
+            int index = 0;
+            for (Capital capital : capitals) {
+                renderToken(g, capital, x + dx, y + dy, false, false);
+                ++index;
+                if (index > 3) {
+                    dy  = 0;
+                    dx += getTokenSize() + 2;
+                } else {
+                    dy += getTokenSize() + 2;
+                }
+            }
         });
     }
 
