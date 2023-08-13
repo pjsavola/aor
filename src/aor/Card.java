@@ -65,7 +65,7 @@ public abstract class Card {
             g.setFont(new Font("Arial", Font.PLAIN, fontSize));
             w = g.getFontMetrics().stringWidth(name);
             --fontSize;
-        } while (width - 10 < w);
+        } while (width - 4 < w);
         g.drawString(name, x + (width - w) / 2, y + 20);
     }
 }
