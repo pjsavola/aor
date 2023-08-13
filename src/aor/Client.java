@@ -148,31 +148,31 @@ public class Client extends Board implements Runnable {
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
             miseryMap.get(miseryStep).add(playerState.capital);
         }
-        final Rectangle miseryBounds = getMiserySlotBounds();
+        final Point miseryTrackLocation = getMiserySlot();
         miseryMap.forEach((miseryStep, capitals) -> {
             int dx = 0;
             int dy = 0;
             if (miseryStep % 2 != 0) {
-                dx -= miseryBounds.width * 18 / 10;
-                dy += miseryBounds.height;
+                dx -= getTokenSize() * 18 / 10;
+                dy += getTokenSize();
             }
-            dy += miseryBounds.height * (miseryStep / 2) * 2;
+            dy += getTokenSize() * (miseryStep / 2) * 2;
             for (Capital capital : capitals) {
-                renderToken(g, capital, miseryBounds.x + dx, miseryBounds.y + dy, false, false);
+                renderToken(g, capital, miseryTrackLocation.x + dx, miseryTrackLocation.y + dy, false, false);
                 dx -= 2;
                 dy -= 2;
             }
         });
 
         // Render turn order
-        final Rectangle turnOrderBounds = getTurnOrderBounds();
+        final Point turnOrderLocation = getTurnOrder();
         for (int i = 0; i < gameState.turnOrder.size(); ++i) {
             final PlayerState playerState = gameState.turnOrder.get(i);
             if (playerState.capital == null) continue;
             final int order = Server.getTurnOrderThreshold(i, gameState.turnOrder.size());
             int dx = 0;
-            int dy = (order - 1) * turnOrderBounds.height * 24 / 10;
-            renderToken(g, playerState.capital, turnOrderBounds.x + dx, turnOrderBounds.y + dy, false, false);
+            int dy = (order - 1) * getTokenSize() * 24 / 10;
+            renderToken(g, playerState.capital, turnOrderLocation.x + dx, turnOrderLocation.y + dy, false, false);
         }
 
         // Render cities, build data structures for tokens
@@ -245,8 +245,8 @@ public class Client extends Board implements Runnable {
             final int level = totalLevel % 5;
             if (level == 0) return;
 
-            int x = 40;
-            int y = 60;
+            int x = getShipping().x;
+            int y = getShipping().y;
             x += (level - 1) * getTokenSize() * 3;
             if (level > 2) x+= getTokenSize() * 2 / 3;
             y += (totalLevel / 5) * getTokenSize() * 6;
