@@ -8,8 +8,8 @@ import java.io.Serial;
 public class UseCathedralRequest extends Request<BooleanResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
-    public UseCathedralRequest(GameState gameState) {
-        super("Use Cathedral to defend?", gameState);
+    public UseCathedralRequest(GameState gameState, String area) {
+        super("Use Cathedral to defend " + area + "?", gameState);
     }
 
     @Override

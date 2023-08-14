@@ -465,7 +465,7 @@ public class Server implements Runnable {
                                     if (p == player) continue;
 
                                     if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed && p.getTokenCount(node) > 0) {
-                                        final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState())).get().getBool();
+                                        final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState(), node.getName())).get().getBool();
                                         if (cathedralUsed) {
                                             p.cathedralUsed = round;
                                             autoLoss = true;

@@ -557,7 +557,7 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(UseCathedralRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(ExpansionRequest request) {
@@ -565,19 +565,19 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(UseUrbanAscendancyRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(StabilizationRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(SelectHolyIndulgencePaymentRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(UpgradeShipsRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(UseRenaissanceRequest request) {
@@ -585,7 +585,7 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(SelectCivilWarLossesRequest request) {
-        response = request.getDefaultResponse();
+        getBooleanResponse(request);
     }
 
     public void handleRequest(AdjustShortageSurplusRequest request) {
@@ -644,5 +644,23 @@ public class Client extends Board implements Runnable {
             return pendingRequest.options.stream().anyMatch(n -> n.equals(node.getName()));
         }
         return false;
+    }
+
+    private void getBooleanResponse(Request request) {
+        JDialog dialog = new JDialog();
+        JPanel panel = new JPanel();
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+        yesButton.addActionListener(l -> {
+            this.response = new BooleanResponse(true);
+            dialog.setVisible(false);
+            dialog.dispose();
+        });
+        noButton.addActionListener(l -> {
+            this.response = new BooleanResponse(false);
+            dialog.setVisible(false);
+            dialog.dispose();
+        });
+        showDialog(dialog, panel, request.getInfo());
     }
 }
