@@ -154,7 +154,7 @@ public class Board extends JPanel {
     }
 
     protected Point getPatronageQueueLocation() {
-        return new Point(scale(140), scale(350));
+        return new Point(scale(185), scale(1102));
     }
 
     protected int getCitySize() {

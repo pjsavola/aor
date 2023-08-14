@@ -348,12 +348,18 @@ public class Client extends Board implements Runnable {
         }
 
         // Patronage queue
-        final Point patronageQueue = getPatronageQueueLocation();
-        for (int i = 0; i < gameState.patronageCards.length; ++i) {
-            final Card card = Card.allCards.get(gameState.patronageCards[i]);
-            final int uses = gameState.patronageUsesRemaining[i];
-            final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
-            card.render(g, patronageQueue.x, patronageQueue.y, bounds.width, bounds.height);
+        {
+            int dx = 0;
+            int dy = 0;
+            final Point patronageQueue = getPatronageQueueLocation();
+            for (int i = 0; i < gameState.patronageCards.length; ++i) {
+                final Card card = Card.allCards.get(gameState.patronageCards[i]);
+                final int uses = gameState.patronageUsesRemaining[i];
+                final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
+                card.render(g, patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
+                dx += 6;
+                dy += 6;
+            }
         }
 
         // Log panel
