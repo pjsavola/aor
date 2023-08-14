@@ -181,8 +181,8 @@ public class Client extends Board implements Runnable {
 
         // Render turn order
         final Point turnOrderLocation = getTurnOrderLocation();
-        for (int i = 0; i < gameState.players.size(); ++i) {
-            final PlayerState playerState = gameState.players.get(i);
+        for (int i = 0; i < gameState.turnOrder.length; ++i) {
+            final PlayerState playerState = gameState.players.get(gameState.turnOrder[i]);
             if (playerState.capital == null) continue;
             final int order = Server.getTurnOrderThreshold(i, gameState.players.size());
             int dx = 0;

@@ -708,6 +708,10 @@ public class Server implements Runnable {
         state.bannedCategory = bannedCategory;
         state.playedCards = playedCards.stream().mapToInt(Card::getIndex).toArray();
         players.forEach(p -> state.players.add(p.getState()));
+        state.turnOrder = new int[players.size()];
+        for (int i = 0; i < turnOrder.size(); ++i) {
+            state.turnOrder[i] = players.indexOf(turnOrder.get(i));
+        }
         state.patronageCards = new int[patronageQueue.size()];
         state.patronageUsesRemaining = new int[patronageQueue.size()];
         state.patronageOwners = new int[patronageQueue.size()];
