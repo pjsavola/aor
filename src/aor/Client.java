@@ -362,6 +362,19 @@ public class Client extends Board implements Runnable {
             }
         }
 
+        // Played cards
+        {
+            int dx = 0;
+            int dy = 0;
+            final Point playedCards = getPlayedCardsLocation();
+            for (int i = 0; i < gameState.playedCards.length; ++i) {
+                final Card card = Card.allCards.get(gameState.playedCards[i]);
+                card.render(g, playedCards.x + dx, playedCards.y + dy, bounds.width, bounds.height);
+                dx -= 3;
+                dy -= 3;
+            }
+        }
+
         // Log panel
         logPanel.paint(g, size.width - 200, size.height - logPanel.getHeight());
     }

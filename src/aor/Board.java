@@ -157,6 +157,10 @@ public class Board extends JPanel {
         return new Point(scale(185), scale(1102));
     }
 
+    protected Point getPlayedCardsLocation() {
+        return new Point(scale(4250), scale(395));
+    }
+
     protected int getCitySize() {
         return scale(80);
     }

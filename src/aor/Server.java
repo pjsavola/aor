@@ -706,7 +706,7 @@ public class Server implements Runnable {
         state.shortages.addAll(shortages);
         state.surpluses.addAll(surpluses);
         state.bannedCategory = bannedCategory;
-        state.playedCards = playedCards.stream().mapToInt(Card::getIndex).toArray();
+        state.playedCards = playedCards.stream().filter(c -> !(c instanceof LeaderCard)).mapToInt(Card::getIndex).toArray();
         players.forEach(p -> state.players.add(p.getState()));
         state.turnOrder = new int[players.size()];
         for (int i = 0; i < turnOrder.size(); ++i) {
