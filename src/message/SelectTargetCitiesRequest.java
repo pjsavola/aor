@@ -14,15 +14,17 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     public int count;
     public int asiaLimit;
     public int newWorldLimit;
+    public boolean reduce;
 
-    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count) {
-        this(info, gameState, options, count, 3, 2);
+    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce) {
+        this(info, gameState, options, count, reduce, 3, 2);
     }
 
-    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, int asiaLimit, int newWorldLimit) {
+    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce, int asiaLimit, int newWorldLimit) {
         super(info, gameState);
         this.options = new ArrayList<>(options);
         this.count = count;
+        this.reduce = reduce;
         this.asiaLimit = asiaLimit;
         this.newWorldLimit = newWorldLimit;
     }

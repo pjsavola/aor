@@ -664,7 +664,7 @@ public class Server implements Runnable {
                     final List<String> targets;
                     if (options.size() > count) {
                         log(loser + " loses " +  count + " cities");
-                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, asiaLimit, newWorldLimit)).get().getCities();
+                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, false, asiaLimit, newWorldLimit)).get().getCities();
                     } else {
                         targets = new ArrayList<>(options);
                     }
@@ -709,6 +709,8 @@ public class Server implements Runnable {
         state.playedCards = playedCards.stream().filter(c -> !(c instanceof LeaderCard)).mapToInt(Card::getIndex).toArray();
         players.forEach(p -> state.players.add(p.getState()));
         state.turnOrder = new int[players.size()];
+        state.war1 = war1 == null ? -1 : players.indexOf(war1);
+        state.war2 = war2 == null ? -1 : players.indexOf(war2);
         for (int i = 0; i < turnOrder.size(); ++i) {
             state.turnOrder[i] = players.indexOf(turnOrder.get(i));
         }

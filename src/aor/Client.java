@@ -21,6 +21,7 @@ public class Client extends Board implements Runnable {
     private final JFrame frame;
     private final boolean ai;
     private GameState gameState;
+    private Capital myCapital;
     private volatile Response response;
     private final List<String> log = new ArrayList<>();
     private final LogPanel logPanel;
@@ -197,16 +198,29 @@ public class Client extends Board implements Runnable {
         for (PlayerState playerState : gameState.players) {
             for (int i = 0; i < playerState.areas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.areas.get(i));
+                Capital capital = playerState.capital;
                 int tokens = playerState.tokens.get(i);
                 if (pendingResponse != null && pendingResponse.getCities().contains(node.getName())) {
-                    tokens = 1;
+                    if (pendingRequest.reduce) {
+                        tokens = 1;
+                    } else {
+                        tokens = node.getSize();
+                        if (gameState.war1 == -1 || gameState.war2 == -1) {
+                            capital = myCapital;
+                        } else {
+                            final Capital capital1 = gameState.players.get(gameState.war1).capital;
+                            final Capital capital2 = gameState.players.get(gameState.war2).capital;
+                            if (capital1 == myCapital) capital = capital2;
+                            if (capital2 == myCapital) capital = capital1;
+                        }
+                    }
                 }
                 final Point p = node.getMiddle();
                 if ((node.getSize() == tokens) && node.getSize() > 1) {
-                    renderCity(g, playerState.capital, p.x, p.y, sz, false, true);
+                    renderCity(g, capital, p.x, p.y, sz, false, true);
                 } else {
                     tokenMap.putIfAbsent(node, new HashMap<>());
-                    tokenMap.get(node).put(playerState.capital, tokens);
+                    tokenMap.get(node).put(capital, tokens);
                 }
             }
             for (int i = 0; i < playerState.newAreas.size(); ++i) {
@@ -448,6 +462,7 @@ public class Client extends Board implements Runnable {
                 dialog.setVisible(false);
                 dialog.dispose();
                 response = new CapitalResponse(capital);
+                if (myCapital == null) myCapital = capital;
             });
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             capitalPanel.add(button);

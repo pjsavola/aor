@@ -15,6 +15,8 @@ public class GameState implements Serializable {
     public Server.Phase phase;
     public List<PlayerState> players = new ArrayList<>();
     public int[] turnOrder;
+    public int war1;
+    public int war2;
     public List<Commodity> shortages = new ArrayList<>();
     public List<Commodity> surpluses = new ArrayList<>();
     public Advance.Category bannedCategory;
