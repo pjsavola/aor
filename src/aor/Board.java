@@ -179,6 +179,23 @@ public class Board extends JPanel {
         renderLetter(g, capital, finalX, finalY, centralized ? 0 : size);
     }
 
+    protected void renderCity(Graphics g, Capital capital, int x, int y, int size, boolean newCity, boolean centralized) {
+        g.setColor(capital.getColor());
+        final int finalX = x - (centralized ? size / 2 : 0);
+        final int finalY = y - (centralized ? size / 2 : 0);
+        g.fillOval(finalX, finalY, size, size);
+        if (newCity) {
+            g.setColor(Color.WHITE);
+            final int whiteSz = size * 3 / 4;
+            final int finalWhiteX = x - (centralized ? whiteSz / 2 : 0);
+            final int finalWhiteY = y - (centralized ? whiteSz / 2 : 0);
+            g.fillOval(finalWhiteX, finalWhiteY, whiteSz, whiteSz);
+        }
+        g.setColor(Color.BLACK);
+        g.drawOval(finalX, finalY, size, size);
+        renderLetter(g, capital, x, y, centralized ? 0 : size);
+    }
+
     protected void renderLetter(Graphics g, Capital capital, int x, int y, int size) {
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.PLAIN, 12));

@@ -185,11 +185,7 @@ public class Client extends Board implements Runnable {
                 final int tokens = playerState.tokens.get(i);
                 final Point p = node.getMiddle();
                 if ((node.getSize() == tokens) && node.getSize() > 1) {
-                    g.setColor(playerState.capital.getColor());
-                    g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
-                    g.setColor(Color.BLACK);
-                    g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
-                    renderLetter(g, playerState.capital, p.x, p.y, 0);
+                    renderCity(g, playerState.capital, p.x, p.y, sz, false, true);
                 } else {
                     tokenMap.putIfAbsent(node, new HashMap<>());
                     tokenMap.get(node).put(playerState.capital, tokens);
@@ -200,14 +196,7 @@ public class Client extends Board implements Runnable {
                 final int newTokens = playerState.newTokens.get(i);
                 final Point p = node.getMiddle();
                 if (node.getSize() == newTokens && node.getSize() > 1) {
-                    g.setColor(playerState.capital.getColor());
-                    g.fillOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
-                    g.setColor(Color.WHITE);
-                    final int whiteSz = sz * 3 / 4;
-                    g.fillOval(p.x - whiteSz / 2, p.y - whiteSz / 2, whiteSz, whiteSz);
-                    g.setColor(Color.BLACK);
-                    g.drawOval(p.x - sz / 2, p.y - sz / 2, sz, sz);
-                    renderLetter(g, playerState.capital, p.x, p.y, 0);
+                    renderCity(g, playerState.capital, p.x, p.y, sz, true, true);
                 } else {
                     newTokenMap.putIfAbsent(node, new HashMap<>());
                     newTokenMap.get(node).put(playerState.capital, newTokens);
@@ -217,8 +206,6 @@ public class Client extends Board implements Runnable {
 
         // Render tokens
         Node.nodeMap.values().forEach(node -> {
-            final int size = getTokenSize();
-            final int whiteSize = size * 3 / 4;
             final Map<Capital, Integer> tokens = tokenMap.get(node);
             final Map<Capital, Integer> newTokens = newTokenMap.get(node);
             final Point d = new Point(0, 0);
@@ -344,16 +331,6 @@ public class Client extends Board implements Runnable {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Card> cards = request.getCards();
-        if (request.optional) {
-            final JButton button = new JButton("Pass");
-            button.setForeground(Color.RED);
-            button.addActionListener(l -> {
-                dialog.setVisible(false);
-                dialog.dispose();
-                response = request.getDefaultResponse();
-            });
-            panel.add(button);
-        }
         final Rectangle bounds = getDrawDeckBounds();
         for (int i = 0; i < cards.size(); ++i) {
             final int index = i;
@@ -376,32 +353,53 @@ public class Client extends Board implements Runnable {
             });
             panel.add(button);
         }
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        if (request.optional) {
+            final JPanel panelWithButton = new JPanel();
+            panelWithButton.setLayout(new BoxLayout(panelWithButton, BoxLayout.Y_AXIS));
+            final JButton button = new JButton("Pass");
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.addActionListener(l -> {
+                dialog.setVisible(false);
+                dialog.dispose();
+                response = request.getDefaultResponse();
+            });
+            panelWithButton.add(panel);
+            panelWithButton.add(button);
+            showDialog(dialog, panelWithButton, request.getInfo());
+        } else {
+            showDialog(dialog, panel, request.getInfo());
+        }
     }
 
     public void handleRequest(SelectCapitalRequest request) {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Capital> options = request.options;
-        for (int i = 0; i < options.size(); ++i) {
-            final Capital capital = options.get(i);
+        for (final Capital capital : options) {
+            final JPanel capitalPanel = new JPanel();
+            capitalPanel.setLayout(new BoxLayout(capitalPanel, BoxLayout.Y_AXIS));
+            final JButton cityToken = new JButton() {
+                @Override
+                public void paint(Graphics g) {
+                    renderCity(g, capital, 0, 0, getCitySize(), false, false);
+                }
+                @Override
+                public Dimension getPreferredSize() {
+                    return new Dimension(getCitySize(), getCitySize());
+                }
+            };
+            capitalPanel.add(cityToken);
             final JButton button = new JButton(capital.name());
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
                 response = new CapitalResponse(capital);
             });
-            panel.add(button);
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            capitalPanel.add(button);
+            panel.add(capitalPanel);
         }
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        showDialog(dialog, panel, request.getInfo());
     }
 
     public void handleRequest(SelectCommodityRequest request) {
@@ -418,11 +416,7 @@ public class Client extends Board implements Runnable {
             });
             panel.add(button);
         }
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        showDialog(dialog, panel, request.getInfo());
     }
 
     public void handleRequest(SelectCategoryRequest request) {
@@ -448,11 +442,7 @@ public class Client extends Board implements Runnable {
             });
             panel.add(button);
         }
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        showDialog(dialog, panel, request.getInfo());
     }
 
     public void handleRequest(BidForCapitalRequest request) {
@@ -480,11 +470,7 @@ public class Client extends Board implements Runnable {
                 // Show error message
             }
         });
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        showDialog(dialog, panel, request.getInfo());
     }
 
     public void handleRequest(BidForTurnOrderRequest request) {
@@ -512,11 +498,7 @@ public class Client extends Board implements Runnable {
                 // Show error message
             }
         });
-        dialog.setTitle(request.getInfo());
-        dialog.setContentPane(panel);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.pack();
-        dialog.setVisible(true);
+        showDialog(dialog, panel, request.getInfo());
     }
 
     public void handleRequest(UseCathedralRequest request) {
@@ -565,5 +547,14 @@ public class Client extends Board implements Runnable {
 
     public void handleRequest(SelectTargetCitiesRequest request) {
 
+    }
+
+    private void showDialog(JDialog dialog, JPanel panel, String title) {
+        dialog.setTitle(title);
+        dialog.setContentPane(panel);
+        dialog.setLocationRelativeTo(frame);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.pack();
+        dialog.setVisible(true);
     }
 }
