@@ -19,7 +19,6 @@ public class PlayerState implements Serializable {
     public int shipLevel;
     public int usableTokens;
     public int remainingTokens;
-    public List<Integer> ownedPatronageCards = new ArrayList<>();
     public List<String> areas = new ArrayList<>();
     public List<Integer> tokens = new ArrayList<>();
     public List<String> newAreas = new ArrayList<>();
@@ -28,10 +27,6 @@ public class PlayerState implements Serializable {
 
     public Stream<Advance> getAdvances() {
         return Arrays.stream(advances).mapToObj(a -> Advance.allAdvances.get(a));
-    }
-
-    public List<Card> getOwnedPatronageCards() {
-        return ownedPatronageCards.stream().map(i -> Card.allCards.get(i)).toList();
     }
 
     public Map<Node, Integer> getAreas() {

@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Client extends Board implements Runnable {
     private static int counter;
@@ -23,6 +24,8 @@ public class Client extends Board implements Runnable {
     private volatile Response response;
     private final List<String> log = new ArrayList<>();
     private final LogPanel logPanel;
+    private SelectTargetCitiesRequest pendingRequest;
+    private SelectTargetCitiesResponse pendingResponse;
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -135,9 +138,9 @@ public class Client extends Board implements Runnable {
         if (gameState == null) return;
 
         // Render draw deck
+        final Rectangle bounds = getDrawDeckBounds();
         if (gameState.deckSize > 0) {
             g.setColor(Color.BLACK);
-            final Rectangle bounds = getDrawDeckBounds();
             g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -194,7 +197,10 @@ public class Client extends Board implements Runnable {
         for (PlayerState playerState : gameState.players) {
             for (int i = 0; i < playerState.areas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.areas.get(i));
-                final int tokens = playerState.tokens.get(i);
+                int tokens = playerState.tokens.get(i);
+                if (pendingResponse != null && pendingResponse.getCities().contains(node.getName())) {
+                    tokens = 1;
+                }
                 final Point p = node.getMiddle();
                 if ((node.getSize() == tokens) && node.getSize() > 1) {
                     renderCity(g, playerState.capital, p.x, p.y, sz, false, true);
@@ -205,7 +211,10 @@ public class Client extends Board implements Runnable {
             }
             for (int i = 0; i < playerState.newAreas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.newAreas.get(i));
-                final int newTokens = playerState.newTokens.get(i);
+                int newTokens = playerState.newTokens.get(i);
+                if (pendingResponse != null && pendingResponse.getCities().contains(node.getName())) {
+                    newTokens = 1;
+                }
                 final Point p = node.getMiddle();
                 if (node.getSize() == newTokens && node.getSize() > 1) {
                     renderCity(g, playerState.capital, p.x, p.y, sz, true, true);
@@ -336,6 +345,15 @@ public class Client extends Board implements Runnable {
             dy += h;
             g.drawString("Points: " + points, x, y + dy);
             y += 100;
+        }
+
+        // Patronage queue
+        final Point patronageQueue = getPatronageQueueLocation();
+        for (int i = 0; i < gameState.patronageCards.length; ++i) {
+            final Card card = Card.allCards.get(gameState.patronageCards[i]);
+            final int uses = gameState.patronageUsesRemaining[i];
+            final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
+            card.render(g, patronageQueue.x, patronageQueue.y, bounds.width, bounds.height);
         }
 
         // Log panel
@@ -520,51 +538,51 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(UseCathedralRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(ExpansionRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(UseUrbanAscendancyRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(StabilizationRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectHolyIndulgencePaymentRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(UpgradeShipsRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(UseRenaissanceRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectCivilWarLossesRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(AdjustShortageSurplusRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectAreaRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(PurchaseAdvancesRequest request) {
-
+        response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectTargetCitiesRequest request) {
-
+        pendingRequest = request;
     }
 
     private void showDialog(JDialog dialog, JPanel panel, String title) {
@@ -574,5 +592,38 @@ public class Client extends Board implements Runnable {
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         dialog.pack();
         dialog.setVisible(true);
+    }
+
+    @Override
+    protected void clicked(Node node) {
+        if (pendingRequest != null) {
+            if (node.isInNewWorld() && pendingRequest.newWorldLimit == 0) return;
+            if (node.isInAsia() && pendingRequest.asiaLimit == 0) return;
+            if (pendingRequest.count == 0) return;
+
+            if (pendingRequest.options.removeIf(n -> n.equals(node.getName()))) {
+                if (node.isInNewWorld()) --pendingRequest.newWorldLimit;
+                if (node.isInAsia()) --pendingRequest.asiaLimit;
+                --pendingRequest.count;
+                if (pendingResponse == null) {
+                    pendingResponse = new SelectTargetCitiesResponse();
+                }
+                pendingResponse.addCity(node.getName());
+                if (pendingRequest.count == 0) {
+                    response = pendingResponse;
+                    pendingResponse = null;
+                    pendingRequest = null;
+                }
+                repaint();
+            }
+        }
+    }
+
+    @Override
+    protected boolean shouldHighlight(Node node) {
+        if (pendingRequest != null) {
+            return pendingRequest.options.stream().anyMatch(n -> n.equals(node.getName()));
+        }
+        return false;
     }
 }

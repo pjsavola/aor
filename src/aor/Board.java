@@ -47,7 +47,7 @@ public class Board extends JPanel {
                 final Point point = e.getPoint();
                 for (Node node : Node.nodeMap.values()) {
                     if (node.contains(point)) {
-                        System.err.println("Clicked " + node.getName());
+                        clicked(node);
                     }
                 }
                 repaint();
@@ -121,7 +121,7 @@ public class Board extends JPanel {
         g.drawImage(mapImage, 0, 0, null);
         if (cursor != null) {
             for (Node node : Node.nodeMap.values()) {
-                if (node.contains(cursor)) {
+                if (shouldHighlight(node) && node.contains(cursor)) {
                     node.draw(g);
                 }
             }
@@ -153,6 +153,10 @@ public class Board extends JPanel {
         return new Point(scale(97), scale(1871));
     }
 
+    protected Point getPatronageQueueLocation() {
+        return new Point(scale(140), scale(350));
+    }
+
     protected int getCitySize() {
         return scale(80);
     }
@@ -176,7 +180,7 @@ public class Board extends JPanel {
         }
         g.setColor(Color.BLACK);
         g.drawRect(finalX, finalY, size, size);
-        renderLetter(g, capital, finalX, finalY, centralized ? 0 : size);
+        renderLetter(g, capital, x, y, centralized ? 0 : size);
     }
 
     protected void renderCity(Graphics g, Capital capital, int x, int y, int size, boolean newCity, boolean centralized) {
@@ -201,5 +205,12 @@ public class Board extends JPanel {
         g.setFont(new Font("Arial", Font.PLAIN, 12));
         final String letter = capital.name().substring(0, 1);
         g.drawString(letter, x + (size - g.getFontMetrics().stringWidth(letter)) / 2, y + (size + g.getFontMetrics().getHeight()) / 2 - 2);
+    }
+
+    protected void clicked(Node node) {
+    }
+
+    protected boolean shouldHighlight(Node node) {
+        return false;
     }
 }

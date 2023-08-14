@@ -46,7 +46,7 @@ public class EventCard extends Card {
                 final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select target for Alchemist's Gold", game.getGameState(), targets.keySet())).get().getCapital();
                 final Player target = targets.get(capital);
                 final int loss = (target.writtenCash + 1) / 2;
-                game.log(target + " lost " + loss + " cash.");
+                game.log(target + " lost " + loss + " cash");
                 target.adjustCash(-loss);
             }
             case CIVIL_WAR -> {
@@ -59,9 +59,13 @@ public class EventCard extends Card {
                 if (!target.chaos) {
                     final boolean loseTokens = new FutureOrDefault<>(player, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
                     if (loseTokens) {
-                        player.moveTokens(-(player.getUsableTokens() + 1) / 2);
+                        final int tokens = (player.getUsableTokens() + 1) / 2;
+                        game.log(target + " loses " + tokens + " tokens");
+                        player.moveTokens(-tokens);
                     } else {
-                        player.adjustCash(-(player.writtenCash + 1) / 2);
+                        final int cash = (player.writtenCash + 1) / 2;
+                        game.log(target + " loses " + cash + " cash");
+                        player.adjustCash(-cash);
                     }
                 }
                 for (Player p : game.players) p.getCities().filter(n -> n.getCapital() == capital).findAny().ifPresent(p::reduceCity);
@@ -72,35 +76,45 @@ public class EventCard extends Card {
             case PAPAL_DECREE -> {
                 final Set<Advance.Category> allowedCategories = Set.of(Advance.Category.SCIENCE, Advance.Category.RELIGION, Advance.Category.EXPLORATION);
                 game.bannedCategory = new FutureOrDefault<>(player, new SelectCategoryRequest(game.getGameState(), allowedCategories)).get().getCategory();
+                if (game.bannedCategory != null) {
+                    game.log("Pope bans " + game.bannedCategory);
+                }
             }
             case PIRATES_VIKINGS -> {
                 final Set<String> options = new HashSet<>();
                 game.players.forEach(p -> p.getCities().filter(Node::isCoastal).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
-                    final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(3, options.size()))).get().getCities();
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(Math.min(3, game.getEpoch()), options.size()))).get().getCities();
                     for (String target : targets) {
                         for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(target)).findAny().ifPresent(p::reduceCity);
                     }
+                } else {
+                    game.log("No suitable targets!");
                 }
             }
             case REBELLION -> {
                 final Set<String> options = new HashSet<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.getCities().filter(n -> n.getCapital() == null && !n.isInNewWorld()).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
-                    final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Rebellion", game.getGameState(), options, 1)).get().getCities();
-                    for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(targets[0])).findAny().ifPresent(p::reduceCity);
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Rebellion", game.getGameState(), options, 1)).get().getCities();
+                    for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(targets.get(0))).findAny().ifPresent(p::reduceCity);
+                } else {
+                    game.log("No suitable targets!");
                 }
             }
             case REVOLUTIONARY_UPRISINGS -> game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.adjustMisery((int) p.getAdvances().stream().filter(a -> a.category == Advance.Category.COMMERCE).count()));
             case THE_CRUSADES -> {
                 final Set<String> options = Node.nodeMap.values().stream().filter(n -> n.getRegion() == 6 && player.getCities().noneMatch(c -> c == n)).map(Node::getName).collect(Collectors.toSet());
                 if (!options.isEmpty()) {
-                    final String[] targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1)).get().getCities();
-                    final Node n = Node.nodeMap.get(targets[0]);
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1)).get().getCities();
+                    final Node n = Node.nodeMap.get(targets.get(0));
                     if (n != null) {
+                        game.log("Crusades at " + n.getName());
                         for (Player p : game.players) p.remove(n);
                         player.addCity(n);
                     }
+                } else {
+                    game.log("No suitable targets!");
                 }
                 player.adjustMisery(1);
             }
@@ -117,6 +131,7 @@ public class EventCard extends Card {
             }
             case BLACK_DEATH -> {
                 final int area = new FutureOrDefault<>(player, new SelectAreaRequest(game.getGameState())).get().getInt();
+                game.log("All tokens removed from area " + area);
                 for (Player p : game.players) {
                     final List<Node> tokenAreas = p.getTokenAreas().filter(n -> n.getRegion() == area).toList();
                     for (Node n : tokenAreas) p.remove(n);

@@ -25,7 +25,10 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
         final Set<Advance> allAdvances = new HashSet<>(advances);
         final Set<Card> playedCards = Arrays.stream(gameState.playedCards).mapToObj(i -> Card.allCards.get(i)).collect(Collectors.toSet());
         final LeaderCard[] patronageQueue = Arrays.stream(gameState.patronageCards).mapToObj(i -> (LeaderCard) Card.allCards.get(i)).toArray(LeaderCard[]::new);
-        final Set<Card> ownedPatronageCards = playerState.ownedPatronageCards.stream().map(i -> Card.allCards.get(i)).collect(Collectors.toSet());
+        final Set<Card> ownedPatronageCards = new HashSet<>();
+        for (int i = 0; i < patronageQueue.length; ++i) {
+            if (gameState.patronageOwners[i] == playerIndex) ownedPatronageCards.add(patronageQueue[i]);
+        }
         final List<Advance> list = response.getAdvances();
         for (Advance advance : list) {
             if (misery >= Player.miserySteps.length) {

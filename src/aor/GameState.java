@@ -2,6 +2,7 @@ package aor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,5 +19,6 @@ public class GameState implements Serializable {
     public Advance.Category bannedCategory;
     public int[] playedCards;
     public int[] patronageCards;
+    public int[] patronageOwners;
     public int[] patronageUsesRemaining;
 }

@@ -113,7 +113,7 @@ public class Server implements Runnable {
     @Override
     public void run() {
         while (phase != Phase.END) {
-            log("Round " + round + " " + phase + " begins");
+            log(phase + " begins");
             switch (phase) {
                 case DRAFT -> draftPhase();
                 case SELECT_CAPITAL -> selectCapitalPhase();
@@ -151,13 +151,13 @@ public class Server implements Runnable {
                 }
             }
         }
-        log("Initial draft completed.");
+        log("Initial draft completed");
         if (players.size() <= 4) {
-            log("Delayed cards " + delayedCards.stream().map(Card::getName).collect(Collectors.joining(", ")) + " added to the deck.");
+            log("Delayed cards " + delayedCards.stream().map(Card::getName).collect(Collectors.joining(", ")) + " added to the deck");
             deck.addAll(delayedCards);
             delayedCards.clear();
         }
-        log("Deck 1 is shuffled.");
+        log("Deck 1 is shuffled");
         Collections.shuffle(deck, r);
         phase = Phase.SELECT_CAPITAL;
     }
@@ -187,17 +187,17 @@ public class Server implements Runnable {
             options.add(Capital.values()[players.size()]);
             players.add(player);
             turnOrder.add(player);
-            log(player + " bids " + highestBid + " for capital.");
+            log(player + " bids " + highestBid + " for capital");
             player.adjustCash(-highestBid);
         }
         for (Player player : turnOrder) {
             final Capital capital;
             if (options.size() > 1) {
                 capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
-                log(player + " picks " + capital + ".");
+                log(player + " picks " + capital);
             } else {
                 capital = options.iterator().next();
-                log(player + " picks the last remaining option " + capital + ".");
+                log(player + " takes " + capital);
             }
             player.selectCapital(capital);
             Node.nodeMap.values().stream().filter(n -> n.getCapital() == capital).findAny().ifPresent(player::addCity);
@@ -230,7 +230,7 @@ public class Server implements Runnable {
             player.writtenCash = player.getCash();
             player.addTokens(lowestBid);
             turnOrder.add(players.get(index));
-            log(player + " purchases " + lowestBid + " tokens. Written cash: " + player.writtenCash);
+            log(player + " purchases " + lowestBid + " tokens");
         }
         phase = round == 1 ? Phase.PLAY_CARD : Phase.DRAW_CARD;
     }
@@ -270,6 +270,8 @@ public class Server implements Runnable {
         for (Player player : turnOrder) {
             final Card c = drawCard();
             if (c != null) {
+                log(player + " draws a card");
+                player.cards.add(c);
                 player.notify(new CardNotification(c));
             }
         }
@@ -316,7 +318,7 @@ public class Server implements Runnable {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
                 final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", getGameState(), playableCards, true)).get().getInt();
                 if (cardIndex == -1) {
-                    log(player + " passes, " + player.cards.size() + " cards remaining.");
+                    log(player + " passes");
                     break;
                 } else {
                     final Card card = playableCards.get(cardIndex);
@@ -608,6 +610,7 @@ public class Server implements Runnable {
     public void resolveWar(Player currentPlayer) {
         if (war1 != null && war2 != null) {
             if (war1.chaos || war2.chaos) {
+                log((war1.chaos ? war1 : war2) + " is in chaos, war ends");
                 war1 = null;
                 war2 = null;
                 return;
@@ -628,6 +631,8 @@ public class Server implements Runnable {
                         break;
                     } else {
                         final WeaponCard card = playableWeapons.remove(index);
+                        currentPlayer.cards.remove(card);
+                        playableWeapons.remove(index);
                         card.play(this, currentPlayer);
                         bestWeapon1 = war1.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
                         bestWeapon2 = war2.weapons.stream().mapToInt(Integer::intValue).max().orElse(0);
@@ -638,8 +643,12 @@ public class Server implements Runnable {
             final int best2 = bestWeapon2;
             final int mod1 = bestWeapon1 > bestWeapon2 ? (int) war1.weapons.stream().filter(w -> w > best2).count() : 0;
             final int mod2 = bestWeapon2 > bestWeapon1 ? (int) war2.weapons.stream().filter(w -> w > best1).count() : 0;
-            final int roll1 = r.nextInt(6) + mod1;
-            final int roll2 = r.nextInt(6) + mod2;
+            final int r1 = r.nextInt(6);
+            final int r2 = r.nextInt(6);
+            final int roll1 = r1 + mod1;
+            final int roll2 = r2 + mod2;
+            log(war1 + " rolls " + (r1 + 1) + (mod1 > 0 ? (" + " + mod1) : ""));
+            log(war2 + " rolls " + (r2 + 1) + (mod2 > 0 ? (" + " + mod1) : ""));
             if (roll1 != roll2) {
                 final Player winner =  roll1 > roll2 ? war1 : war2;
                 final Player loser = roll1 > roll2 ? war2 : war1;
@@ -652,27 +661,36 @@ public class Server implements Runnable {
                         .map(Node::getName).collect(Collectors.toSet());
                 final int count = Math.abs(roll1 - roll2);
                 if (!options.isEmpty()) {
-                    final String[] targets;
+                    final List<String> targets;
                     if (options.size() > count) {
+                        log(loser + " loses " +  count + " cities");
                         targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, asiaLimit, newWorldLimit)).get().getCities();
                     } else {
-                        targets = options.toArray(String[]::new);
+                        targets = new ArrayList<>(options);
                     }
                     for (String target : targets) {
+                        log(loser + " loses " + target);
                         final List<Node> lostCities = loser.getCities().filter(c -> c.getName().equals(target)).toList();
                         lostCities.forEach(n -> {
                             loser.remove(n);
                             winner.addCity(n);
                         });
                     }
+                } else {
+                    log(loser + " has no suitable cities");
                 }
-                loser.adjustMisery(1);
-                loser.adjustMisery(Math.max(0, count - options.size()));
+                loser.adjustMisery(1 + Math.max(0, count - options.size()));
                 war1 = null;
                 war2 = null;
             } else if (mod1 != mod2) {
-                if (mod1 > mod2) war2.adjustMisery(1);
-                else war1.adjustMisery(1);
+                if (mod1 > mod2) {
+                    log(war1 + " wins with tiebreak");
+                    war2.adjustMisery(1);
+                }
+                else {
+                    log(war2 + " wins with tiebreak");
+                    war1.adjustMisery(1);
+                }
                 war1 = null;
                 war2 = null;
             }
@@ -692,11 +710,11 @@ public class Server implements Runnable {
         players.forEach(p -> state.players.add(p.getState()));
         state.patronageCards = new int[patronageQueue.size()];
         state.patronageUsesRemaining = new int[patronageQueue.size()];
+        state.patronageOwners = new int[patronageQueue.size()];
         for (int i = 0; i < patronageQueue.size(); ++i) {
             state.patronageCards[i] = patronageQueue.get(i).getIndex();
             state.patronageUsesRemaining[i] = patronageQueue.get(i).usesRemaining;
-            final int playerIdx = players.indexOf(patronageQueue.get(i).owner);
-            state.players.get(playerIdx).ownedPatronageCards.add(state.patronageCards[i]);
+            state.patronageOwners[i] = players.indexOf(patronageQueue.get(i).owner);
         }
         return state;
     }

@@ -100,7 +100,7 @@ public class Player {
     }
 
     public void reduceCity(Node node) {
-        System.err.println("Reduced city at " + node.getName());
+        System.err.println("Reduced " + node.getName());
         final Integer tokens = areas.get(node);
         if (tokens != null && tokens == node.getSize()) {
             if (remainingTokens > 0) {
@@ -248,12 +248,12 @@ public class Player {
 
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
-            System.err.println(this + " goes to chaos. Remaining " + cards.size() + " cards are discarded.");
+            System.err.println(this + " goes to chaos, " + cards.size() + " cards discarded");
             chaos = true;
             cards.forEach(game::moveToNextDeck);
             cards.clear();
         } else {
-            game.log(this + " gains " + delta + " misery. Now at " + miserySteps[misery]);
+            game.log(this + " gains " + delta + " misery");
         }
     }
 
