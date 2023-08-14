@@ -21,6 +21,8 @@ public class Client extends Board implements Runnable {
     private final boolean ai;
     private GameState gameState;
     private volatile Response response;
+    private final List<String> log = new ArrayList<>();
+    private final LogPanel logPanel;
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -54,6 +56,8 @@ public class Client extends Board implements Runnable {
             frame.pack();
             frame.setVisible(true);
         }
+        logPanel = new LogPanel(log);
+        logPanel.setHeight(size.height);
     }
 
     @Override
@@ -64,6 +68,10 @@ public class Client extends Board implements Runnable {
                 if (message instanceof Request) {
                     oos.writeObject(getResponse((Request<?>) message));
                 } else if (message instanceof Notification) {
+                    if (message instanceof LogEntryNotification) {
+                        log.add(((LogEntryNotification) message).getText());
+                        repaint(size.width - 200, size.height - logPanel.getHeight(), 200, logPanel.getHeight());
+                    }
                     //return handleNotification((Notification) message);
                 }
             } catch (EOFException e) {
@@ -104,6 +112,10 @@ public class Client extends Board implements Runnable {
         }
         response = null;
         gameState = request.gameState;
+        if (gameState != null) {
+            final int height = size.height - 100 * gameState.players.size();
+            logPanel.setHeight(height);
+        }
         request.handleRequest(this);
         repaint();
         while (response == null) {
@@ -325,12 +337,17 @@ public class Client extends Board implements Runnable {
             g.drawString("Points: " + points, x, y + dy);
             y += 100;
         }
+
+        // Log panel
+        logPanel.paint(g, size.width - 200, size.height - logPanel.getHeight());
     }
 
     public void handleRequest(SelectCardRequest request) {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Card> cards = request.getCards();
+        panel.setLayout(new GridLayout(cards.size() / 5 + 1, Math.min(5, cards.size())));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
         final Rectangle bounds = getDrawDeckBounds();
         for (int i = 0; i < cards.size(); ++i) {
             final int index = i;
@@ -343,7 +360,7 @@ public class Client extends Board implements Runnable {
 
                 @Override
                 public Dimension getPreferredSize() {
-                    return new Dimension(bounds.width, bounds.height);
+                    return new Dimension(bounds.width + 5, bounds.height);
                 }
             };
             button.addActionListener(l -> {
@@ -425,6 +442,7 @@ public class Client extends Board implements Runnable {
         final List<Advance.Category> categories = request.options;
         {
             final JButton button = new JButton("Pass");
+            button.setForeground(Color.RED);
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();

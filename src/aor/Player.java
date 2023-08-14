@@ -100,6 +100,7 @@ public class Player {
     }
 
     public void reduceCity(Node node) {
+        System.err.println("Reduced city at " + node.getName());
         final Integer tokens = areas.get(node);
         if (tokens != null && tokens == node.getSize()) {
             if (remainingTokens > 0) {
@@ -168,8 +169,8 @@ public class Player {
     }
 
     public void addTokens(int bid) {
-        usableTokens = Math.max(0, Math.min(bid, remainingTokens));
-        moveTokens(usableTokens);
+        final int tokens = Math.max(0, Math.min(bid, remainingTokens));
+        moveTokens(tokens);
     }
 
     public void flipTokens() {

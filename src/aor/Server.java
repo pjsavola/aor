@@ -772,6 +772,7 @@ public class Server implements Runnable {
                 if (player.getAdvances().contains(Advance.industry)) ++count;
                 count += adjustment;
                 final int value = count * count * commodity.getValue();
+                log(player + " got " + value + " cash from " + commodity);
                 player.adjustCash(value);
             }
         }
@@ -797,10 +798,9 @@ public class Server implements Runnable {
     }
 
     public void log(String s) {
-        /*
         for (Player player : players) {
             player.notify(new LogEntryNotification(s));
-        }*/
+        }
         System.err.println(s);
     }
 }

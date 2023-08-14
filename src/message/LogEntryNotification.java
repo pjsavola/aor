@@ -11,4 +11,8 @@ public class LogEntryNotification extends Notification {
     public LogEntryNotification(String text) {
         this.text = text;
     }
+
+    public String getText() {
+        return text;
+    }
 }
