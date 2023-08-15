@@ -48,6 +48,7 @@ public class Client extends Board implements Runnable {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                        expansionResponse = null;
                         esc();
                     }
                 }
@@ -240,6 +241,13 @@ public class Client extends Board implements Runnable {
                 }
             }
         }
+        if (expansionResponse != null) {
+            expansionResponse.getEntryStream().forEach(e -> {
+                final Node node = Node.nodeMap.get(e.getKey());
+                newTokenMap.putIfAbsent(node, new HashMap<>());
+                newTokenMap.get(node).put(myCapital, e.getValue());
+            });
+        }
 
         // Render tokens
         Node.nodeMap.values().forEach(node -> {
@@ -340,6 +348,8 @@ public class Client extends Board implements Runnable {
             final long cities = playerState.getAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
             final long newCities = playerState.getNewAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
             final int points = playerState.getAdvances().map(Advance::getBaseCost).mapToInt(Integer::intValue).sum() + playerState.cash - (playerState.chaos ? 1000 : Player.miserySteps[playerState.misery]);
+            int usableTokens = playerState.usableTokens;
+            if (expansionResponse != null) usableTokens -= expansionResponse.getTokenCount();
             int x = size.width - 195;
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
@@ -351,7 +361,7 @@ public class Client extends Board implements Runnable {
             g.setFont(new Font("Arial", Font.PLAIN, 12));
             g.drawString("Cash: " + playerState.cash + " (" + playerState.writtenCash + " written)", x, y + dy);
             dy += h;
-            g.drawString("Tokens: " + (playerState.remainingTokens + playerState.usableTokens) + " (" + playerState.usableTokens + " usable)", x, y + dy);
+            g.drawString("Tokens: " + (playerState.remainingTokens + playerState.usableTokens) + " (" + usableTokens + " usable)", x, y + dy);
             dy += h;
             g.drawString("Cities: " + (cities + newCities) + " (" + newCities + " new)", x, y + dy);
             dy += h;
@@ -654,7 +664,25 @@ public class Client extends Board implements Runnable {
             }
         }
         if (expansionRequest != null) {
-            System.err.println("To attack: " + expansionRequest.getRequiredTokensToAttack(node));
+            if (expansionResponse == null) {
+                expansionResponse = new ExpansionResponse();
+            }
+            final int usedTokens = expansionResponse.getTokensUsed();
+            final int alreadyPlacedTokens = expansionResponse.getTokens(node.getName());
+            final int freeCapacity = node.getSize() - expansionRequest.getUsedCapacity(node) - alreadyPlacedTokens;
+            final int neededTokens;
+            if (freeCapacity > 1) {
+                neededTokens = 1;
+            } else {
+                neededTokens = expansionRequest.getRequiredTokensToAttack(node) - alreadyPlacedTokens;
+            }
+            if (neededTokens + alreadyPlacedTokens <= expansionRequest.getCapacity(node.getName())) {
+                if (usedTokens + neededTokens <= expansionRequest.tokens) {
+                    expansionResponse.addTokens(node.getName(), neededTokens);
+                    repaint();
+                }
+            }
+            //System.err.println("To attack: " + expansionRequest.getRequiredTokensToAttack(node));
         }
     }
 

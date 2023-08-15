@@ -11,8 +11,8 @@ public class ExpansionResponse extends Response {
     private static final long serialVersionUID = 1L;
     private final List<String> tokensUsedKeys;
     private final List<Integer> tokensUsedValues;
-    private final String cathedralUsed;
-    private final int tokensDisbanded;
+    private String cathedralUsed;
+    private int tokensDisbanded;
 
     public ExpansionResponse(Map<String, Integer> tokensUsed, int tokensDisbanded, String cathedralUsed) {
         tokensUsedKeys = new ArrayList<>(tokensUsed.size());
@@ -23,6 +23,46 @@ public class ExpansionResponse extends Response {
         });
         this.tokensDisbanded = tokensDisbanded;
         this.cathedralUsed = cathedralUsed;
+    }
+
+    public ExpansionResponse() {
+        tokensUsedKeys = new ArrayList<>();
+        tokensUsedValues = new ArrayList<>();
+    }
+
+    public void addTokens(String area, int amount) {
+        final int idx = tokensUsedKeys.indexOf(area);
+        if (idx != -1) {
+            tokensUsedValues.set(idx, tokensUsedValues.get(idx) + amount);
+        } else {
+            tokensUsedKeys.add(area);
+            tokensUsedValues.add(amount);
+        }
+    }
+
+    public void removeTokens(String area, int amount) {
+        final int idx = tokensUsedKeys.indexOf(area);
+        if (idx != -1) {
+            final int newValue = tokensUsedValues.get(idx) - amount;
+            if (newValue <= 0) {
+                tokensUsedKeys.remove(idx);
+                tokensUsedValues.remove(idx);
+            } else {
+                tokensUsedValues.set(idx, newValue);
+            }
+        }
+    }
+
+    public int getTokens(String area) {
+        final int idx = tokensUsedKeys.indexOf(area);
+        if (idx != -1) {
+            return tokensUsedValues.get(idx);
+        }
+        return 0;
+    }
+
+    public int getTokenCount() {
+        return tokensUsedValues.stream().mapToInt(Integer::intValue).sum();
     }
 
     public Stream<Map.Entry<String, Integer>> getEntryStream() {
