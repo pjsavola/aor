@@ -653,6 +653,9 @@ public class Client extends Board implements Runnable {
                 repaint();
             }
         }
+        if (expansionRequest != null) {
+            System.err.println("To attack: " + expansionRequest.getRequiredTokensToAttack(node));
+        }
     }
 
     @Override
@@ -661,7 +664,6 @@ public class Client extends Board implements Runnable {
             return pendingRequest.options.stream().anyMatch(n -> n.equals(node.getName()));
         }
         if (expansionRequest != null) {
-            //final PlayerState playerState = gameState.players.get(expansionRequest.playerIndex);
             return expansionRequest.getCapacity(node.getName()) > 0;
         }
         return false;

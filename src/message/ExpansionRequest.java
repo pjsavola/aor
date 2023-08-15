@@ -34,6 +34,68 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         return capacityIdx == -1 ? 0 : capacityMapValues.get(capacityIdx);
     }
 
+    public int getUsedCapacity(Node node) {
+        int totalTokenCount = 0;
+        for (int i = 0; i < gameState.players.size(); ++i) {
+            final PlayerState p = gameState.players.get(i);
+            final int idx = p.areas.indexOf(node.getName());
+            if (idx != -1) totalTokenCount += p.tokens.get(idx);
+            final int newIdx = p.newAreas.indexOf(node.getName());
+            if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx);
+        }
+        return totalTokenCount;
+    }
+
+    public int getRequiredTokensToAttack(Node node) {
+        final PlayerState playerState = gameState.players.get(playerIndex);
+        final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
+        return getRequiredTokensToAttack(node, cosmopolitan);
+    }
+
+    private int getRequiredTokensToAttack(Node node, boolean cosmopolitan) {
+        final PlayerState playerState = gameState.players.get(playerIndex);
+        int requiredTokens = node.getSize();
+        for (int i = 0; i < gameState.players.size(); ++i) {
+            if (i == playerIndex) continue;
+
+            final PlayerState p = gameState.players.get(i);
+            int defenderTokens = 0;
+            final int idx = p.areas.indexOf(node.getName());
+            if (idx != -1) defenderTokens += p.tokens.get(idx);
+            final int newIdx = p.newAreas.indexOf(node.getName());
+            if (newIdx != -1) defenderTokens += p.newTokens.get(newIdx);
+            if (defenderTokens == 0) continue;
+
+            if (p.capital == node.getCapital()) {
+                defenderTokens *= 2;
+            }
+            requiredTokens += defenderTokens;
+            for (Node support : node.getSupportNodes()) {
+                if (p.areas.contains(support.getName())) ++requiredTokens;
+            }
+            final int mod = Server.getAttackModifier(playerState.weapons, p.weapons);
+            requiredTokens -= mod;
+        }
+        if (cosmopolitan) {
+            for (Node support : node.getSupportNodes()) {
+                if (playerState.areas.contains(support.getName())) --requiredTokens;
+            }
+        }
+
+        final PlayerState p = gameState.players.get(playerIndex);
+        int attackerTokens = 0;
+        final int idx = p.areas.indexOf(node.getName());
+        if (idx != -1) attackerTokens += p.tokens.get(idx);
+        final int newIdx = p.newAreas.indexOf(node.getName());
+        if (newIdx != -1) attackerTokens += p.newTokens.get(newIdx);
+        requiredTokens -= attackerTokens;
+        if (p.capital == node.getCapital()) {
+            requiredTokens = (requiredTokens + 1) / 2;
+        }
+
+        return Math.max(node.getSize() - attackerTokens, requiredTokens);
+    }
+
     @Override
     public boolean validateResponse(ExpansionResponse response) {
         if (response.getTokensUsed() + response.getTokensDisbanded() <= tokens) {
@@ -56,46 +118,12 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
-                int totalTokenCount = 0;
-                for (int i = 0; i < gameState.players.size(); ++i) {
-                    final PlayerState p = gameState.players.get(i);
-                    final int idx = p.areas.indexOf(node.getName());
-                    if (idx != -1) totalTokenCount += p.tokens.get(idx);
-                    final int newIdx = p.newAreas.indexOf(node.getName());
-                    if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx);
-                }
+                final int totalTokenCount = getUsedCapacity(node);
                 if (totalTokenCount + tokenCount < node.getSize()) {
                     return true;
                 }
 
-                int requiredTokens = node.getSize();
-                for (int i = 0; i < gameState.players.size(); ++i) {
-                    if (i == playerIndex) continue;
-
-                    final PlayerState p = gameState.players.get(i);
-                    int defenderTokens = 0;
-                    final int idx = p.areas.indexOf(node.getName());
-                    if (idx != -1) defenderTokens += p.tokens.get(idx);
-                    final int newIdx = p.newAreas.indexOf(node.getName());
-                    if (newIdx != -1) defenderTokens += p.newTokens.get(newIdx);
-                    if (defenderTokens == 0) continue;
-
-                    if (p.capital == node.getCapital()) {
-                        defenderTokens *= 2;
-                    }
-                    requiredTokens += defenderTokens;
-                    for (Node support : node.getSupportNodes()) {
-                        if (p.areas.contains(support.getName())) ++requiredTokens;
-                    }
-                    final int mod = Server.getAttackModifier(playerState.weapons, p.weapons);
-                    requiredTokens -= mod;
-                }
-                if (cosmopolitan) {
-                    for (Node support : node.getSupportNodes()) {
-                        if (playerState.areas.contains(support.getName())) --requiredTokens;
-                    }
-                }
-                return tokenCount == Math.min(node.getSize(), requiredTokens);
+                return tokenCount == getRequiredTokensToAttack(node, cosmopolitan);
             }
             return false;
         });

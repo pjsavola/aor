@@ -346,7 +346,7 @@ public class Server implements Runnable {
             if (response != null && response.get().getBool()) {
                 turnOrder.get(i).adjustCash(-10);
                 ++turnOrder.get(i).shipLevel;
-                log(turnOrder.get(i) + " Pays 10 cash and upgrades ships to level " + turnOrder.get(i).shipLevel);
+                log(turnOrder.get(i) + " upgrades ships to level " + turnOrder.get(i).shipLevel);
             }
         }
 
