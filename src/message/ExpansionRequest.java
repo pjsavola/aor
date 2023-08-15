@@ -9,7 +9,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
     public final int playerIndex;
-    public final int tokens;
+    public int tokens;
     private final List<String> reachableUnlimited;
     private final List<String> capacityMapKeys;
     private final List<Integer> capacityMapValues;
@@ -25,6 +25,11 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             capacityMapKeys.add(key.getName());
             capacityMapValues.add(value);
         });
+    }
+
+    public int getCapacity(String area) {
+        final int capacityIdx = capacityMapKeys.indexOf(area);
+        return capacityIdx == -1 ? 0 : capacityMapValues.get(capacityIdx);
     }
 
     @Override
@@ -45,8 +50,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
-            final int capacityIdx = capacityMapKeys.indexOf(name);
-            final int remainingCapacity = capacityIdx == -1 ? 0 : capacityMapValues.get(capacityIdx);
+            final int remainingCapacity = getCapacity(name);
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);

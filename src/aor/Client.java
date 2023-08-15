@@ -27,6 +27,8 @@ public class Client extends Board implements Runnable {
     private final LogPanel logPanel;
     private SelectTargetCitiesRequest pendingRequest;
     private SelectTargetCitiesResponse pendingResponse;
+    private ExpansionRequest expansionRequest;
+    private ExpansionResponse expansionResponse;
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -576,7 +578,7 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(ExpansionRequest request) {
-        response = request.getDefaultResponse();
+        expansionRequest = request;
     }
 
     public void handleRequest(UseUrbanAscendancyRequest request) {
@@ -658,6 +660,10 @@ public class Client extends Board implements Runnable {
         if (pendingRequest != null) {
             return pendingRequest.options.stream().anyMatch(n -> n.equals(node.getName()));
         }
+        if (expansionRequest != null) {
+            //final PlayerState playerState = gameState.players.get(expansionRequest.playerIndex);
+            return expansionRequest.getCapacity(node.getName()) > 0;
+        }
         return false;
     }
 
@@ -676,6 +682,8 @@ public class Client extends Board implements Runnable {
             dialog.setVisible(false);
             dialog.dispose();
         });
+        panel.add(yesButton);
+        panel.add(noButton);
         showDialog(dialog, panel, request.getInfo());
     }
 }

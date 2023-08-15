@@ -334,7 +334,7 @@ public class Server implements Runnable {
         queryForRenaissance();
         final List<FutureOrDefault<UpgradeShipsRequest, BooleanResponse>> asyncShipUpgrades = new ArrayList<>(playerCount);
         GameState gameState = getGameState();
-        for (Player player : players) {
+        for (Player player : turnOrder) {
             if (player.shipLevel < 4 && player.getCash() >= 10) {
                 asyncShipUpgrades.add(new FutureOrDefault<>(player, new UpgradeShipsRequest(gameState)));
             } else {
@@ -444,7 +444,7 @@ public class Server implements Runnable {
                 reachableLimited.forEach(n -> {
                     capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
                 });
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), i, player.getUsableTokens(), reachableUnlimited, capacityMap)).get();
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap)).get();
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
