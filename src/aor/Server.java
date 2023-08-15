@@ -435,6 +435,7 @@ public class Server implements Runnable {
                     else Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableLimited::add);
                 }
                 player.getAreas().forEach(node -> {
+                    if (!fullAreas.contains(node)) reachableUnlimited.add(node);
                     reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, fullAreas, playerCount));
                     if (shipRange != Integer.MAX_VALUE) {
                         reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet(), playerCount));

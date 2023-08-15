@@ -28,6 +28,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     }
 
     public int getCapacity(String area) {
+        final int unlimitedIdx = reachableUnlimited.indexOf(area);
+        if (unlimitedIdx != -1) return Integer.MAX_VALUE;
         final int capacityIdx = capacityMapKeys.indexOf(area);
         return capacityIdx == -1 ? 0 : capacityMapValues.get(capacityIdx);
     }
