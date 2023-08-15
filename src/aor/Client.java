@@ -244,8 +244,14 @@ public class Client extends Board implements Runnable {
         if (expansionResponse != null) {
             expansionResponse.getEntryStream().forEach(e -> {
                 final Node node = Node.nodeMap.get(e.getKey());
-                newTokenMap.putIfAbsent(node, new HashMap<>());
-                newTokenMap.get(node).put(myCapital, e.getValue());
+                final int tokens = tokenMap.getOrDefault(node, Collections.emptyMap()).values().stream().mapToInt(Integer::intValue).sum();
+                final int newTokens = tokenMap.getOrDefault(node, Collections.emptyMap()).values().stream().mapToInt(Integer::intValue).sum();
+                if (e.getValue() + tokens + newTokens < node.getSize() || node.getSize() == 1) {
+                    newTokenMap.putIfAbsent(node, new HashMap<>());
+                    newTokenMap.get(node).put(myCapital, e.getValue());
+                } else {
+                    renderCity(g, myCapital, node.getMiddle().x, node.getMiddle().y, sz, true, true);
+                }
             });
         }
 
@@ -258,8 +264,10 @@ public class Client extends Board implements Runnable {
                 renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, false, true);
             });
             if (newTokens != null) newTokens.forEach((capital, count) -> {
-                renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, true, true);
-                d.setLocation(d.x - 3, d.y - 3);
+                for (int i = 0; i < count; ++i) {
+                    renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, true, true);
+                    d.setLocation(d.x - 3, d.y - 3);
+                }
             });
         });
 
@@ -698,7 +706,7 @@ public class Client extends Board implements Runnable {
     }
 
     private void getBooleanResponse(Request request) {
-        JDialog dialog = new JDialog();
+        JDialog dialog = new JDialog(frame, false);
         JPanel panel = new JPanel();
         JButton yesButton = new JButton("Yes");
         JButton noButton = new JButton("No");
