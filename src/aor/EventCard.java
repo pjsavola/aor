@@ -57,7 +57,7 @@ public class EventCard extends Card {
                 target.adjustMisery(1);
                 game.civilWar = target;
                 if (!target.chaos) {
-                    final boolean loseTokens = new FutureOrDefault<>(player, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
+                    final boolean loseTokens = new FutureOrDefault<>(target, new SelectCivilWarLossesRequest(game.getGameState())).get().getBool();
                     if (loseTokens) {
                         final int tokens = (player.getUsableTokens() + 1) / 2;
                         game.log(target + " loses " + tokens + " tokens");
