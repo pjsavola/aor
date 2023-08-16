@@ -24,4 +24,5 @@ public class GameState implements Serializable {
     public int[] patronageCards;
     public int[] patronageOwners;
     public int[] patronageUsesRemaining;
+    public Capital current;
 }

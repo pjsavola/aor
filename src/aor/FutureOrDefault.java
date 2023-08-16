@@ -14,6 +14,7 @@ public class FutureOrDefault<T extends Request<U>, U extends Response> {
     private final T request;
 
     public FutureOrDefault(Player player, T request) {
+        if (request.gameState != null) request.gameState.current = player.getCapital();
         this.request = request;
         result = player.send(request);
     }

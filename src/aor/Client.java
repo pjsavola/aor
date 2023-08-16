@@ -21,7 +21,6 @@ public class Client extends Board implements Runnable {
     private final JFrame frame;
     private final boolean ai;
     private GameState gameState;
-    private Capital myCapital;
     private volatile Response response;
     private final List<String> log = new ArrayList<>();
     private final LogPanel logPanel;
@@ -48,6 +47,10 @@ public class Client extends Board implements Runnable {
                     if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                         if (pendingRequest != null) pendingResponse = pendingRequest.reset();
                         esc();
+                    } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        response = pendingResponse;
+                        pendingResponse = null;
+                        pendingRequest = null;
                     }
                 }
                 @Override
@@ -209,12 +212,12 @@ public class Client extends Board implements Runnable {
                         } else {
                             tokens = node.getSize();
                             if (gameState.war1 == -1 || gameState.war2 == -1) {
-                                capital = myCapital;
+                                capital = gameState.current;
                             } else {
                                 final Capital capital1 = gameState.players.get(gameState.war1).capital;
                                 final Capital capital2 = gameState.players.get(gameState.war2).capital;
-                                if (capital1 == myCapital) capital = capital2;
-                                if (capital2 == myCapital) capital = capital1;
+                                if (capital1 == gameState.current) capital = capital2;
+                                if (capital2 == gameState.current) capital = capital1;
                             }
                         }
                     }
@@ -246,9 +249,9 @@ public class Client extends Board implements Runnable {
                 final int newTokens = tokenMap.getOrDefault(node, Collections.emptyMap()).values().stream().mapToInt(Integer::intValue).sum();
                 if (e.getValue() + tokens + newTokens < node.getSize() || node.getSize() == 1) {
                     newTokenMap.putIfAbsent(node, new HashMap<>());
-                    newTokenMap.get(node).put(myCapital, e.getValue());
+                    newTokenMap.get(node).put(gameState.current, e.getValue());
                 } else {
-                    renderCity(g, myCapital, node.getMiddle().x, node.getMiddle().y, sz, true, true);
+                    renderCity(g, gameState.current, node.getMiddle().x, node.getMiddle().y, sz, true, true);
                 }
             });
         }
@@ -360,7 +363,7 @@ public class Client extends Board implements Runnable {
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
             g.fillRect(size.width - 200, y, 200, 100);
-            if (playerState.capital == myCapital) {
+            if (playerState.capital == gameState.current) {
                 g.setColor(Color.BLUE);
                 g.drawRect(size.width - 200, y, 200, 100);
             }
@@ -493,7 +496,6 @@ public class Client extends Board implements Runnable {
                 dialog.setVisible(false);
                 dialog.dispose();
                 response = new CapitalResponse(capital);
-                if (myCapital == null) myCapital = capital;
             });
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             capitalPanel.add(button);
