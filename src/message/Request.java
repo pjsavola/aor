@@ -2,6 +2,7 @@ package message;
 
 import aor.Client;
 import aor.GameState;
+import aor.Node;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -28,4 +29,12 @@ public abstract class Request<U extends Response> implements Serializable {
     public abstract U getDefaultResponse();
 
     public abstract void handleRequest(Client client);
+
+    public boolean clicked(Response response, Node node) {
+        return false;
+    }
+
+    public boolean highlight(Response response, Node node) {
+        return false;
+    }
 }

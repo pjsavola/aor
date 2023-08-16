@@ -25,10 +25,8 @@ public class Client extends Board implements Runnable {
     private volatile Response response;
     private final List<String> log = new ArrayList<>();
     private final LogPanel logPanel;
-    private SelectTargetCitiesRequest pendingRequest;
-    private SelectTargetCitiesResponse pendingResponse;
-    private ExpansionRequest expansionRequest;
-    private ExpansionResponse expansionResponse;
+    private Request<? extends Response> pendingRequest;
+    private Response pendingResponse;
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -48,7 +46,8 @@ public class Client extends Board implements Runnable {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        expansionResponse = null;
+                        if (pendingRequest instanceof ExpansionRequest) pendingResponse = new ExpansionResponse();
+                        if (pendingRequest instanceof SelectTargetCitiesRequest) pendingResponse = new SelectTargetCitiesResponse();
                         esc();
                     }
                 }
@@ -203,18 +202,21 @@ public class Client extends Board implements Runnable {
                 final Node node = Node.nodeMap.get(playerState.areas.get(i));
                 Capital capital = playerState.capital;
                 int tokens = playerState.tokens.get(i);
-                if (pendingResponse != null && pendingResponse.getCities().contains(node.getName())) {
-                    if (pendingRequest.reduce) {
-                        tokens = 1;
-                    } else {
-                        tokens = node.getSize();
-                        if (gameState.war1 == -1 || gameState.war2 == -1) {
-                            capital = myCapital;
+                if (pendingResponse instanceof SelectTargetCitiesResponse && pendingRequest instanceof SelectTargetCitiesRequest) {
+                    final SelectTargetCitiesResponse response = (SelectTargetCitiesResponse) pendingResponse;
+                    if (response.getCities().contains(node.getName())) {
+                        if (((SelectTargetCitiesRequest) pendingRequest).reduce) {
+                            tokens = 1;
                         } else {
-                            final Capital capital1 = gameState.players.get(gameState.war1).capital;
-                            final Capital capital2 = gameState.players.get(gameState.war2).capital;
-                            if (capital1 == myCapital) capital = capital2;
-                            if (capital2 == myCapital) capital = capital1;
+                            tokens = node.getSize();
+                            if (gameState.war1 == -1 || gameState.war2 == -1) {
+                                capital = myCapital;
+                            } else {
+                                final Capital capital1 = gameState.players.get(gameState.war1).capital;
+                                final Capital capital2 = gameState.players.get(gameState.war2).capital;
+                                if (capital1 == myCapital) capital = capital2;
+                                if (capital2 == myCapital) capital = capital1;
+                            }
                         }
                     }
                 }
@@ -229,9 +231,6 @@ public class Client extends Board implements Runnable {
             for (int i = 0; i < playerState.newAreas.size(); ++i) {
                 final Node node = Node.nodeMap.get(playerState.newAreas.get(i));
                 int newTokens = playerState.newTokens.get(i);
-                if (pendingResponse != null && pendingResponse.getCities().contains(node.getName())) {
-                    newTokens = 1;
-                }
                 final Point p = node.getMiddle();
                 if (node.getSize() == newTokens && node.getSize() > 1) {
                     renderCity(g, playerState.capital, p.x, p.y, sz, true, true);
@@ -241,8 +240,8 @@ public class Client extends Board implements Runnable {
                 }
             }
         }
-        if (expansionResponse != null) {
-            expansionResponse.getEntryStream().forEach(e -> {
+        if (pendingResponse instanceof ExpansionResponse) {
+            ((ExpansionResponse) pendingResponse).getEntryStream().forEach(e -> {
                 final Node node = Node.nodeMap.get(e.getKey());
                 final int tokens = tokenMap.getOrDefault(node, Collections.emptyMap()).values().stream().mapToInt(Integer::intValue).sum();
                 final int newTokens = tokenMap.getOrDefault(node, Collections.emptyMap()).values().stream().mapToInt(Integer::intValue).sum();
@@ -357,7 +356,7 @@ public class Client extends Board implements Runnable {
             final long newCities = playerState.getNewAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
             final int points = playerState.getAdvances().map(Advance::getBaseCost).mapToInt(Integer::intValue).sum() + playerState.cash - (playerState.chaos ? 1000 : Player.miserySteps[playerState.misery]);
             int usableTokens = playerState.usableTokens;
-            if (expansionResponse != null) usableTokens -= expansionResponse.getTokenCount();
+            if (pendingResponse instanceof ExpansionResponse) usableTokens -= ((ExpansionResponse) pendingResponse).getTokenCount();
             int x = size.width - 195;
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
@@ -408,6 +407,8 @@ public class Client extends Board implements Runnable {
                 dy -= 3;
             }
         }
+
+        // Render instructions
 
         // Log panel
         logPanel.paint(g, size.width - 200, size.height - logPanel.getHeight());
@@ -596,7 +597,8 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(ExpansionRequest request) {
-        expansionRequest = request;
+        pendingRequest = request;
+        pendingResponse = new ExpansionResponse();
     }
 
     public void handleRequest(UseUrbanAscendancyRequest request) {
@@ -637,6 +639,7 @@ public class Client extends Board implements Runnable {
 
     public void handleRequest(SelectTargetCitiesRequest request) {
         pendingRequest = request;
+        pendingResponse = new SelectTargetCitiesResponse();
     }
 
     private void showDialog(JDialog dialog, JPanel panel, String title) {
@@ -650,62 +653,17 @@ public class Client extends Board implements Runnable {
 
     @Override
     protected void clicked(Node node) {
-        if (pendingRequest != null) {
-            if (node.isInNewWorld() && pendingRequest.newWorldLimit == 0) return;
-            if (node.isInAsia() && pendingRequest.asiaLimit == 0) return;
-            if (pendingRequest.count == 0) return;
-
-            if (pendingRequest.options.removeIf(n -> n.equals(node.getName()))) {
-                if (node.isInNewWorld()) --pendingRequest.newWorldLimit;
-                if (node.isInAsia()) --pendingRequest.asiaLimit;
-                --pendingRequest.count;
-                if (pendingResponse == null) {
-                    pendingResponse = new SelectTargetCitiesResponse();
-                }
-                pendingResponse.addCity(node.getName());
-                if (pendingRequest.count == 0) {
-                    response = pendingResponse;
-                    pendingResponse = null;
-                    pendingRequest = null;
-                }
-                repaint();
-            }
-        }
-        if (expansionRequest != null) {
-            if (expansionResponse == null) {
-                expansionResponse = new ExpansionResponse();
-            }
-            final int usedTokens = expansionResponse.getTokensUsed();
-            final int alreadyPlacedTokens = expansionResponse.getTokens(node.getName());
-            final int freeCapacity = node.getSize() - expansionRequest.getUsedCapacity(node) - alreadyPlacedTokens;
-            final int neededTokens;
-            if (freeCapacity > 1) {
-                neededTokens = 1;
-            } else {
-                neededTokens = expansionRequest.getRequiredTokensToAttack(node) - alreadyPlacedTokens;
-            }
-            if (neededTokens + alreadyPlacedTokens <= expansionRequest.getCapacity(node.getName())) {
-                if (usedTokens + neededTokens <= expansionRequest.tokens) {
-                    expansionResponse.addTokens(node.getName(), neededTokens);
-                    repaint();
-                }
-            }
-            //System.err.println("To attack: " + expansionRequest.getRequiredTokensToAttack(node));
+        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node)) {
+            repaint();
         }
     }
 
     @Override
     protected boolean shouldHighlight(Node node) {
-        if (pendingRequest != null) {
-            return pendingRequest.options.stream().anyMatch(n -> n.equals(node.getName()));
-        }
-        if (expansionRequest != null) {
-            return expansionRequest.getCapacity(node.getName()) > 0;
-        }
-        return false;
+        return pendingRequest != null && pendingRequest.highlight(pendingResponse, node);
     }
 
-    private void getBooleanResponse(Request request) {
+    private void getBooleanResponse(Request<?> request) {
         JDialog dialog = new JDialog(frame, false);
         JPanel panel = new JPanel();
         JButton yesButton = new JButton("Yes");

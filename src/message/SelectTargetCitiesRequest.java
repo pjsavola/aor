@@ -11,9 +11,9 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     @Serial
     private static final long serialVersionUID = 1L;
     public final List<String> options;
-    public int count;
-    public int asiaLimit;
-    public int newWorldLimit;
+    public final int count;
+    public final int asiaLimit;
+    public final int newWorldLimit;
     public boolean reduce;
 
     public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce) {
@@ -45,5 +45,26 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     @Override
     public void handleRequest(Client client) {
         client.handleRequest(this);
+    }
+
+    @Override
+    public boolean clicked(Response pendingResponse, Node node) {
+        final SelectTargetCitiesResponse response = (SelectTargetCitiesResponse) pendingResponse;
+        final List<String> cities = response.getCities();
+        if (cities.size() >= count) return false;
+        if (cities.contains(node.getName())) return false;
+        if (cities.stream().map(n -> Node.nodeMap.get(n)).filter(Node::isInAsia).count() >= asiaLimit) return false;
+        if (cities.stream().map(n -> Node.nodeMap.get(n)).filter(Node::isInNewWorld).count() >= newWorldLimit) return false;
+
+        if (options.contains(node.getName())) {
+            response.addCity(node.getName());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean highlight(Response response, Node node) {
+        return options.stream().anyMatch(n -> n.equals(node.getName()));
     }
 }

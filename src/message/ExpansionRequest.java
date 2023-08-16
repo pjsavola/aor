@@ -9,7 +9,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
     public final int playerIndex;
-    public int tokens;
+    public final int tokens;
     private final List<String> reachableUnlimited;
     private final List<String> capacityMapKeys;
     private final List<Integer> capacityMapValues;
@@ -137,5 +137,31 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     @Override
     public void handleRequest(Client client) {
         client.handleRequest(this);
+    }
+
+    @Override
+    public boolean clicked(Response pendingResponse, Node node) {
+        final ExpansionResponse response = (ExpansionResponse) pendingResponse;
+        final int usedTokens = response.getTokensUsed();
+        final int alreadyPlacedTokens = response.getTokens(node.getName());
+        final int freeCapacity = node.getSize() - getUsedCapacity(node) - alreadyPlacedTokens;
+        final int neededTokens;
+        if (freeCapacity > 1) {
+            neededTokens = 1;
+        } else {
+            neededTokens = getRequiredTokensToAttack(node) - alreadyPlacedTokens;
+        }
+        if (neededTokens + alreadyPlacedTokens <= getCapacity(node.getName())) {
+            if (usedTokens + neededTokens <= tokens) {
+                response.addTokens(node.getName(), neededTokens);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean highlight(Response response, Node node) {
+        return getCapacity(node.getName()) > 0;
     }
 }
