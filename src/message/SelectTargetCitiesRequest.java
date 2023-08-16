@@ -67,4 +67,9 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     public boolean highlight(Response response, Node node) {
         return options.stream().anyMatch(n -> n.equals(node.getName()));
     }
+
+    @Override
+    public Response reset() {
+        return new SelectTargetCitiesResponse();
+    }
 }

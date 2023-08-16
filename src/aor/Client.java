@@ -46,8 +46,7 @@ public class Client extends Board implements Runnable {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        if (pendingRequest instanceof ExpansionRequest) pendingResponse = new ExpansionResponse();
-                        if (pendingRequest instanceof SelectTargetCitiesRequest) pendingResponse = new SelectTargetCitiesResponse();
+                        if (pendingRequest != null) pendingResponse = pendingRequest.reset();
                         esc();
                     }
                 }
@@ -361,6 +360,10 @@ public class Client extends Board implements Runnable {
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
             g.fillRect(size.width - 200, y, 200, 100);
+            if (playerState.capital == myCapital) {
+                g.setColor(Color.BLUE);
+                g.drawRect(size.width - 200, y, 200, 100);
+            }
             g.setColor(Color.BLACK);
             g.setFont(new Font("Arial", Font.BOLD, 12));
             g.drawString(playerState.capital.name(), x, y + dy);
@@ -409,6 +412,13 @@ public class Client extends Board implements Runnable {
         }
 
         // Render instructions
+        if (pendingRequest != null) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 16));
+            final String txt = pendingRequest.getInfo();
+            final int w = g.getFontMetrics().stringWidth(txt);
+            g.drawString(txt, size.width / 2 - w / 2, 26    );
+        }
 
         // Log panel
         logPanel.paint(g, size.width - 200, size.height - logPanel.getHeight());

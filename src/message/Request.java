@@ -37,4 +37,8 @@ public abstract class Request<U extends Response> implements Serializable {
     public boolean highlight(Response response, Node node) {
         return false;
     }
+
+    public Response reset() {
+        return null;
+    }
 }

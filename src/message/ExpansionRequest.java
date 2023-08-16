@@ -164,4 +164,9 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     public boolean highlight(Response response, Node node) {
         return getCapacity(node.getName()) > 0;
     }
+
+    @Override
+    public Response reset() {
+        return new ExpansionResponse();
+    }
 }
