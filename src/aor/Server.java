@@ -466,11 +466,14 @@ public class Server implements Runnable {
                         if (existingTokens == 0 && node.getSize() == 1) {
                             player.addNewTokens(node, tokens);
                             player.spendTokens(tokens);
+                            log(player + " places tokens in " + node.getName());
                         } else if (myExistingTokens == existingTokens && existingTokens + tokens == node.getSize()) {
                             player.removeAllTokens(node);
                             player.addNewCity(node);
                             player.moveTokens(-tokens);
+                            log(player + " occupies " + node.getName());
                         } else if (existingTokens + tokens >= node.getSize()) {
+                            log (player + " attacks " + node.getName());
                             final boolean cathedral = player.getAdvances().contains(Advance.cathedral);
                             boolean autoLoss = false;
                             if (!cathedral) {
@@ -480,6 +483,7 @@ public class Server implements Runnable {
                                     if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed && p.getTokenCount(node) > 0) {
                                         final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState(), node.getName())).get().getBool();
                                         if (cathedralUsed) {
+                                            log(p + " uses Cathedral to defend");
                                             p.cathedralUsed = round;
                                             autoLoss = true;
                                             break;
@@ -493,23 +497,30 @@ public class Server implements Runnable {
                                 win = false;
                             } else if (proselytism && turnOrderRollRequirement == 1) {
                                 win = true;
+                                log(player + " uses Proselytism to win");
                             } else {
                                 if (cathedral && e.getKey().equals(response.getCathedralused())) {
                                     player.cathedralUsed = round;
                                     win = true;
+                                    log(player + " uses Cathedral to win " + node.getName());
                                 } else {
                                     final int turnOrderRoll = r.nextInt(6);
                                     if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
                                         win = true;
+                                        log("Turn order roll: " + (turnOrderRoll + 1) + " - win!");
                                     } else {
                                         final int attackerRoll = r.nextInt(6);
                                         final int defenderRoll = r.nextInt(6);
+                                        log("Attacker: " + (attackerRoll + 1) + " Defender: " + (defenderRoll + 1));
                                         if (attackerRoll > defenderRoll) {
                                             win = true;
+                                            log("Attacker wins");
                                         } else if (attackerRoll == defenderRoll) {
                                             win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
+                                            log("Attacker wins with tiebreak");
                                         } else {
                                             win = false;
+                                            log("Defender wins");
                                         }
                                     }
                                 }
@@ -524,6 +535,7 @@ public class Server implements Runnable {
                         } else {
                             player.addNewTokens(node, tokens);
                             player.spendTokens(tokens);
+                            log(player + " places token in " + node.getName());
                         }
                     }
                 });
