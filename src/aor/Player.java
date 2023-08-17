@@ -52,10 +52,12 @@ public class Player {
     public void moveTokens(int amount) {
         usableTokens += amount;
         remainingTokens -= amount;
+        System.err.println("Usable tokens: " + usableTokens);
     }
 
     public void spendTokens(int amount) {
         usableTokens -= amount;
+        System.err.println("Usable tokens: " + usableTokens);
     }
 
     public void addCity(Node node) {

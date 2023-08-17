@@ -163,7 +163,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     }
 
     @Override
-    public boolean clicked(Response pendingResponse, Node node, JFrame frame) {
+    public boolean clicked(Response pendingResponse, Node node, Client client) {
         final ExpansionResponse response = (ExpansionResponse) pendingResponse;
         final int usedTokens = response.getTokensUsed();
         final int alreadyPlacedTokens = response.getTokens(node.getName());
@@ -180,9 +180,11 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     response.addTokens(node.getName(), neededTokens);
                     return true;
                 } else {
-                    final int result = JOptionPane.showConfirmDialog(frame, "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
+                    final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
                     if (result == JOptionPane.YES_OPTION) {
+                        response.clearDisbandedTokens();
                         response.addTokens(node.getName(), neededTokens);
+                        client.confirm();
                         return true;
                     }
                 }

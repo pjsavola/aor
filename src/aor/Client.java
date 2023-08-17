@@ -48,9 +48,7 @@ public class Client extends Board implements Runnable {
                         if (pendingRequest != null) pendingResponse = pendingRequest.reset();
                         esc();
                     } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                        response = pendingResponse;
-                        pendingResponse = null;
-                        pendingRequest = null;
+                        confirm();
                     }
                 }
                 @Override
@@ -66,6 +64,25 @@ public class Client extends Board implements Runnable {
         }
         logPanel = new LogPanel(log);
         logPanel.setHeight(size.height);
+    }
+
+    public JFrame getFrame() {
+        return frame;
+    }
+
+    public void confirm() {
+        if (pendingResponse instanceof ExpansionResponse) {
+            final int disbandedTokens = ((ExpansionResponse) pendingResponse).getTokensDisbanded();
+            if (disbandedTokens > 0) {
+                final int result = JOptionPane.showConfirmDialog(frame, "Disband " + disbandedTokens + " tokens?", "Disband?", JOptionPane.YES_NO_OPTION);
+                if (result != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+        }
+        response = pendingResponse;
+        pendingResponse = null;
+        pendingRequest = null;
     }
 
     @Override
@@ -665,7 +682,7 @@ public class Client extends Board implements Runnable {
 
     @Override
     protected void clicked(Node node) {
-        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node, frame)) {
+        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node, this)) {
             repaint();
         }
     }

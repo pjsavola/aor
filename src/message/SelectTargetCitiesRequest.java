@@ -49,7 +49,7 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     }
 
     @Override
-    public boolean clicked(Response pendingResponse, Node node, JFrame frame) {
+    public boolean clicked(Response pendingResponse, Node node, Client client) {
         final SelectTargetCitiesResponse response = (SelectTargetCitiesResponse) pendingResponse;
         final List<String> cities = response.getCities();
         if (cities.size() >= count) return false;

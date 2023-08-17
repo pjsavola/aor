@@ -31,7 +31,7 @@ public abstract class Request<U extends Response> implements Serializable {
 
     public abstract void handleRequest(Client client);
 
-    public boolean clicked(Response response, Node node, JFrame frame) {
+    public boolean clicked(Response response, Node node, Client client) {
         return false;
     }
 
