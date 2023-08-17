@@ -2,8 +2,11 @@ package message;
 
 import aor.*;
 
+import javax.swing.*;
 import java.io.Serial;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class ExpansionRequest extends Request<ExpansionResponse> {
     @Serial
@@ -39,6 +42,20 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     public int getUsedCapacity(Node node) {
         int totalTokenCount = 0;
         for (int i = 0; i < gameState.players.size(); ++i) {
+            final PlayerState p = gameState.players.get(i);
+            final int idx = p.areas.indexOf(node.getName());
+            if (idx != -1) totalTokenCount += p.tokens.get(idx);
+            final int newIdx = p.newAreas.indexOf(node.getName());
+            if (newIdx != -1) totalTokenCount += p.newTokens.get(newIdx);
+        }
+        return totalTokenCount;
+    }
+
+    public int getOpponentTokens(Node node, int myPlayerIndex) {
+        int totalTokenCount = 0;
+        for (int i = 0; i < gameState.players.size(); ++i) {
+            if (i == myPlayerIndex) continue;
+
             final PlayerState p = gameState.players.get(i);
             final int idx = p.areas.indexOf(node.getName());
             if (idx != -1) totalTokenCount += p.tokens.get(idx);
@@ -146,7 +163,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     }
 
     @Override
-    public boolean clicked(Response pendingResponse, Node node) {
+    public boolean clicked(Response pendingResponse, Node node, JFrame frame) {
         final ExpansionResponse response = (ExpansionResponse) pendingResponse;
         final int usedTokens = response.getTokensUsed();
         final int alreadyPlacedTokens = response.getTokens(node.getName());
@@ -159,8 +176,16 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         }
         if (neededTokens + alreadyPlacedTokens <= getCapacity(node.getName())) {
             if (usedTokens + neededTokens <= tokens) {
-                response.addTokens(node.getName(), neededTokens);
-                return true;
+                if (getOpponentTokens(node, playerIndex) == 0) {
+                    response.addTokens(node.getName(), neededTokens);
+                    return true;
+                } else {
+                    final int result = JOptionPane.showConfirmDialog(frame, "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
+                    if (result == JOptionPane.YES_OPTION) {
+                        response.addTokens(node.getName(), neededTokens);
+                        return true;
+                    }
+                }
             }
         }
         return false;

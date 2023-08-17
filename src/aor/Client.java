@@ -665,7 +665,7 @@ public class Client extends Board implements Runnable {
 
     @Override
     protected void clicked(Node node) {
-        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node)) {
+        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node, frame)) {
             repaint();
         }
     }

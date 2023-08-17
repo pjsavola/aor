@@ -4,6 +4,7 @@ import aor.Client;
 import aor.GameState;
 import aor.Node;
 
+import javax.swing.*;
 import java.io.Serial;
 import java.util.*;
 
@@ -48,7 +49,7 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     }
 
     @Override
-    public boolean clicked(Response pendingResponse, Node node) {
+    public boolean clicked(Response pendingResponse, Node node, JFrame frame) {
         final SelectTargetCitiesResponse response = (SelectTargetCitiesResponse) pendingResponse;
         final List<String> cities = response.getCities();
         if (cities.size() >= count) return false;
