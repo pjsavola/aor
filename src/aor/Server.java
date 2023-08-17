@@ -457,8 +457,16 @@ public class Server implements Runnable {
                             final int oldTokens = usedShipping.getOrDefault(node, 0);
                             usedShipping.put(node, oldTokens + tokens);
                         }
+                        final int myExistingTokens = player.getTokenCount(node);
                         final int existingTokens = players.stream().map(p -> p.getTokenCount(node)).mapToInt(Integer::intValue).sum();
-                        if (existingTokens + tokens >= node.getSize()) {
+                        if (existingTokens == 0 && node.getSize() == 1) {
+                            player.addNewTokens(node, tokens);
+                            player.spendTokens(tokens);
+                        } else if (myExistingTokens == existingTokens && existingTokens + tokens == node.getSize()) {
+                            player.removeAllTokens(node);
+                            player.addNewCity(node);
+                            player.moveTokens(-tokens);
+                        } else if (existingTokens + tokens >= node.getSize()) {
                             final boolean cathedral = player.getAdvances().contains(Advance.cathedral);
                             boolean autoLoss = false;
                             if (!cathedral) {
@@ -508,13 +516,14 @@ public class Server implements Runnable {
                             } else {
                                 player.removeAllTokens(node);
                             }
+                            player.moveTokens(-tokens);
                         } else {
                             player.addNewTokens(node, tokens);
+                            player.spendTokens(tokens);
                         }
-                        player.spendTokens(tokens);
                     }
                 });
-                player.spendTokens(response.getTokensUsed());
+                //player.spendTokens(response.getTokensUsed());
             }
         }
         phase = Phase.INCOME;

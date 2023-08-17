@@ -98,7 +98,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public boolean validateResponse(ExpansionResponse response) {
-        if (response.getTokensUsed() + response.getTokensDisbanded() <= tokens) {
+        if (response.getTokensUsed() + response.getTokensDisbanded() > tokens) {
             return false;
         }
 
@@ -167,6 +167,6 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public Response reset() {
-        return new ExpansionResponse();
+        return new ExpansionResponse(tokens);
     }
 }

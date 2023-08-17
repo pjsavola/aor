@@ -25,9 +25,10 @@ public class ExpansionResponse extends Response {
         this.cathedralUsed = cathedralUsed;
     }
 
-    public ExpansionResponse() {
+    public ExpansionResponse(int tokens) {
         tokensUsedKeys = new ArrayList<>();
         tokensUsedValues = new ArrayList<>();
+        tokensDisbanded = tokens;
     }
 
     public void addTokens(String area, int amount) {
@@ -38,6 +39,7 @@ public class ExpansionResponse extends Response {
             tokensUsedKeys.add(area);
             tokensUsedValues.add(amount);
         }
+        tokensDisbanded -= amount;
     }
 
     public void removeTokens(String area, int amount) {
@@ -51,6 +53,7 @@ public class ExpansionResponse extends Response {
                 tokensUsedValues.set(idx, newValue);
             }
         }
+        tokensDisbanded += amount;
     }
 
     public int getTokens(String area) {

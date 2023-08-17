@@ -610,7 +610,7 @@ public class Client extends Board implements Runnable {
 
     public void handleRequest(ExpansionRequest request) {
         pendingRequest = request;
-        pendingResponse = new ExpansionResponse();
+        pendingResponse = new ExpansionResponse(request.tokens);
     }
 
     public void handleRequest(UseUrbanAscendancyRequest request) {
