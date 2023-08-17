@@ -415,7 +415,9 @@ public class Server implements Runnable {
             }
         }
 
+        int cardCost = 3;
         for (int i = 0; i < playerCount; ++i) {
+            boolean cardAvailable = !deck.isEmpty();
             final Player player = turnOrder.get(i);
             final Map<Node, Integer> usedShipping = new HashMap<>();
             final int groundRange = player.getAdvances().contains(Advance.caravan) ? 2 : 1;
@@ -449,9 +451,19 @@ public class Server implements Runnable {
                 reachableLimited.forEach(n -> {
                     capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
                 });
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap)).get();
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap, cardAvailable ? cardCost : Integer.MAX_VALUE)).get();
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
+                }
+                if (response.isCardPurchased()) {
+                    cardAvailable = true;
+                    cardCost += 3;
+                    final Card c = drawCard();
+                    if (c != null) {
+                        log(player + " draws a card");
+                        player.cards.add(c);
+                        player.notify(new CardNotification(c));
+                    }
                 }
                 response.getEntryStream().forEach(e -> {
                     final Node node = Node.nodeMap.get(e.getKey());
@@ -509,17 +521,20 @@ public class Server implements Runnable {
                                         win = true;
                                         log("Turn order roll: " + (turnOrderRoll + 1) + " - win!");
                                     } else {
+                                        log("Turn order roll: " + (turnOrderRoll + 1));
                                         final int attackerRoll = r.nextInt(6);
                                         final int defenderRoll = r.nextInt(6);
                                         log("Attacker: " + (attackerRoll + 1) + " Defender: " + (defenderRoll + 1));
                                         if (attackerRoll > defenderRoll) {
                                             win = true;
-                                            log("Attacker wins");
                                         } else if (attackerRoll == defenderRoll) {
                                             win = players.stream().noneMatch(p -> p != player && p.getTokenCount(node) > 0 && getAttackModifier(player.weapons, p.weapons) <= 0);
-                                            log("Attacker wins with tiebreak");
                                         } else {
                                             win = false;
+                                        }
+                                        if (win) {
+                                            log("Attacker wins");
+                                        } else {
                                             log("Defender wins");
                                         }
                                     }

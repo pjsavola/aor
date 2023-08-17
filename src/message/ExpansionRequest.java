@@ -10,11 +10,12 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     private static final long serialVersionUID = 1L;
     public final int playerIndex;
     public final int tokens;
+    public final int cardCost;
     private final List<String> reachableUnlimited;
     private final List<String> capacityMapKeys;
     private final List<Integer> capacityMapValues;
 
-    public ExpansionRequest(GameState gameState, int playerIndex, int tokens, Set<Node> reachableUnlimited, Map<Node, Integer> capacityMap) {
+    public ExpansionRequest(GameState gameState, int playerIndex, int tokens, Set<Node> reachableUnlimited, Map<Node, Integer> capacityMap, int cardCost) {
         super("Expand", gameState);
         this.playerIndex = playerIndex;
         this.tokens = tokens;
@@ -25,6 +26,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             capacityMapKeys.add(key.getName());
             capacityMapValues.add(value);
         });
+        this.cardCost = cardCost;
     }
 
     public int getCapacity(String area) {
@@ -98,7 +100,11 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public boolean validateResponse(ExpansionResponse response) {
-        if (response.getTokensUsed() + response.getTokensDisbanded() > tokens) {
+        if (gameState.deckSize == 0 && response.isCardPurchased()) {
+            return false;
+        }
+        final int cardCosts = response.isCardPurchased() ? cardCost : 0;
+        if (response.getTokensUsed() + response.getTokensDisbanded() + cardCosts > tokens) {
             return false;
         }
 

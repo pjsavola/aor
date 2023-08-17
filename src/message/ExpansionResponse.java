@@ -13,6 +13,7 @@ public class ExpansionResponse extends Response {
     private final List<Integer> tokensUsedValues;
     private String cathedralUsed;
     private int tokensDisbanded;
+    private boolean cardPurchased;
 
     public ExpansionResponse(Map<String, Integer> tokensUsed, int tokensDisbanded, String cathedralUsed) {
         tokensUsedKeys = new ArrayList<>(tokensUsed.size());
@@ -82,5 +83,9 @@ public class ExpansionResponse extends Response {
 
     public int getTokensDisbanded() {
         return tokensDisbanded;
+    }
+
+    public boolean isCardPurchased() {
+        return cardPurchased;
     }
 }
