@@ -688,6 +688,21 @@ public class Client extends Board implements Runnable {
     }
 
     @Override
+    protected void clickDeck() {
+        if (pendingRequest instanceof final ExpansionRequest request && pendingResponse instanceof final ExpansionResponse resp) {
+            final int tokensRemaining = request.tokens - resp.getTokensUsed();
+            if (request.cardCost <= tokensRemaining) {
+                final int result = JOptionPane.showConfirmDialog(frame, "Buy card for " + request.cardCost + " tokens?", "Buy Card?", JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.YES_OPTION) {
+                    resp.purchaseCard();
+                    resp.clearDisbandedTokens();
+                    confirm();
+                }
+            }
+        }
+    }
+
+    @Override
     protected boolean shouldHighlight(Node node) {
         return pendingRequest != null && pendingRequest.highlight(pendingResponse, node);
     }

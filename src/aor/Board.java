@@ -50,6 +50,9 @@ public class Board extends JPanel {
                         clicked(node);
                     }
                 }
+                if (getDrawDeckBounds().contains(point)) {
+                    clickDeck();
+                }
                 repaint();
             }
             @Override
@@ -212,6 +215,9 @@ public class Board extends JPanel {
     }
 
     protected void clicked(Node node) {
+    }
+
+    protected void clickDeck() {
     }
 
     protected boolean shouldHighlight(Node node) {

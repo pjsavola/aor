@@ -456,10 +456,11 @@ public class Server implements Runnable {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
                 if (response.isCardPurchased()) {
-                    cardAvailable = true;
-                    cardCost += 3;
                     final Card c = drawCard();
                     if (c != null) {
+                        player.moveTokens(-cardCost);
+                        cardAvailable = false;
+                        cardCost += 3;
                         log(player + " draws a card");
                         player.cards.add(c);
                         player.notify(new CardNotification(c));

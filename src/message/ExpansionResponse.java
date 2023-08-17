@@ -89,6 +89,10 @@ public class ExpansionResponse extends Response {
         return cardPurchased;
     }
 
+    public void purchaseCard() {
+        cardPurchased = true;
+    }
+
     public void clearDisbandedTokens() {
         tokensDisbanded = 0;
     }
