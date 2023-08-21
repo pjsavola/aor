@@ -284,8 +284,12 @@ public class Server implements Runnable {
             if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
                 if (new FutureOrDefault<>(player, new UseUrbanAscendancyRequest(getGameState())).get().getBool()) {
                     final Card c = drawCard();
-                    player.adjustCash(-10);
-                    player.notify(new CardNotification(c));
+                    if (c != null) {
+                        log(player + " buys a card");
+                        player.adjustCash(-10);
+                        player.cards.add(c);
+                        player.notify(new CardNotification(c));
+                    }
                 }
             }
         }
@@ -460,8 +464,8 @@ public class Server implements Runnable {
                     if (c != null) {
                         player.moveTokens(-cardCost);
                         cardAvailable = false;
+                        log(player + " buys a card for " + cardCost);
                         cardCost += 3;
-                        log(player + " draws a card");
                         player.cards.add(c);
                         player.notify(new CardNotification(c));
                     }
@@ -479,7 +483,7 @@ public class Server implements Runnable {
                         if (existingTokens == 0 && node.getSize() == 1) {
                             player.addNewTokens(node, tokens);
                             player.spendTokens(tokens);
-                            log(player + " places tokens in " + node.getName());
+                            log(player + " tokenizes " + node.getName());
                         } else if (myExistingTokens == existingTokens && existingTokens + tokens == node.getSize()) {
                             player.removeAllTokens(node);
                             player.addNewCity(node);
@@ -551,7 +555,7 @@ public class Server implements Runnable {
                         } else {
                             player.addNewTokens(node, tokens);
                             player.spendTokens(tokens);
-                            log(player + " places token in " + node.getName());
+                            log(player + " tokenizes " + node.getName());
                         }
                     }
                 });
@@ -594,6 +598,9 @@ public class Server implements Runnable {
         if (winningPlayer != null) {
             final Card c = drawCard();
             if (c != null) {
+                log(winningPlayer + " has " + mostNewCities + " new cities");
+                log(winningPlayer + " gets a card");
+                winningPlayer.cards.add(c);
                 winningPlayer.notify(new CardNotification(c));
             }
         }
