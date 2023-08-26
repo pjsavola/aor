@@ -26,6 +26,7 @@ public class Client extends Board implements Runnable {
     private final LogPanel logPanel;
     private Request<? extends Response> pendingRequest;
     private Response pendingResponse;
+    private final List<Card> cards = new ArrayList<>();
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -96,6 +97,11 @@ public class Client extends Board implements Runnable {
                     if (message instanceof LogEntryNotification) {
                         log.add(((LogEntryNotification) message).getText());
                         repaint(size.width - 200, size.height - logPanel.getHeight(), 200, logPanel.getHeight());
+                    } else if (message instanceof CardNotification) {
+                        final CardNotification cardNotification = (CardNotification) message;
+                        final Card card = cardNotification.getCard();
+                        log.add("You drew " + card.getName());
+                        cards.add(card);
                     }
                     //return handleNotification((Notification) message);
                 }
@@ -448,6 +454,9 @@ public class Client extends Board implements Runnable {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Card> cards = request.getCards();
+        if (this.cards.isEmpty()) {
+            this.cards.addAll(cards);
+        }
         panel.setLayout(new GridLayout(cards.size() / 5 + 1, Math.min(5, cards.size())));
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
         final Rectangle bounds = getDrawDeckBounds();
@@ -468,6 +477,7 @@ public class Client extends Board implements Runnable {
             button.addActionListener(l -> {
                 dialog.setVisible(false);
                 dialog.dispose();
+                this.cards.remove(card);
                 response = new IntegerResponse(index);
             });
             panel.add(button);
@@ -725,5 +735,33 @@ public class Client extends Board implements Runnable {
         panel.add(yesButton);
         panel.add(noButton);
         showDialog(dialog, panel, request.getInfo());
+    }
+
+    private void showHand() {
+        final JDialog dialog = new JDialog(frame, false);
+        final JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(cards.size() / 5 + 1, Math.min(5, cards.size())));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
+        final Rectangle bounds = getDrawDeckBounds();
+        for (final Card card : cards) {
+            final JButton button = new JButton(card.getName()) {
+                @Override
+                public void paint(Graphics g) {
+                    card.render(g, 0, 0, bounds.width, bounds.height);
+                }
+
+                @Override
+                public Dimension getPreferredSize() {
+                    return new Dimension(bounds.width + 5, bounds.height);
+                }
+            };
+            panel.add(button);
+        }
+        dialog.setTitle("Hand cards");
+        dialog.setContentPane(panel);
+        dialog.setLocationRelativeTo(frame);
+        dialog.setDefaultCloseOperation(JDialog.EXIT_ON_CLOSE);
+        dialog.pack();
+        dialog.setVisible(true);
     }
 }

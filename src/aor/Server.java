@@ -606,6 +606,58 @@ public class Server implements Runnable {
                 winningPlayer.notify(new CardNotification(c));
             }
         }
+        shortages.clear();
+        surpluses.clear();
+        for (int i = 0; i < 2; ++i) {
+            final int roll1 = r.nextInt(6) + 1;
+            final int roll2 = r.nextInt(6) + 1;
+            final boolean shortage = r.nextBoolean();
+            for (Commodity commodity : Commodity.values()) {
+                final int requireedSum = Math.min(commodity.ordinal() + 2, 12);
+                if (roll1 + roll2 == requireedSum) {
+                    if (shortage) shortages.add(commodity);
+                    else surpluses.add(commodity);
+                    final int max = players.stream().map(p -> p.getCommodityCount(commodity)).mapToInt(Integer::intValue).max().orElse(0);
+                    if (max > 0) {
+                        final List<Player> targets = players.stream().filter(p -> p.getCommodityCount(commodity) == max).toList();
+                        if (targets.size() == 1) {
+                            final Player player = targets.get(0);
+                            if (shortage) {
+                                log(commodity + " shortage");
+                                final Card c = drawCard();
+                                if (c != null) {
+                                    log(player + " draws a card");
+                                    player.cards.add(c);
+                                    player.notify(new CardNotification(c));
+                                }
+                            } else {
+                                final int payment = Math.min(player.getCash(), max);
+                                log(commodity + " surplus");
+                                log(player + " loses " + payment + " cash");
+                                player.adjustCash(-payment);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        while (!surpluses.isEmpty() || !shortages.isEmpty()) {
+            final Player player = turnOrder.get(0);
+            final Set<Commodity> options = new HashSet<>();
+            for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
+            for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
+            if (!options.isEmpty()) {
+                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
+                final Commodity selectedCommodity = commodityReponse.getCommodity();
+                if (selectedCommodity == null) {
+                    break;
+                } else {
+                    player.adjustCash(-selectedCommodity.getValue());
+                    if (commodityReponse.getAdjustment() > 0) surpluses.remove(selectedCommodity);
+                    else shortages.remove(selectedCommodity);
+                }
+            }
+        }
         if (deck.isEmpty()) {
             phase = Phase.FINAL_PLAY_CARD;
         } else {
