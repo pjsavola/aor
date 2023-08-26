@@ -375,8 +375,10 @@ public class Server implements Runnable {
             if (cost > 0) {
                 final FutureOrDefault<StabilizationRequest, BooleanResponse> response = asyncDecisions.get(player);
                 if (response != null && response.get().getBool()) {
+                    log(player + " pays " + cost + " for stabilization");
                     player.adjustCash(-cost);
                 } else {
+                    log (player + " pays stabilization with misery");
                     while (!player.chaos && cost > 0) {
                         player.adjustMisery(1);
                         cost -= Player.miserySteps[player.misery] - Player.miserySteps[player.misery - 1];
@@ -588,6 +590,7 @@ public class Server implements Runnable {
                 player.adjustMisery(-1);
             }
             final int newCities = player.getNewCityCount();
+            log(player + " has " + newCities + " new cities");
             if (newCities > mostNewCities) {
                 mostNewCities = newCities;
                 winningPlayer = player;
@@ -598,7 +601,6 @@ public class Server implements Runnable {
         if (winningPlayer != null) {
             final Card c = drawCard();
             if (c != null) {
-                log(winningPlayer + " has " + mostNewCities + " new cities");
                 log(winningPlayer + " gets a card");
                 winningPlayer.cards.add(c);
                 winningPlayer.notify(new CardNotification(c));
