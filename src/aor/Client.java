@@ -65,6 +65,14 @@ public class Client extends Board implements Runnable {
         }
         logPanel = new LogPanel(log);
         logPanel.setHeight(size.height);
+
+        final MenuBar menuBar = new MenuBar();
+        final Menu menu = new Menu("Display");
+        menuBar.add(menu);
+        final MenuItem showHand = new MenuItem("Show hand cards");
+        showHand.addActionListener(l -> showHand());
+        menu.add(showHand);
+        frame.setMenuBar(menuBar);
     }
 
     public JFrame getFrame() {
@@ -738,7 +746,7 @@ public class Client extends Board implements Runnable {
     }
 
     private void showHand() {
-        final JDialog dialog = new JDialog(frame, false);
+        final JDialog dialog = new JDialog(frame, true);
         final JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(cards.size() / 5 + 1, Math.min(5, cards.size())));
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
@@ -760,7 +768,7 @@ public class Client extends Board implements Runnable {
         dialog.setTitle("Hand cards");
         dialog.setContentPane(panel);
         dialog.setLocationRelativeTo(frame);
-        dialog.setDefaultCloseOperation(JDialog.EXIT_ON_CLOSE);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.pack();
         dialog.setVisible(true);
     }
