@@ -72,6 +72,9 @@ public class Client extends Board implements Runnable {
         final MenuItem showHand = new MenuItem("Show hand cards");
         showHand.addActionListener(l -> showHand());
         menu.add(showHand);
+        final MenuItem showAdvances = new MenuItem("Show advances");
+        showAdvances.addActionListener(l -> showAdvances());
+        menu.add(showAdvances);
         frame.setMenuBar(menuBar);
     }
 
@@ -681,7 +684,8 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(PurchaseAdvancesRequest request) {
-        response = request.getDefaultResponse();
+        showAdvances();
+        //response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectTargetCitiesRequest request) {
@@ -692,9 +696,9 @@ public class Client extends Board implements Runnable {
     private void showDialog(JDialog dialog, JPanel panel, String title) {
         dialog.setTitle(title);
         dialog.setContentPane(panel);
-        dialog.setLocationRelativeTo(frame);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         dialog.pack();
+        dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
     }
 
@@ -767,9 +771,20 @@ public class Client extends Board implements Runnable {
         }
         dialog.setTitle("Hand cards");
         dialog.setContentPane(panel);
-        dialog.setLocationRelativeTo(frame);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.pack();
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+    }
+
+    private void showAdvances() {
+        final JDialog dialog = new JDialog(frame, false);
+        final JPanel panel = new AdvanceSheet("tech2.png");
+        dialog.setTitle("Advance Sheet");
+        dialog.setContentPane(panel);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.pack();
+        dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
     }
 }
