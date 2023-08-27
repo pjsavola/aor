@@ -779,12 +779,23 @@ public class Client extends Board implements Runnable {
 
     private void showAdvances() {
         final JDialog dialog = new JDialog(frame, false);
-        final JPanel panel = new AdvanceSheet("tech2.png");
+        final JPanel panel = new AdvanceSheet("tech2.png", this);
         dialog.setTitle("Advance Sheet");
         dialog.setContentPane(panel);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.pack();
         dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
+    }
+
+    public List<Advance> getAdvances(Capital capital) {
+        if (gameState == null) return Collections.emptyList();
+
+        for (PlayerState playerState : gameState.players) {
+            if (playerState.capital == capital) {
+                return playerState.getAdvances().toList();
+            }
+        }
+        return Collections.emptyList();
     }
 }

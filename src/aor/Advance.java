@@ -34,16 +34,21 @@ public class Advance {
     public static final Advance masterArt = new Advance("Master Art", Category.COMMUNICATION, 90, 10, Set.of(printedWord));
     public static final Advance renaissance = new Advance("Renaissance", Category.COMMUNICATION, 120, 0, Set.of(masterArt));
 
-    public static final Advance urbanAscendancy = new Advance("Urban Ascendancy", Category.CIVICS, 20, 20, Collections.emptySet());
     public static final Advance overlandEast = new Advance("Overland East", Category.EXPLORATION, 40, 20, Collections.emptySet());
     public static final Advance seaworthyVessels = new Advance("Seaworthy Vessels", Category.EXPLORATION, 80, 20, Collections.emptySet());
     public static final Advance oceanNavigation = new Advance("Ocean Navigation", Category.EXPLORATION, 120, 20, Set.of(heavens, seaworthyVessels));
-    public static final Advance newWorld = new Advance("New World", Category.EXPLORATION, 160, 20, Set.of(oceanNavigation,urbanAscendancy));
+    public static final Advance newWorld = new Advance("New World", Category.EXPLORATION, 160, 20, new HashSet<>());
 
+    public static final Advance urbanAscendancy = new Advance("Urban Ascendancy", Category.CIVICS, 20, 20, Collections.emptySet());
     public static final Advance nationalism = new Advance("Nationalism", Category.CIVICS, 60, 30, Collections.emptySet());
     public static final Advance institutionalResearch = new Advance("Institutional Research", Category.CIVICS, 100, 40, Collections.emptySet());
     public static final Advance cosmopolitan = new Advance("Cosmopolitan", Category.CIVICS, 150, 50, Set.of(overlandEast));
     public static final Advance middleClass = new Advance("Middle Class", Category.CIVICS, 170, 60, Set.of(improvedAgriculture));
+
+    static {
+        newWorld.prerequisites.add(oceanNavigation);
+        newWorld.prerequisites.add(urbanAscendancy);
+    }
 
     private Advance(String name, Category category, int cost, int credits, Set<Advance> prerequisites) {
         this.name = name;
