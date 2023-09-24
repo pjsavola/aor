@@ -1,5 +1,6 @@
 package message;
 
+import aor.Advance;
 import aor.Client;
 import aor.GameState;
 import aor.Node;
@@ -32,6 +33,10 @@ public abstract class Request<U extends Response> implements Serializable {
     public abstract void handleRequest(Client client);
 
     public boolean clicked(Response response, Node node, Client client) {
+        return false;
+    }
+
+    public boolean clicked(Response response, Advance advance, Client client) {
         return false;
     }
 

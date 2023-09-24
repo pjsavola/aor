@@ -25,7 +25,7 @@ public class Client extends Board implements Runnable {
     private final List<String> log = new ArrayList<>();
     private final LogPanel logPanel;
     private Request<? extends Response> pendingRequest;
-    private Response pendingResponse;
+    Response pendingResponse;
     private final List<Card> cards = new ArrayList<>();
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
@@ -684,8 +684,9 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(PurchaseAdvancesRequest request) {
+        pendingRequest = request;
+        pendingResponse = new PurchaseAdvancesResponse();
         showAdvances();
-        //response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectTargetCitiesRequest request) {
@@ -705,6 +706,12 @@ public class Client extends Board implements Runnable {
     @Override
     protected void clicked(Node node) {
         if (pendingRequest != null && pendingRequest.clicked(pendingResponse, node, this)) {
+            repaint();
+        }
+    }
+
+    protected void clicked(Advance advance) {
+        if (pendingRequest != null && pendingRequest.clicked(pendingResponse, advance, this)) {
             repaint();
         }
     }
@@ -791,11 +798,21 @@ public class Client extends Board implements Runnable {
     public List<Advance> getAdvances(Capital capital) {
         if (gameState == null) return Collections.emptyList();
 
+        final List<Advance> result = new ArrayList<>();
         for (PlayerState playerState : gameState.players) {
             if (playerState.capital == capital) {
-                return playerState.getAdvances().toList();
+                playerState.getAdvances().forEach(result::add);
             }
         }
-        return Collections.emptyList();
+        if (pendingResponse instanceof PurchaseAdvancesResponse) {
+            if (getCurrent() == capital) {
+                result.addAll(((PurchaseAdvancesResponse) pendingResponse).getAdvances());
+            }
+        }
+        return result;
+    }
+
+    public Capital getCurrent() {
+        return gameState == null ? null : gameState.current;
     }
 }

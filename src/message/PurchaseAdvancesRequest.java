@@ -83,4 +83,15 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
     public void handleRequest(Client client) {
         client.handleRequest(this);
     }
+
+    @Override
+    public boolean clicked(Response pendingResponse, Advance advance, Client client) {
+        final PurchaseAdvancesResponse response = (PurchaseAdvancesResponse) pendingResponse;
+        final Set<Advance> advances = new HashSet<>(gameState.players.get(playerIndex).getAdvances().toList());
+        advances.addAll(response.getAdvances());
+        if (advances.add(advance)) {
+            response.addAdvance(advance);
+        }
+        return true;
+    }
 }
