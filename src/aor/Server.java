@@ -356,7 +356,7 @@ public class Server implements Runnable {
 
         for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
-            final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), i)).get().getAdvances();
+            final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), players.indexOf(player))).get().getAdvances();
             for (Advance advance : advances) {
                 player.research(advance);
             }
