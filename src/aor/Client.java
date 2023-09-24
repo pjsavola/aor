@@ -46,8 +46,13 @@ public class Client extends Board implements Runnable {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        if (pendingRequest != null) pendingResponse = pendingRequest.reset();
-                        esc();
+                        if (pendingRequest != null) {
+                            final Response newResponse = pendingRequest.reset();
+                            if (newResponse != null) {
+                                pendingResponse = newResponse;
+                                esc();
+                            }
+                        }
                     } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                         confirm();
                     }
