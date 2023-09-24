@@ -87,11 +87,18 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
     @Override
     public boolean clicked(Response pendingResponse, Advance advance, Client client) {
         final PurchaseAdvancesResponse response = (PurchaseAdvancesResponse) pendingResponse;
-        final Set<Advance> advances = new HashSet<>(gameState.players.get(playerIndex).getAdvances().toList());
-        advances.addAll(response.getAdvances());
-        if (advances.add(advance)) {
-            response.addAdvance(advance);
+        final PlayerState playerState = gameState.players.get(playerIndex);
+        final Set<Advance> allAdvances = playerState.getAdvances().collect(Collectors.toSet());
+        allAdvances.addAll(response.getAdvances());
+        if (!allAdvances.contains(advance)) {
+            final PurchaseAdvancesResponse tmpResponse = new PurchaseAdvancesResponse();
+            response.getAdvances().forEach(tmpResponse::addAdvance);
+            tmpResponse.addAdvance(advance);
+            if (validateResponse(tmpResponse)) {
+                response.addAdvance(advance);
+                return true;
+            }
         }
-        return true;
+        return false;
     }
 }
