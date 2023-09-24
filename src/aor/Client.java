@@ -392,7 +392,7 @@ public class Client extends Board implements Runnable {
             final long newCities = playerState.getNewAreas().entrySet().stream().filter(e -> e.getValue() == e.getKey().getSize() && e.getValue() > 1).count();
             final int points = playerState.getAdvances().map(Advance::getBaseCost).mapToInt(Integer::intValue).sum() + playerState.cash - (playerState.chaos ? 1000 : Player.miserySteps[playerState.misery]);
             int usableTokens = playerState.usableTokens;
-            if (pendingResponse instanceof ExpansionResponse) usableTokens -= ((ExpansionResponse) pendingResponse).getTokenCount();
+            if (pendingResponse instanceof ExpansionResponse && getCurrent() == playerState.capital) usableTokens -= ((ExpansionResponse) pendingResponse).getTokenCount();
             int x = size.width - 195;
             int dy = h - 2;
             g.setColor(playerState.capital.getColor());
@@ -792,6 +792,26 @@ public class Client extends Board implements Runnable {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.pack();
         dialog.setLocationRelativeTo(frame);
+        dialog.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    if (pendingRequest instanceof PurchaseAdvancesRequest) {
+                        pendingResponse = new PurchaseAdvancesResponse();
+                        dialog.repaint();
+                    }
+                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    dialog.setVisible(false);
+                    confirm();
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        });
         dialog.setVisible(true);
     }
 
