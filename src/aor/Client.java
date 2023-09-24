@@ -203,7 +203,10 @@ public class Client extends Board implements Runnable {
         final Map<Integer, Set<Capital>> miseryMap = new HashMap<>();
         for (PlayerState playerState : gameState.players) {
             if (playerState.capital == null) continue;
-            final int miseryStep = playerState.chaos ? Player.miserySteps.length : playerState.misery;
+            int miseryStep = playerState.chaos ? Player.miserySteps.length : playerState.misery;
+            if (pendingResponse instanceof PurchaseAdvancesResponse && getCurrent() == playerState.capital) {
+                miseryStep -= ((PurchaseAdvancesResponse) pendingResponse).miseryDelta;
+            }
             miseryMap.putIfAbsent(miseryStep, new HashSet<>());
             miseryMap.get(miseryStep).add(playerState.capital);
         }
@@ -411,7 +414,11 @@ public class Client extends Board implements Runnable {
             g.drawString(playerState.capital.name(), x, y + dy);
             dy += h;
             g.setFont(new Font("Arial", Font.PLAIN, 12));
-            g.drawString("Cash: " + playerState.cash + " (" + playerState.writtenCash + " written)", x, y + dy);
+            int cash = playerState.cash;
+            if (pendingResponse instanceof PurchaseAdvancesResponse && getCurrent() == playerState.capital) {
+                cash -= ((PurchaseAdvancesResponse) pendingResponse).usedCash;
+            }
+            g.drawString("Cash: " + cash + " (" + playerState.writtenCash + " written)", x, y + dy);
             dy += h;
             g.drawString("Tokens: " + (playerState.remainingTokens + playerState.usableTokens) + " (" + usableTokens + " usable)", x, y + dy);
             dy += h;
@@ -807,6 +814,7 @@ public class Client extends Board implements Runnable {
                     if (pendingRequest instanceof PurchaseAdvancesRequest) {
                         pendingResponse = new PurchaseAdvancesResponse();
                         dialog.repaint();
+                        repaint();
                     }
                 } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     dialog.setVisible(false);

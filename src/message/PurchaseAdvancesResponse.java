@@ -11,6 +11,8 @@ public class PurchaseAdvancesResponse extends Response {
     @Serial
     private static final long serialVersionUID = 1L;
     private final List<Integer> indices;
+    public int usedCash; // For client
+    public int miseryDelta; // For client
 
     public PurchaseAdvancesResponse() {
         indices = new ArrayList<>();

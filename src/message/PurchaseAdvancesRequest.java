@@ -71,6 +71,8 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
                 ++misery;
             }
         }
+        response.usedCash = playerState.cash - cash;
+        response.miseryDelta = playerState.misery - misery;
         return true;
     }
 
@@ -96,6 +98,7 @@ public class PurchaseAdvancesRequest extends Request<PurchaseAdvancesResponse> {
             tmpResponse.addAdvance(advance);
             if (validateResponse(tmpResponse)) {
                 response.addAdvance(advance);
+                validateResponse(response); // calculates cash & misery deltas for client
                 return true;
             }
         }
