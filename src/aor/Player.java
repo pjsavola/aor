@@ -205,8 +205,10 @@ public class Player {
         final int discount = card == null ? 0 : card.getAmount(game.playedCards);
         final int finalCost = Math.max(0, cost - discount);
         if (cash >= finalCost) {
+            game.log(this + " developed " + advance + " for " + finalCost);
             if (cost > 0 && discount > 0) {
                 card.use(this);
+                game.log(this + " used " + card.getName());
             }
             newAdvances.add(advance);
             cash -= finalCost;
@@ -250,12 +252,14 @@ public class Player {
 
         misery = Math.max(0, misery + delta);
         if (misery >= miserySteps.length) {
+            game.log(this + " goes to chaos");
             System.err.println(this + " goes to chaos, " + cards.size() + " cards discarded");
             chaos = true;
             cards.forEach(game::moveToNextDeck);
             cards.clear();
         } else {
-            game.log(this + " gains " + delta + " misery");
+            if (delta > 0) game.log(this + " gains " + delta + " misery");
+            else if (delta < 0) game.log(this + " reliefs " + delta + " misery");
         }
     }
 

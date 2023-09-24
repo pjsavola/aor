@@ -85,4 +85,9 @@ public class Advance {
     public int getBaseCost() {
         return cost;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
