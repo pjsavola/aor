@@ -20,7 +20,7 @@ public class DoubleCommodityCard extends Card {
     @Override
     public void play(Server game, Player player) {
         super.play(game, player);
-        final Commodity commodity = new FutureOrDefault<>(player, new SelectCommodityRequest(game.getGameState(), List.of(commodity1, commodity2))).get().getCommodity();
+        final Commodity commodity = new FutureOrDefault<>(player, new SelectCommodityRequest(game.getGameState(), List.of(commodity1, commodity2)), false).get().getCommodity();
         game.log("Played as " + commodity);
         game.commodityPlayed(commodity);
     }

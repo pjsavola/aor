@@ -27,6 +27,7 @@ public class Client extends Board implements Runnable {
     private Request<? extends Response> pendingRequest;
     Response pendingResponse;
     private final List<Card> cards = new ArrayList<>();
+    Capital myCapital;
 
     public Client(JFrame frame, Socket socket, boolean ai) throws IOException {
         super(frame, "map.jpg");
@@ -441,9 +442,9 @@ public class Client extends Board implements Runnable {
                 final Card card = Card.allCards.get(gameState.patronageCards[i]);
                 final int uses = gameState.patronageUsesRemaining[i];
                 final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
-                final boolean usable = (uses > 0 || owner == getCurrent()) && pendingRequest instanceof PurchaseAdvancesRequest;
+                final boolean used = uses == 0 && owner != myCapital;
                 card.render(g, patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
-                if (!usable) {
+                if (used) {
                     g.setColor(new Color(0, 0, 0, 127));
                     g.fillRect(patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
                 }
@@ -551,6 +552,7 @@ public class Client extends Board implements Runnable {
                 dialog.setVisible(false);
                 dialog.dispose();
                 response = new CapitalResponse(capital);
+                myCapital = capital;
             });
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             capitalPanel.add(button);

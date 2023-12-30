@@ -137,7 +137,7 @@ public class Server implements Runnable {
         for (Player player : players) {
             final List<Card> hand = List.of(drawCard(), drawCard(), drawCard());
             hands.add(hand);
-            asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", null, hand, false)));
+            asyncDiscards.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card", null, hand, false), true));
         }
         for (int i = 0; i < playerCount; ++i) {
             final int index = asyncDiscards.get(i).get().getInt();
@@ -167,7 +167,7 @@ public class Server implements Runnable {
         Collections.shuffle(selectionOrder);
         final List<FutureOrDefault<BidForCapitalRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : selectionOrder) {
-            asyncBids.add(new FutureOrDefault<>(player, new BidForCapitalRequest()));
+            asyncBids.add(new FutureOrDefault<>(player, new BidForCapitalRequest(), true));
         }
         final List<Integer> bids = new ArrayList<>(playerCount);
         final Set<Capital> options = new HashSet<>(playerCount);
@@ -193,7 +193,7 @@ public class Server implements Runnable {
         for (Player player : turnOrder) {
             final Capital capital;
             if (options.size() > 1) {
-                capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options)).get().getCapital();
+                capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Select Power to play", getGameState(), options), false).get().getCapital();
                 log(player + " picks " + capital);
             } else {
                 capital = options.iterator().next();
@@ -211,7 +211,7 @@ public class Server implements Runnable {
         turnOrder.clear();
         final List<FutureOrDefault<BidForTurnOrderRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : players) {
-            asyncBids.add(new FutureOrDefault<>(player, new BidForTurnOrderRequest(gameState, player.getCash())));
+            asyncBids.add(new FutureOrDefault<>(player, new BidForTurnOrderRequest(gameState, player.getCash()), true));
         }
         final List<Integer> bids = new ArrayList<>(playerCount);
         asyncBids.stream().map(FutureOrDefault::get).mapToInt(IntegerResponse::getInt).forEach(bids::add);
@@ -243,7 +243,7 @@ public class Server implements Runnable {
             for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             if (!options.isEmpty()) {
-                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
+                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options), false).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
                 if (selectedCommodity == null) {
                     break;
@@ -257,7 +257,7 @@ public class Server implements Runnable {
         if (turnOrder.get(turnOrder.size() - 1).getAdvances().contains(Advance.windWaterMill)) {
             final Player player = turnOrder.get(turnOrder.size() - 1);
             final Set<Commodity> options = Set.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.WINE, Commodity.METAL);
-            final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options)).get();
+            final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options), false).get();
             final Commodity selectedCommodity = commodityReponse.getCommodity();
             if (selectedCommodity != null) {
                 if (commodityReponse.getAdjustment() > 0) {
@@ -282,7 +282,7 @@ public class Server implements Runnable {
         queryForRenaissance();
         for (Player player : turnOrder) {
             if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
-                if (new FutureOrDefault<>(player, new UseUrbanAscendancyRequest(getGameState())).get().getBool()) {
+                if (new FutureOrDefault<>(player, new UseUrbanAscendancyRequest(getGameState()), false).get().getBool()) {
                     final Card c = drawCard();
                     if (c != null) {
                         log(player + " buys a card");
@@ -296,7 +296,7 @@ public class Server implements Runnable {
         final List<FutureOrDefault<SelectCardRequest, IntegerResponse>> masterArtResponses = new ArrayList<>();
         for (Player player : turnOrder) {
             if (!player.cards.isEmpty() && player.getAdvances().contains(Advance.masterArt)) {
-                masterArtResponses.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card with Master Art?", getGameState(), player.cards, true)));
+                masterArtResponses.add(new FutureOrDefault<>(player, new SelectCardRequest("Discard 1 card with Master Art?", getGameState(), player.cards, true), false));
             } else {
                 masterArtResponses.add(null);
             }
@@ -320,7 +320,7 @@ public class Server implements Runnable {
             resolveWar(player);
             while (!player.cards.isEmpty()) {
                 final List<Card> playableCards = player.cards.stream().filter(c -> c.canPlay(this)).toList();
-                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", getGameState(), playableCards, true)).get().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card?", getGameState(), playableCards, true), false).get().getInt();
                 if (cardIndex == -1) {
                     log(player + " passes");
                     break;
@@ -340,7 +340,7 @@ public class Server implements Runnable {
         GameState gameState = getGameState();
         for (Player player : turnOrder) {
             if (player.shipLevel < 4 && player.getCash() >= 10) {
-                asyncShipUpgrades.add(new FutureOrDefault<>(player, new UpgradeShipsRequest(gameState)));
+                asyncShipUpgrades.add(new FutureOrDefault<>(player, new UpgradeShipsRequest(gameState), true));
             } else {
                 asyncShipUpgrades.add(null);
             }
@@ -356,7 +356,7 @@ public class Server implements Runnable {
 
         for (int i = 0; i < playerCount; ++i) {
             final Player player = turnOrder.get(i);
-            final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), players.indexOf(player))).get().getAdvances();
+            final List<Advance> advances = new FutureOrDefault<>(player, new PurchaseAdvancesRequest(getGameState(), players.indexOf(player)), false).get().getAdvances();
             for (Advance advance : advances) {
                 player.research(advance);
             }
@@ -367,7 +367,7 @@ public class Server implements Runnable {
         for (Player player : players) {
             final int cost = player.cards.size() * (player.cards.size() + 1) / 2;
             if (cost > 0 && player.getCash() >= cost) {
-                asyncDecisions.put(player, new FutureOrDefault<>(player, new StabilizationRequest(gameState)));
+                asyncDecisions.put(player, new FutureOrDefault<>(player, new StabilizationRequest(gameState), true));
             }
         }
         for (Player player : players) {
@@ -413,7 +413,7 @@ public class Server implements Runnable {
                 if (payment < maxPayment) {
                     boolean payCash = false;
                     if (player.getCash() >= maxPayment - payment) {
-                        payCash = new FutureOrDefault<>(player, new SelectHolyIndulgencePaymentRequest(getGameState())).get().getBool();
+                        payCash = new FutureOrDefault<>(player, new SelectHolyIndulgencePaymentRequest(getGameState()), false).get().getBool();
                     }
                     if (payCash) player.adjustCash(payment - maxPayment);
                     else player.adjustMisery(1);
@@ -457,7 +457,7 @@ public class Server implements Runnable {
                 reachableLimited.forEach(n -> {
                     capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
                 });
-                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap, cardAvailable ? cardCost : Integer.MAX_VALUE)).get();
+                final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap, cardAvailable ? cardCost : Integer.MAX_VALUE), false).get();
                 if (response.getTokensDisbanded() > 0) {
                     player.moveTokens(-response.getTokensDisbanded());
                 }
@@ -500,7 +500,7 @@ public class Server implements Runnable {
                                     if (p == player) continue;
 
                                     if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed && p.getTokenCount(node) > 0) {
-                                        final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState(), node.getName())).get().getBool();
+                                        final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState(), node.getName()), false).get().getBool();
                                         if (cathedralUsed) {
                                             log(p + " uses Cathedral to defend");
                                             p.cathedralUsed = round;
@@ -647,7 +647,7 @@ public class Server implements Runnable {
             for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
             if (!options.isEmpty()) {
-                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options)).get();
+                final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options), false).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
                 if (selectedCommodity == null) {
                     break;
@@ -677,7 +677,7 @@ public class Server implements Runnable {
             resolveWar(player);
             player.cards.removeIf(c -> !c.canPlay(this));
             while (!player.cards.isEmpty()) {
-                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", getGameState(), player.cards, false)).get().getInt();
+                final int cardIndex = new FutureOrDefault<>(player, new SelectCardRequest("Play 1 card", getGameState(), player.cards, false), false).get().getInt();
                 final Card card = player.cards.remove(cardIndex);
                 card.play(this, player);
             }
@@ -690,7 +690,7 @@ public class Server implements Runnable {
             final Player player = turnOrder.get(i);
             final Set<Integer> renaissanceOptions = getRenaissanceOptions(i, turnOrder, round);
             if (!renaissanceOptions.isEmpty()) {
-                final int delta = new FutureOrDefault<>(player, new UseRenaissanceRequest(getGameState(), renaissanceOptions)).get().getInt();
+                final int delta = new FutureOrDefault<>(player, new UseRenaissanceRequest(getGameState(), renaissanceOptions), false).get().getInt();
                 if (delta != 0) {
                     turnOrder.set(i, turnOrder.get(i + delta));
                     turnOrder.set(i + delta, player);
@@ -729,7 +729,7 @@ public class Server implements Runnable {
                         .map(c -> (WeaponCard) c)
                         .filter(c -> c.power > opponentBestWeapon).toList());
                 while (!playableWeapons.isEmpty()) {
-                    final int index = new FutureOrDefault<>(currentPlayer, new SelectCardRequest("Play weapons for war?", getGameState(), playableWeapons, true)).get().getInt();
+                    final int index = new FutureOrDefault<>(currentPlayer, new SelectCardRequest("Play weapons for war?", getGameState(), playableWeapons, true), false).get().getInt();
                     if (index == -1) {
                         break;
                     } else {
@@ -767,7 +767,7 @@ public class Server implements Runnable {
                     final List<String> targets;
                     if (options.size() > count) {
                         log(loser + " loses " +  count + " cities");
-                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, false, asiaLimit, newWorldLimit)).get().getCities();
+                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, false, asiaLimit, newWorldLimit), false).get().getCities();
                     } else {
                         targets = new ArrayList<>(options);
                     }
