@@ -441,7 +441,12 @@ public class Client extends Board implements Runnable {
                 final Card card = Card.allCards.get(gameState.patronageCards[i]);
                 final int uses = gameState.patronageUsesRemaining[i];
                 final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
+                final boolean usable = (uses > 0 || owner == getCurrent()) && pendingRequest instanceof PurchaseAdvancesRequest;
                 card.render(g, patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
+                if (!usable) {
+                    g.setColor(new Color(0, 0, 0, 127));
+                    g.fillRect(patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
+                }
                 dx += 6;
                 dy += 6;
             }
