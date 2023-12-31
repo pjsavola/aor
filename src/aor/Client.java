@@ -435,21 +435,24 @@ public class Client extends Board implements Runnable {
 
         // Patronage queue
         {
-            int dx = 0;
-            int dy = 0;
+            int lastIdx = -1;
             final Point patronageQueue = getPatronageQueueLocation();
             for (int i = 0; i < gameState.patronageCards.length; ++i) {
-                final Card card = Card.allCards.get(gameState.patronageCards[i]);
-                final int uses = gameState.patronageUsesRemaining[i];
-                final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
-                final boolean used = uses == 0 && owner != myCapital;
-                card.render(g, patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
-                if (used) {
-                    g.setColor(new Color(0, 0, 0, 127));
-                    g.fillRect(patronageQueue.x + dx, patronageQueue.y + dy, bounds.width, bounds.height);
+                final int x0 = patronageQueue.x + i * 6;
+                final int y0 = patronageQueue.y + i * 6;
+                if (cursor != null) {
+                    if ((cursor.x >= x0 && cursor.x <= x0 + bounds.width && cursor.y >= y0 && cursor.y < y0 + 6) ||
+                        (cursor.x >= x0 && cursor.x < x0 + 6 && cursor.y >= y0 && cursor.y < y0 + bounds.height)) {
+                        lastIdx = i;
+                        continue;
+                    }
                 }
-                dx += 6;
-                dy += 6;
+                renderPatronageCard(g, x0, y0, bounds, i);
+            }
+            if (lastIdx != -1) {
+                final int x0 = patronageQueue.x + lastIdx * 6;
+                final int y0 = patronageQueue.y + lastIdx * 6;
+                renderPatronageCard(g, x0, y0, bounds, lastIdx);
             }
         }
 
@@ -526,6 +529,18 @@ public class Client extends Board implements Runnable {
             showDialog(dialog, panelWithButton, request.getInfo());
         } else {
             showDialog(dialog, panel, request.getInfo());
+        }
+    }
+
+    private void renderPatronageCard(Graphics g, int x0, int y0, Rectangle bounds, int i) {
+        final Card card = Card.allCards.get(gameState.patronageCards[i]);
+        final int uses = gameState.patronageUsesRemaining[i];
+        final Capital owner = gameState.players.get(gameState.patronageOwners[i]).capital;
+        final boolean used = uses == 0 && owner != myCapital;
+        card.render(g, x0, y0, bounds.width, bounds.height);
+        if (used) {
+            g.setColor(new Color(0, 0, 0, 127));
+            g.fillRect(x0, y0, bounds.width, bounds.height);
         }
     }
 

@@ -16,7 +16,7 @@ public class Board extends JPanel {
     protected final Dimension size;
     private final Image mapImage;
 
-    private Point cursor;
+    protected Point cursor;
 
     private static final Set<Point> pointCache = new HashSet<>();
 
