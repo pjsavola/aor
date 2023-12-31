@@ -199,6 +199,7 @@ public class Server implements Runnable {
                 capital = options.iterator().next();
                 log(player + " takes " + capital);
             }
+            player.notify(new CapitalNotification(capital));
             player.selectCapital(capital);
             Node.nodeMap.values().stream().filter(n -> n.getCapital() == capital).findAny().ifPresent(player::addCity);
             options.remove(capital);

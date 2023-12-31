@@ -119,6 +119,8 @@ public class Client extends Board implements Runnable {
                         final Card card = cardNotification.getCard();
                         log.add("You drew " + card.getName());
                         cards.add(card);
+                    } else if (message instanceof CapitalNotification) {
+                        myCapital = ((CapitalNotification) message).getCapital();
                     }
                     //return handleNotification((Notification) message);
                 }
@@ -567,7 +569,6 @@ public class Client extends Board implements Runnable {
                 dialog.setVisible(false);
                 dialog.dispose();
                 response = new CapitalResponse(capital);
-                myCapital = capital;
             });
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             capitalPanel.add(button);
