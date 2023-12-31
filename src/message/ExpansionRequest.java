@@ -115,6 +115,21 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         return Math.max(node.getSize() - attackerTokens, requiredTokens);
     }
 
+    private boolean hasTokens(int opponentIndex, Node node) {
+        for (int i = 0; i < gameState.players.size(); ++i) {
+            if (i != opponentIndex) continue;
+
+            final PlayerState p = gameState.players.get(i);
+            int defenderTokens = 0;
+            final int idx = p.areas.indexOf(node.getName());
+            if (idx != -1) defenderTokens += p.tokens.get(idx);
+            final int newIdx = p.newAreas.indexOf(node.getName());
+            if (newIdx != -1) defenderTokens += p.newTokens.get(newIdx);
+            return defenderTokens > 0;
+        }
+        return false;
+    }
+
     @Override
     public boolean validateResponse(ExpansionResponse response) {
         if (gameState.deckSize == 0 && response.isCardPurchased()) {
@@ -125,14 +140,18 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             return false;
         }
 
+        final boolean[] cathedrals = new boolean[gameState.players.size()];
+        if (response.getCathedralused() != null) {
+            for (int i = 0; i < gameState.players.size(); ++i) {
+                final PlayerState state = gameState.players.get(i);
+                cathedrals[i] = Arrays.stream(state.advances).mapToObj(j -> Advance.allAdvances.get(j)).anyMatch(a -> a == Advance.cathedral);
+            }
+            if (!cathedrals[playerIndex]) {
+                return false;
+            }
+        }
+
         final PlayerState playerState = gameState.players.get(playerIndex);
-        final boolean cathedral = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
-        if (!cathedral && response.getCathedralused() != null) {
-            return false;
-        }
-        if (cathedral && response.getCathedralused() != null && playerState.cathedralUsed >= gameState.round) {
-            return false;
-        }
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
@@ -141,6 +160,22 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
+                if (cathedrals[playerIndex] && response.getCathedralused() != null) {
+                    for (int i = 0; i < gameState.players.size(); ++i) {
+                        if (i == playerIndex) continue;
+
+                        if (hasTokens(i, node)) {
+                            if (cathedrals[i]) {
+                                // One of the opponents has Cathedral
+                                return false;
+                            }
+                            if (playerState.cathedralUsed[i] >= gameState.round) {
+                                // Cathedral already used vs. this opponent on this round.
+                                return false;
+                            }
+                        }
+                    }
+                }
                 final int totalTokenCount = getUsedCapacity(node);
                 if (totalTokenCount + tokenCount < node.getSize()) {
                     return true;

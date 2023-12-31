@@ -34,7 +34,7 @@ public class Server implements Runnable {
         initDecks();
         this.playerCount = clients.size();
         for (int i = 0; i < playerCount; ++i) {
-            players.add(new Player(this, clients.get(i)));
+            players.add(new Player(this, clients.get(i), playerCount));
         }
         turnOrder = new ArrayList<>(playerCount);
         phase = Phase.DRAFT;
@@ -500,11 +500,12 @@ public class Server implements Runnable {
                                 for (Player p : turnOrder) {
                                     if (p == player) continue;
 
-                                    if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed && p.getTokenCount(node) > 0) {
+                                    final int idx = players.indexOf(player);
+                                    if (p.getAdvances().contains(Advance.cathedral) && round > p.cathedralUsed[idx] && p.getTokenCount(node) > 0) {
                                         final boolean cathedralUsed = new FutureOrDefault<>(player, new UseCathedralRequest(getGameState(), node.getName()), false).get().getBool();
                                         if (cathedralUsed) {
                                             log(p + " uses Cathedral to defend");
-                                            p.cathedralUsed = round;
+                                            p.cathedralUsed[idx] = round;
                                             autoLoss = true;
                                             break;
                                         }
@@ -520,7 +521,14 @@ public class Server implements Runnable {
                                 log(player + " uses Proselytism to win");
                             } else {
                                 if (cathedral && e.getKey().equals(response.getCathedralused())) {
-                                    player.cathedralUsed = round;
+                                    for (Player p : turnOrder) {
+                                        if (p == player) continue;
+
+                                        if (p.getTokenCount(node) > 0) {
+                                            final int idx = players.indexOf(p);
+                                            player.cathedralUsed[idx] = round;
+                                        }
+                                    }
                                     win = true;
                                     log(player + " uses Cathedral to win " + node.getName());
                                 } else {

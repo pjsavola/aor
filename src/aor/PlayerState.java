@@ -14,7 +14,7 @@ public class PlayerState implements Serializable {
     public int writtenCash;
     public int misery;
     public boolean chaos;
-    public int cathedralUsed;
+    public int[] cathedralUsed;
     public int[] advances;
     public int shipLevel;
     public int usableTokens;

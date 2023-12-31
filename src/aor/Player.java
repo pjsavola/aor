@@ -28,13 +28,14 @@ public class Player {
     private int usableTokens;
     public int shipLevel;
     int renaissanceUsed;
-    int cathedralUsed;
+    final int[] cathedralUsed;
     boolean chaos;
     private final ClientConnection client;
 
-    public Player(Server game, ClientConnection client) {
+    public Player(Server game, ClientConnection client, int playerCount) {
         this.game = game;
         this.client = client;
+        cathedralUsed = new int[playerCount];
     }
 
     public int getCash() {
@@ -129,7 +130,7 @@ public class Player {
         state.writtenCash = writtenCash;
         state.misery = misery;
         state.chaos = chaos;
-        state.cathedralUsed = cathedralUsed;
+        state.cathedralUsed = Arrays.copyOf(cathedralUsed, cathedralUsed.length);
         state.advances = advances.stream().map(Advance::getIndex).mapToInt(Integer::intValue).toArray();
         state.shipLevel = shipLevel;
         state.usableTokens = usableTokens;
