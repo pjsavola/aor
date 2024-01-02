@@ -12,21 +12,37 @@ import java.util.Set;
 
 public class CathedralTest {
 
+    private static GameState createGameState(int playerCount) {
+        final GameState gameState = new GameState();
+        gameState.round = 1;
+        gameState.players = new ArrayList<>(playerCount);
+        for (int i = 0; i < playerCount; ++i) {
+            gameState.players.add(new PlayerState());
+            gameState.players.get(i).capital = Capital.values()[i];
+            gameState.players.get(i).advances = new int[0];
+        }
+        return gameState;
+    }
+
     private static void addAdvance(GameState gameState, int playerIndex, Advance advance) {
         final PlayerState playerState = gameState.players.get(playerIndex);
         final int advanceIndex = Advance.allAdvances.indexOf(advance);
-        if (playerState.advances == null) {
-            playerState.advances = new int[] { advanceIndex };
-        } else {
-            final int[] newAdvances = new int[playerState.advances.length + 1];
-            for (int i = 0; i < playerState.advances.length; ++i) {
-                newAdvances[i] = playerState.advances[i];
-                if (advanceIndex == newAdvances[i]) {
-                    return;
+        final int[] newAdvances = new int[playerState.advances.length + 1];
+        for (int i = 0; i < playerState.advances.length; ++i) {
+            newAdvances[i] = playerState.advances[i];
+            if (advanceIndex == newAdvances[i]) {
+                return;
+            }
+        }
+        newAdvances[playerState.advances.length] = advanceIndex;
+        playerState.advances = newAdvances;
+
+        if (advance == Advance.cathedral) {
+            for (int i = 0; i < gameState.players.size(); ++i) {
+                if (gameState.players.get(i).cathedralUsed == null) {
+                    gameState.players.get(i).cathedralUsed = new int[gameState.players.size()];
                 }
             }
-            newAdvances[playerState.advances.length] = advanceIndex;
-            playerState.advances = newAdvances;
         }
     }
 
@@ -56,23 +72,28 @@ public class CathedralTest {
     }
 
     public static void main(String[] args) {
-        final int playerCount = 2;
         final String target = "Aleppo"; // Size 4
         new Board(null, "map.jpg").load(new File("map.dat")); // Init node map
         final Node node = Node.nodeMap.get(target);
-        final GameState gameState = new GameState();
-        gameState.players = new ArrayList<>(playerCount);
-        for (int i = 0; i < playerCount; ++i) {
-            gameState.players.add(new PlayerState());
-            gameState.players.get(i).capital = Capital.values()[i];
-        }
+
+        final GameState gameState = createGameState(2);
         addTokens(gameState, 1, node, 4);
-        gameState.players.get(0).advances = new int[] { };//Advance.allAdvances.indexOf(Advance.cathedral) };
-        gameState.players.get(1).advances = new int[] { };//Advance.allAdvances.indexOf(Advance.cathedral) };
+        addAdvance(gameState, 0, Advance.cathedral);
 
         final ExpansionRequest request = new ExpansionRequest(gameState, 0, 20, Set.of(node), Collections.emptyMap(), 3);
-        final ExpansionResponse response = new ExpansionResponse(5);
-        response.addTokens(target, 5);
-        if (!request.validateResponse(response)) throw new RuntimeException("Fail");
+        ExpansionResponse response = new ExpansionResponse(8);
+        response.addTokens(target, 8);
+        if (!request.validateResponse(response)) throw new RuntimeException("Fail: Attack without Cathedral");
+
+        response = new ExpansionResponse(8);
+        response.addTokens(target, 8);
+        response.setCathedralUsed(node.getName());
+        if (!request.validateResponse(response)) throw new RuntimeException("Fail: Attack with Cathedral");
+
+        response = new ExpansionResponse(7);
+        response.addTokens(target, 7);
+        response.setCathedralUsed(node.getName());
+        if (request.validateResponse(response)) throw new RuntimeException("Fail: Attack with Cathedral using insufficient tokens");
+
     }
 }
