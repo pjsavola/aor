@@ -76,24 +76,59 @@ public class CathedralTest {
         new Board(null, "map.jpg").load(new File("map.dat")); // Init node map
         final Node node = Node.nodeMap.get(target);
 
-        final GameState gameState = createGameState(2);
+        GameState gameState = createGameState(2);
         addTokens(gameState, 1, node, 4);
         addAdvance(gameState, 0, Advance.cathedral);
+        ExpansionRequest request = new ExpansionRequest(gameState, 0, 20, Set.of(node), Collections.emptyMap(), 3);
 
-        final ExpansionRequest request = new ExpansionRequest(gameState, 0, 20, Set.of(node), Collections.emptyMap(), 3);
         ExpansionResponse response = new ExpansionResponse(8);
         response.addTokens(target, 8);
-        if (!request.validateResponse(response)) throw new RuntimeException("Fail: Attack without Cathedral");
+        if (!request.validateResponse(response)) throw new RuntimeException("Attack without Cathedral");
 
         response = new ExpansionResponse(8);
         response.addTokens(target, 8);
         response.setCathedralUsed(node.getName());
-        if (!request.validateResponse(response)) throw new RuntimeException("Fail: Attack with Cathedral");
+        if (!request.validateResponse(response)) throw new RuntimeException("Attack with Cathedral");
 
         response = new ExpansionResponse(7);
         response.addTokens(target, 7);
         response.setCathedralUsed(node.getName());
-        if (request.validateResponse(response)) throw new RuntimeException("Fail: Attack with Cathedral using insufficient tokens");
+        if (request.validateResponse(response)) throw new RuntimeException("Attack with Cathedral using insufficient tokens");
 
+        // Player 2 gets Cathedral
+        addAdvance(gameState, 1, Advance.cathedral);
+
+        response = new ExpansionResponse(8);
+        response.addTokens(target, 8);
+        response.setCathedralUsed(node.getName());
+        if (request.validateResponse(response)) throw new RuntimeException("Attack with Cathedral against Cathedral");
+
+        response = new ExpansionResponse(8);
+        response.addTokens(target, 8);
+        if (!request.validateResponse(response)) throw new RuntimeException("Attack without using Cathedral against Cathedral");
+
+        gameState = createGameState(4);
+        addTokens(gameState, 1, node, 1);
+        addTokens(gameState, 2, node, 1);
+        addTokens(gameState, 3, node, 1);
+        addAdvance(gameState, 0, Advance.cathedral);
+        request = new ExpansionRequest(gameState, 0, 20, Set.of(node), Collections.emptyMap(), 3);
+
+        response = new ExpansionResponse(7);
+        response.addTokens(target, 7);
+        response.setCathedralUsed(node.getName());
+        if (!request.validateResponse(response)) throw new RuntimeException("Attack with Cathedral vs. multiple players");
+
+        // Player 3 gets Cathedral
+        addAdvance(gameState, 2, Advance.cathedral);
+
+        response = new ExpansionResponse(7);
+        response.addTokens(target, 7);
+        response.setCathedralUsed(node.getName());
+        if (request.validateResponse(response)) throw new RuntimeException("Attack with Cathedral vs. multiple players and one of them has Cathedral");
+
+        response = new ExpansionResponse(7);
+        response.addTokens(target, 7);
+        if (!request.validateResponse(response)) throw new RuntimeException("Attack without using Cathedral vs. multiple players and one of them has Cathedral");
     }
 }
