@@ -132,9 +132,14 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public boolean validateResponse(ExpansionResponse response) {
+        if (response.getTokensDisbanded() < 0) {
+            return false;
+        }
+
         if (gameState.deckSize == 0 && response.isCardPurchased()) {
             return false;
         }
+
         final int cardCosts = response.isCardPurchased() ? cardCost : 0;
         if (response.getTokensUsed() + response.getTokensDisbanded() + cardCosts > tokens) {
             return false;
