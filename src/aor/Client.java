@@ -40,6 +40,7 @@ public class Client extends Board implements Runnable {
         this.ai = ai;
         if (!ai) {
             load(new File("map.dat"));
+            repaint();
             frame.addKeyListener(new KeyListener() {
                 @Override
                 public void keyTyped(KeyEvent e) {

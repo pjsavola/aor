@@ -28,7 +28,7 @@ public class Board extends JPanel {
         return pointCache.stream().filter(a -> a.equals(p)).findAny().orElse(null);
     }
 
-    Board(JFrame frame, String imagePath) {
+    public Board(JFrame frame, String imagePath) {
         this.frame = frame;
         final ImageIcon icon = new ImageIcon(imagePath);
         final Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
