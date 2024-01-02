@@ -215,12 +215,50 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     response.addTokens(node.getName(), neededTokens);
                     return true;
                 } else {
-                    final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
-                    if (result == JOptionPane.YES_OPTION) {
-                        response.clearDisbandedTokens();
-                        response.addTokens(node.getName(), neededTokens);
-                        client.confirm();
-                        return true;
+                    // TODO: Check Cathedral usage
+                    final boolean[] cathedrals = new boolean[gameState.players.size()];
+                    for (int i = 0; i < gameState.players.size(); ++i) {
+                        final PlayerState state = gameState.players.get(i);
+                        cathedrals[i] = Arrays.stream(state.advances).mapToObj(j -> Advance.allAdvances.get(j)).anyMatch(a -> a == Advance.cathedral);
+                    }
+                    boolean canUseCathedral = false;
+                    if (cathedrals[playerIndex]) {
+                        canUseCathedral = true;
+                        final PlayerState playerState = gameState.players.get(playerIndex);
+                        for (int i = 0; i < gameState.players.size(); ++i) {
+                            if (i == playerIndex) continue;
+
+                            if (hasTokens(i, node)) {
+                                if (cathedrals[i]) {
+                                    canUseCathedral = false;
+                                    break;
+                                }
+                                if (playerState.cathedralUsed[i] >= gameState.round) {
+                                    canUseCathedral = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (canUseCathedral) {
+                        final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Use Cathedral to attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack using Cathedral?", JOptionPane.YES_NO_CANCEL_OPTION);
+                        if (result != JOptionPane.CANCEL_OPTION) {
+                            response.clearDisbandedTokens();
+                            response.addTokens(node.getName(), neededTokens);
+                            if (result == JOptionPane.YES_OPTION) {
+                                response.setCathedralUsed(node.getName());
+                            }
+                            client.confirm();
+                            return true;
+                        }
+                    } else {
+                        final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
+                        if (result == JOptionPane.YES_OPTION) {
+                            response.clearDisbandedTokens();
+                            response.addTokens(node.getName(), neededTokens);
+                            client.confirm();
+                            return true;
+                        }
                     }
                 }
             }

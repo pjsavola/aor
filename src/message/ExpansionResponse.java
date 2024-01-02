@@ -57,6 +57,10 @@ public class ExpansionResponse extends Response {
         tokensDisbanded += amount;
     }
 
+    public void setCathedralUsed(String area) {
+        cathedralUsed = area;
+    }
+
     public int getTokens(String area) {
         final int idx = tokensUsedKeys.indexOf(area);
         if (idx != -1) {
