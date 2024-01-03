@@ -220,7 +220,6 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     response.addTokens(node.getName(), neededTokens);
                     return true;
                 } else {
-                    // TODO: Check Cathedral usage
                     final boolean[] cathedrals = new boolean[gameState.players.size()];
                     for (int i = 0; i < gameState.players.size(); ++i) {
                         final PlayerState state = gameState.players.get(i);
@@ -230,17 +229,25 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     if (cathedrals[playerIndex]) {
                         canUseCathedral = true;
                         final PlayerState playerState = gameState.players.get(playerIndex);
-                        for (int i = 0; i < gameState.players.size(); ++i) {
-                            if (i == playerIndex) continue;
+                        if (gameState.turnOrder[0] == playerIndex && Server.getTurnOrderThreshold(0, gameState.players.size()) == 1) {
+                            final boolean proselytism = Arrays.stream(playerState.advances).mapToObj(j -> Advance.allAdvances.get(j)).anyMatch(a -> a == Advance.proselytism);
+                            if (proselytism) {
+                                canUseCathedral = false;
+                            }
+                        }
+                        if (!canUseCathedral) {
+                            for (int i = 0; i < gameState.players.size(); ++i) {
+                                if (i == playerIndex) continue;
 
-                            if (hasTokens(i, node)) {
-                                if (cathedrals[i]) {
-                                    canUseCathedral = false;
-                                    break;
-                                }
-                                if (playerState.cathedralUsed[i] >= gameState.round) {
-                                    canUseCathedral = false;
-                                    break;
+                                if (hasTokens(i, node)) {
+                                    if (cathedrals[i]) {
+                                        canUseCathedral = false;
+                                        break;
+                                    }
+                                    if (playerState.cathedralUsed[i] >= gameState.round) {
+                                        canUseCathedral = false;
+                                        break;
+                                    }
                                 }
                             }
                         }
