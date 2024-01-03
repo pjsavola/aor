@@ -984,4 +984,8 @@ public class Server implements Runnable {
     protected void shuffle(List<?> list) {
         Collections.shuffle(list, r);
     }
+
+    protected int getInitialCash() {
+        return 40;
+    }
 }

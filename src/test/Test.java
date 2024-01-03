@@ -29,6 +29,11 @@ public class Test {
                 protected List<Card> getDeck(int epoch) {
                     return super.getDeck(epoch);
                 }
+
+                @Override
+                protected int getInitialCash() {
+                    return 1000;
+                }
             };
             server.predefinedShuffles = 10;
             final Thread serverThread = new Thread(server);
