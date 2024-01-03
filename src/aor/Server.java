@@ -366,7 +366,8 @@ public class Server implements Runnable {
         final Map<Player, FutureOrDefault<StabilizationRequest, BooleanResponse>> asyncDecisions = new HashMap<>(playerCount);
         gameState = getGameState();
         for (Player player : players) {
-            final int cost = player.cards.size() * (player.cards.size() + 1) / 2;
+            int cost = player.cards.size() * (player.cards.size() + 1) / 2;
+            if (player.getAdvances().contains(Advance.middleClass)) cost = (cost + 1) / 2;
             if (cost > 0 && player.getCash() >= cost) {
                 asyncDecisions.put(player, new FutureOrDefault<>(player, new StabilizationRequest(gameState), true));
             }
