@@ -10,9 +10,9 @@ public class Server implements Runnable {
 
     private Phase phase;
     private final List<Card> delayedCards = new ArrayList<>();
-    private final List<Card> epoch1 = new ArrayList<>();
-    private final List<Card> epoch2 = new ArrayList<>();
-    private final List<Card> epoch3 = new ArrayList<>();
+    protected final List<Card> epoch1 = new ArrayList<>();
+    protected final List<Card> epoch2 = new ArrayList<>();
+    protected final List<Card> epoch3 = new ArrayList<>();
     private List<Card> deck;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
@@ -40,7 +40,7 @@ public class Server implements Runnable {
         phase = Phase.DRAFT;
     }
 
-    private void initDecks() {
+    protected void initDecks() {
         epoch1.add(Cards.stirrups);
         epoch1.add(Cards.armor);
         epoch1.add(Cards.stone1);
@@ -131,7 +131,7 @@ public class Server implements Runnable {
 
     private void draftPhase() {
         deck = epoch1;
-        Collections.shuffle(deck, r);
+        shuffle(deck);
         final List<FutureOrDefault<SelectCardRequest, IntegerResponse>> asyncDiscards = new ArrayList<>(playerCount);
         final List<List<Card>> hands = new ArrayList<>(playerCount);
         for (Player player : players) {
@@ -152,19 +152,19 @@ public class Server implements Runnable {
             }
         }
         log("Initial draft completed");
-        if (players.size() <= 4) {
+        if (players.size() <= 4 && !delayedCards.isEmpty()) {
             log("Delayed cards " + delayedCards.stream().map(Card::getName).collect(Collectors.joining(", ")) + " added to the deck");
             deck.addAll(delayedCards);
             delayedCards.clear();
         }
         log("Deck 1 is shuffled");
-        Collections.shuffle(deck, r);
+        shuffle(deck);
         phase = Phase.SELECT_CAPITAL;
     }
 
     private void selectCapitalPhase() {
         final List<Player> selectionOrder = new ArrayList<>(players);
-        Collections.shuffle(selectionOrder);
+        shuffle(selectionOrder);
         final List<FutureOrDefault<BidForCapitalRequest, IntegerResponse>> asyncBids = new ArrayList<>(playerCount);
         for (Player player : selectionOrder) {
             asyncBids.add(new FutureOrDefault<>(player, new BidForCapitalRequest(), true));
@@ -535,14 +535,14 @@ public class Server implements Runnable {
                                     win = true;
                                     log(player + " uses Cathedral vs. " + String.join(", ", opponentNames) + " to win " + node.getName());
                                 } else {
-                                    final int turnOrderRoll = r.nextInt(6);
+                                    final int turnOrderRoll = getRandomNumber(6);
                                     if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
                                         win = true;
                                         log("Turn order roll: " + (turnOrderRoll + 1) + " - win!");
                                     } else {
                                         log("Turn order roll: " + (turnOrderRoll + 1));
-                                        final int attackerRoll = r.nextInt(6);
-                                        final int defenderRoll = r.nextInt(6);
+                                        final int attackerRoll = getRandomNumber(6);
+                                        final int defenderRoll = getRandomNumber(6);
                                         log("Attacker: " + (attackerRoll + 1) + " Defender: " + (defenderRoll + 1));
                                         if (attackerRoll > defenderRoll) {
                                             win = true;
@@ -574,7 +574,7 @@ public class Server implements Runnable {
                                         final int index = new FutureOrDefault<>(player, new SelectCardRequest("Select card to give?", getGameState(),  player.cards, true), false).get().getInt();
                                         if (index >= 0) {
                                             players.stream().filter(p -> p.getCapital() == capital).findAny().ifPresent(p -> {
-                                                final int randomCardIdx = r.nextInt(p.cards.size());
+                                                final int randomCardIdx = getRandomNumber(p.cards.size());
                                                 final Card stolenCard = p.cards.get(randomCardIdx);
                                                 p.cards.set(randomCardIdx, player.cards.get(index));
                                                 player.cards.set(index, stolenCard);
@@ -642,9 +642,9 @@ public class Server implements Runnable {
         shortages.clear();
         surpluses.clear();
         for (int i = 0; i < 2; ++i) {
-            final int roll1 = r.nextInt(6) + 1;
-            final int roll2 = r.nextInt(6) + 1;
-            final boolean shortage = r.nextBoolean();
+            final int roll1 = getRandomNumber(6) + 1;
+            final int roll2 = getRandomNumber(6) + 1;
+            final boolean shortage = getRandomNumber(2) == 0;
             for (Commodity commodity : Commodity.values()) {
                 final int requireedSum = Math.min(commodity.ordinal() + 2, 12);
                 if (roll1 + roll2 == requireedSum) {
@@ -697,9 +697,10 @@ public class Server implements Runnable {
             bannedCategory = null;
             enlightenedRuler = null;
             if (round++ == 2 && !delayedCards.isEmpty()) {
+                log("Delayed cards " + delayedCards.stream().map(Card::getName).collect(Collectors.joining(", ")) + " added to the deck");
                 deck.addAll(delayedCards);
                 delayedCards.clear();
-                Collections.shuffle(deck, r);
+                shuffle(deck);
             }
             phase = Phase.ORDER_OF_PLAY;
         }
@@ -779,8 +780,8 @@ public class Server implements Runnable {
             final int best2 = bestWeapon2;
             final int mod1 = bestWeapon1 > bestWeapon2 ? (int) war1.weapons.stream().filter(w -> w > best2).count() : 0;
             final int mod2 = bestWeapon2 > bestWeapon1 ? (int) war2.weapons.stream().filter(w -> w > best1).count() : 0;
-            final int r1 = r.nextInt(6);
-            final int r2 = r.nextInt(6);
+            final int r1 = getRandomNumber(6);
+            final int r2 = getRandomNumber(6);
             final int roll1 = r1 + mod1;
             final int roll2 = r2 + mod2;
             log(war1 + " rolls " + (r1 + 1) + (mod1 > 0 ? (" + " + mod1) : ""));
@@ -879,7 +880,7 @@ public class Server implements Runnable {
         if (deck.isEmpty()) {
             if (deck == epoch1) deck = epoch2;
             else if (deck == epoch2) deck = epoch3;
-            Collections.shuffle(deck, r);
+            shuffle(deck);
         }
         return card;
     }
@@ -962,5 +963,13 @@ public class Server implements Runnable {
             player.notify(new LogEntryNotification(s));
         }
         System.err.println(s);
+    }
+
+    protected int getRandomNumber(int bound) {
+        return r.nextInt(bound);
+    }
+
+    protected void shuffle(List<?> list) {
+        Collections.shuffle(list, r);
     }
 }
