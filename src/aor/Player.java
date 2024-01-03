@@ -237,7 +237,9 @@ public class Player {
         if (advances.contains(Advance.printedWord)) {
             for (Advance advance : card.advances) {
                 if (advances.contains(advance)) {
-                    cash += card.getAmount(game.playedCards);
+                    final int rebate = card.getAmount(game.playedCards);
+                    game.log(this + " gains " + rebate + " rebate");
+                    cash += rebate;
                     break;
                 }
             }
