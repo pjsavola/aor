@@ -43,7 +43,7 @@ public class Advance {
     public static final Advance nationalism = new Advance("Nationalism", Category.CIVICS, 60, 30, Collections.emptySet());
     public static final Advance institutionalResearch = new Advance("Institutional Research", Category.CIVICS, 100, 40, Collections.emptySet());
     public static final Advance cosmopolitan = new Advance("Cosmopolitan", Category.CIVICS, 150, 50, Set.of(overlandEast));
-    public static final Advance middleClass = new Advance("Middle Class", Category.CIVICS, 170, 60, Set.of(improvedAgriculture));
+    public static final Advance middleClass = new Advance("Middle Class", Category.CIVICS, 170, 60, Set.of(windWaterMill));
 
     static {
         newWorld.prerequisites.add(oceanNavigation);
