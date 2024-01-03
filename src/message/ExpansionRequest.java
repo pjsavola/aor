@@ -68,10 +68,11 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
     public int getRequiredTokensToAttack(Node node) {
         final PlayerState playerState = gameState.players.get(playerIndex);
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
-        return getRequiredTokensToAttack(node, cosmopolitan);
+        final boolean nationalism = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.nationalism) && node.getRegion() == playerState.capital.getRegion();
+        return getRequiredTokensToAttack(node, cosmopolitan, nationalism);
     }
 
-    private int getRequiredTokensToAttack(Node node, boolean cosmopolitan) {
+    private int getRequiredTokensToAttack(Node node, boolean cosmopolitan, boolean nationalism) {
         final PlayerState playerState = gameState.players.get(playerIndex);
         int requiredTokens = node.getSize();
         for (int i = 0; i < gameState.players.size(); ++i) {
@@ -99,6 +100,9 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             for (Node support : node.getSupportNodes()) {
                 if (playerState.areas.contains(support.getName())) --requiredTokens;
             }
+        }
+        if (nationalism) {
+            --requiredTokens;
         }
 
         final PlayerState p = gameState.players.get(playerIndex);
@@ -158,6 +162,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
         final PlayerState playerState = gameState.players.get(playerIndex);
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
+        final boolean nationalism = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.nationalism);
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
@@ -186,7 +191,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     return true;
                 }
 
-                return tokenCount == getRequiredTokensToAttack(node, cosmopolitan);
+                final boolean useNationalism = nationalism && node.getRegion() == playerState.capital.getRegion();
+                return tokenCount == getRequiredTokensToAttack(node, cosmopolitan, useNationalism);
             }
             return false;
         });
