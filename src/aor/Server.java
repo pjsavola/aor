@@ -9,10 +9,10 @@ public class Server implements Runnable {
     public enum Phase { DRAFT, SELECT_CAPITAL, ORDER_OF_PLAY, DRAW_CARD, BUY_CARD, PLAY_CARD, PURCHASE, EXPANSION, INCOME, FINAL_PLAY_CARD, END }
 
     private Phase phase;
-    private final List<Card> delayedCards = new ArrayList<>();
-    protected final List<Card> epoch1 = new ArrayList<>();
-    protected final List<Card> epoch2 = new ArrayList<>();
-    protected final List<Card> epoch3 = new ArrayList<>();
+    private final List<Card> delayedCards;
+    private final List<Card> epoch1;
+    private final List<Card> epoch2;
+    private final List<Card> epoch3;
     private List<Card> deck;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
     final Set<Card> playedCards = new HashSet<>();
@@ -31,7 +31,10 @@ public class Server implements Runnable {
     public Player war2;
 
     public Server(List<ClientConnection> clients) {
-        initDecks();
+        delayedCards = getDeck(0);
+        epoch1 = getDeck(1);
+        epoch2 = getDeck(2);
+        epoch3 = getDeck(3);
         this.playerCount = clients.size();
         for (int i = 0; i < playerCount; ++i) {
             players.add(new Player(this, clients.get(i), playerCount));
@@ -40,74 +43,83 @@ public class Server implements Runnable {
         phase = Phase.DRAFT;
     }
 
-    protected void initDecks() {
-        epoch1.add(Cards.stirrups);
-        epoch1.add(Cards.armor);
-        epoch1.add(Cards.stone1);
-        epoch1.add(Cards.stone2);
-        epoch1.add(Cards.wool1);
-        epoch1.add(Cards.wool2);
-        epoch1.add(Cards.timber1);
-        epoch1.add(Cards.timber2);
-        epoch1.add(Cards.clothWine);
-        epoch1.add(Cards.metal1);
-        epoch1.add(Cards.fur1);
-        epoch1.add(Cards.goldIvory);
-        epoch1.add(Cards.charlemagne);
-        epoch1.add(Cards.dionysusExiguus);
-        epoch1.add(Cards.stBenedict);
-        epoch1.add(Cards.alchemistsGold);
-        epoch1.add(Cards.civilWar);
-        epoch1.add(Cards.enlightenedRuler);
-        epoch1.add(Cards.famine);
-        epoch1.add(Cards.mysticismAbounds);
-        epoch1.add(Cards.papalDecree);
-        epoch1.add(Cards.piratesVikings);
-        epoch1.add(Cards.rebellion);
-        epoch1.add(Cards.revolutionaryUprisings);
-        epoch1.add(Cards.war);
-
-        delayedCards.add(Cards.theCrusades);
-        delayedCards.add(Cards.walterThePenniless);
-        delayedCards.add(Cards.rashidAdDin);
-        delayedCards.add(Cards.silk1);
-        delayedCards.add(Cards.spice1);
-
-        epoch2.add(Cards.longBow);
-        epoch2.add(Cards.gunpowder);
-        epoch2.add(Cards.timber3);
-        epoch2.add(Cards.grain1);
-        epoch2.add(Cards.grain2);
-        epoch2.add(Cards.cloth1);
-        epoch2.add(Cards.wine1);
-        epoch2.add(Cards.metal2);
-        epoch2.add(Cards.silk2);
-        epoch2.add(Cards.spice2);
-        epoch2.add(Cards.christopherColumbus);
-        epoch2.add(Cards.desideriusErasmus);
-        epoch2.add(Cards.ibnMajid);
-        epoch2.add(Cards.johannGutenberg);
-        epoch2.add(Cards.marcoPolo);
-        epoch2.add(Cards.nicolausCopernicus);
-        epoch2.add(Cards.princeHenry);
-        epoch2.add(Cards.williamCaxton);
-        epoch2.add(Cards.mongolArmies);
-        epoch2.add(Cards.blackDeath);
-        epoch2.add(Cards.religiousStrife);
-
-        epoch3.add(Cards.cloth2);
-        epoch3.add(Cards.wine2);
-        epoch3.add(Cards.metal3);
-        epoch3.add(Cards.fur2);
-        epoch3.add(Cards.silk3);
-        epoch3.add(Cards.spice3);
-        epoch3.add(Cards.gold);
-        epoch3.add(Cards.andreasVesalius);
-        epoch3.add(Cards.bartolomeDeLasCasas);
-        epoch3.add(Cards.galileoGalilei);
-        epoch3.add(Cards.henryOldenburg);
-        epoch3.add(Cards.leonardoDaVinci);
-        epoch3.add(Cards.sirIsaacNewton);
+    protected List<Card> getDeck(int epoch) {
+        final List<Card> deck = new ArrayList<>();
+        switch (epoch) {
+            case 0 -> {
+                deck.add(Cards.theCrusades);
+                deck.add(Cards.walterThePenniless);
+                deck.add(Cards.rashidAdDin);
+                deck.add(Cards.silk1);
+                deck.add(Cards.spice1);
+            }
+            case 1 -> {
+                deck.add(Cards.stirrups);
+                deck.add(Cards.armor);
+                deck.add(Cards.stone1);
+                deck.add(Cards.stone2);
+                deck.add(Cards.wool1);
+                deck.add(Cards.wool2);
+                deck.add(Cards.timber1);
+                deck.add(Cards.timber2);
+                deck.add(Cards.clothWine);
+                deck.add(Cards.metal1);
+                deck.add(Cards.fur1);
+                deck.add(Cards.goldIvory);
+                deck.add(Cards.charlemagne);
+                deck.add(Cards.dionysusExiguus);
+                deck.add(Cards.stBenedict);
+                deck.add(Cards.alchemistsGold);
+                deck.add(Cards.civilWar);
+                deck.add(Cards.enlightenedRuler);
+                deck.add(Cards.famine);
+                deck.add(Cards.mysticismAbounds);
+                deck.add(Cards.papalDecree);
+                deck.add(Cards.piratesVikings);
+                deck.add(Cards.rebellion);
+                deck.add(Cards.revolutionaryUprisings);
+                deck.add(Cards.war);
+            }
+            case 2 -> {
+                deck.add(Cards.longBow);
+                deck.add(Cards.gunpowder);
+                deck.add(Cards.timber3);
+                deck.add(Cards.grain1);
+                deck.add(Cards.grain2);
+                deck.add(Cards.cloth1);
+                deck.add(Cards.wine1);
+                deck.add(Cards.metal2);
+                deck.add(Cards.silk2);
+                deck.add(Cards.spice2);
+                deck.add(Cards.christopherColumbus);
+                deck.add(Cards.desideriusErasmus);
+                deck.add(Cards.ibnMajid);
+                deck.add(Cards.johannGutenberg);
+                deck.add(Cards.marcoPolo);
+                deck.add(Cards.nicolausCopernicus);
+                deck.add(Cards.princeHenry);
+                deck.add(Cards.williamCaxton);
+                deck.add(Cards.mongolArmies);
+                deck.add(Cards.blackDeath);
+                deck.add(Cards.religiousStrife);
+            }
+            case 3 -> {
+                deck.add(Cards.cloth2);
+                deck.add(Cards.wine2);
+                deck.add(Cards.metal3);
+                deck.add(Cards.fur2);
+                deck.add(Cards.silk3);
+                deck.add(Cards.spice3);
+                deck.add(Cards.gold);
+                deck.add(Cards.andreasVesalius);
+                deck.add(Cards.bartolomeDeLasCasas);
+                deck.add(Cards.galileoGalilei);
+                deck.add(Cards.henryOldenburg);
+                deck.add(Cards.leonardoDaVinci);
+                deck.add(Cards.sirIsaacNewton);
+            }
+        }
+        return deck;
     }
 
     @Override
