@@ -1,9 +1,8 @@
 package test;
 
-import aor.Card;
-import aor.Client;
-import aor.Lobby;
-import aor.Server;
+import aor.*;
+import message.CapitalResponse;
+import message.IntegerResponse;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -12,13 +11,17 @@ import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
-        final int playerCount = 4;
+        final int playerCount = 3;
         try {
             final Lobby lobby = new Lobby(playerCount, 1234);
             final Thread lobbyThread = new Thread(lobby);
             lobbyThread.start();
-            for (int i = 0; i < 4; ++i) {
-                final Thread clientThread = new Thread(new TestClient(new JFrame(), new Socket("localhost", 1234)));
+            for (int i = 0; i < playerCount; ++i) {
+                final TestClient client = new TestClient(new JFrame(), new Socket("localhost", 1234));
+                client.predefinedResponses.add(new IntegerResponse(0)); // Discard 1st card
+                client.predefinedResponses.add(new IntegerResponse(0)); // Bid 0 for capital
+                client.predefinedResponses.add(new CapitalResponse(Capital.values()[i]));
+                final Thread clientThread = new Thread(client);
                 clientThread.start();
             }
             final TestServer server = new TestServer(lobby.getConnections()) {

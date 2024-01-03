@@ -157,7 +157,7 @@ public class Client extends Board implements Runnable {
     }
 
 
-    private <T extends Request<U>, U extends Response> U getResponse(T request) {
+    protected <T extends Request<U>, U extends Response> U getResponse(T request) {
         if (ai) {
             return request.getDefaultResponse();
         }
