@@ -521,16 +521,18 @@ public class Server implements Runnable {
                                 log(player + " uses Proselytism to win");
                             } else {
                                 if (cathedral && e.getKey().equals(response.getCathedralused())) {
+                                    final List<String> opponentNames = new ArrayList<>();
                                     for (Player p : turnOrder) {
                                         if (p == player) continue;
 
                                         if (p.getTokenCount(node) > 0) {
                                             final int idx = players.indexOf(p);
                                             player.cathedralUsed[idx] = round;
+                                            opponentNames.add(p.toString());
                                         }
                                     }
                                     win = true;
-                                    log(player + " uses Cathedral to win " + node.getName());
+                                    log(player + " uses Cathedral vs. " + String.join(", ", opponentNames) + " to win " + node.getName());
                                 } else {
                                     final int turnOrderRoll = r.nextInt(6);
                                     if (turnOrderRoll > turnOrderRollRequirement || turnOrderRoll == turnOrderRollRequirement && proselytism) {
