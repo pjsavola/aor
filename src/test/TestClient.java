@@ -22,6 +22,6 @@ public class TestClient extends Client {
         if (predefinedResponses.isEmpty()) {
             return super.getResponse(request);
         }
-        return (U) predefinedResponses.pop();
+        return (U) predefinedResponses.removeFirst();
     }
 }
