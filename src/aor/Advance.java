@@ -24,9 +24,9 @@ public class Advance {
     public static final Advance cathedral = new Advance("Cathedral", Category.RELIGION, 120, 20, Set.of(holyIndulgence));
 
     public static final Advance caravan = new Advance("Caravan", Category.COMMERCE, 20, 10, Collections.emptySet());
-    public static final Advance windWaterMill = new Advance("Wind/Watermill", Category.COMMERCE, 40, 10, Set.of(caravan));
-    public static final Advance improvedAgriculture = new Advance("Improved Agriculture", Category.COMMERCE, 50, 10, Set.of(windWaterMill));
-    public static final Advance interestAndProfit = new Advance("Interest & Profit", Category.COMMERCE, 80, 10, Set.of(improvedAgriculture));
+    public static final Advance improvedAgriculture = new Advance("Improved Agriculture", Category.COMMERCE, 40, 10, Set.of(caravan));
+    public static final Advance windWaterMill = new Advance("Wind/Watermill", Category.COMMERCE, 50, 10, Set.of(improvedAgriculture));
+    public static final Advance interestAndProfit = new Advance("Interest & Profit", Category.COMMERCE, 80, 10, Set.of(windWaterMill));
     public static final Advance industry = new Advance("Industry", Category.COMMERCE, 110, 0, Set.of(interestAndProfit));
 
     public static final Advance writtenRecord = new Advance("Written Record", Category.COMMUNICATION, 30, 30, Collections.emptySet());
