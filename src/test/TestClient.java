@@ -11,18 +11,32 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class TestClient extends Client {
-    public Deque<Response> predefinedResponses = new ArrayDeque<>();
+    private Deque<Response> predefinedResponses = new ArrayDeque<>();
+    private Deque<Boolean> predefinedResponseResults = new ArrayDeque<>();
 
     public TestClient(JFrame frame, Socket socket) throws IOException {
         super(frame, socket, false);
     }
 
+    public void addReponse(Response r, boolean expectation) {
+        predefinedResponses.add(r);
+        predefinedResponseResults.add(expectation);
+    }
+
     @Override
     protected <T extends Request<U>, U extends Response> U getResponse(T request) {
-        if (predefinedResponses.isEmpty()) {
-            getFrame().requestFocus();
-            return super.getResponse(request);
+        while (!predefinedResponses.isEmpty()) {
+            final boolean expectation = predefinedResponseResults.removeFirst();
+            final U response = (U) predefinedResponses.removeFirst();
+            if (expectation && request.validateResponse(response)) {
+                return response;
+            }
+            if (!expectation && !request.validateResponse(response)) {
+                continue;
+            }
+            throw new RuntimeException("Test failure");
         }
-        return (U) predefinedResponses.removeFirst();
+        getFrame().requestFocus();
+        return super.getResponse(request);
     }
 }

@@ -20,19 +20,19 @@ public class HeavensTest {
         final ExpansionResponse expansionResponseVenice = new ExpansionResponse(20);
         expansionResponseVenice.addTokens("Belgrade", 1);
         expansionResponseVenice.addTokens("Bari", 2);
-        clients.get(0).predefinedResponses.add(expansionResponseVenice);
+        clients.get(0).addReponse(expansionResponseVenice, true);
         final ExpansionResponse expansionResponseGenoa = new ExpansionResponse(20);
         expansionResponseGenoa.addTokens("Granada", 2);
         expansionResponseGenoa.addTokens("Tunis", 2);
         expansionResponseGenoa.addTokens("Valencia", 2);
-        clients.get(1).predefinedResponses.add(expansionResponseGenoa);
+        clients.get(1).addReponse(expansionResponseGenoa, true);
         final ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(20);
         expansionResponseBarcelona.addTokens("Sicily", 2);
         expansionResponseBarcelona.addTokens("Bari", 1);
         expansionResponseBarcelona.addTokens("Fez", 2);
         expansionResponseBarcelona.addTokens("Algers", 1);
         expansionResponseBarcelona.addTokens("Tunis", 1);
-        clients.get(2).predefinedResponses.add(expansionResponseBarcelona);
+        clients.get(2).addReponse(expansionResponseBarcelona, true);
         thread.start();
     }
 }
