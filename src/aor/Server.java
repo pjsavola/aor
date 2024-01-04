@@ -632,7 +632,7 @@ public class Server implements Runnable {
     private void incomePhase() {
         int mostNewCities = 0;
         Player winningPlayer = null;
-        for (Player player : players) {
+        for (Player player : turnOrder) {
             player.weapons.clear();
             if (player.getAdvances().contains(Advance.enlightenment)) {
                 player.adjustMisery(-1);
