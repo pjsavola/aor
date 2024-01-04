@@ -469,7 +469,9 @@ public class Server implements Runnable {
                 });
                 final Map<Node, Integer> capacityMap = new HashMap<>();
                 reachableLimited.forEach(n -> {
-                    capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
+                    if (n.getSize() > 0) {
+                        capacityMap.put(n, shipCapacity - usedShipping.getOrDefault(n, 0));
+                    }
                 });
                 final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap, cardAvailable ? cardCost : Integer.MAX_VALUE), false).get();
                 if (response.getTokensDisbanded() > 0) {

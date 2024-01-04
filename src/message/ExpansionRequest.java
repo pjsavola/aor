@@ -210,6 +210,10 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
     @Override
     public boolean clicked(Response pendingResponse, Node node, Client client) {
+        if (node.getSize() < 1) {
+            return false;
+        }
+
         final ExpansionResponse response = (ExpansionResponse) pendingResponse;
         final int usedTokens = response.getTokensUsed();
         final int alreadyPlacedTokens = response.getTokens(node.getName());

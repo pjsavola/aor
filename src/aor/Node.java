@@ -226,10 +226,12 @@ public class Node {
                 }
                 for (Node neighbor : border.nodes) {
                     if (neighbor == node) continue;
-                    if (6 - neighbor.region >= playerCount) continue;
+
+                    final boolean water = neighbor.commodity == null && neighbor.size == 0;
+                    if (!water && 6 - neighbor.region >= playerCount) continue;
 
                     boolean heavensUsed = w.heavensUsed;
-                    if (neighbor.commodity == null && neighbor.size == 0) {
+                    if (water) {
                         if (!useHeavens || w.heavensUsed) continue;
                         heavensUsed = true;
                     }
