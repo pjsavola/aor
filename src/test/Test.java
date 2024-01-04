@@ -4,15 +4,16 @@ import aor.*;
 import message.BooleanResponse;
 import message.CapitalResponse;
 import message.IntegerResponse;
+import message.PurchaseAdvancesResponse;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.List;
 
 public class Test {
-    public static void main(String[] args) {
-        final int playerCount = 3;
+    public static Thread initializeTestWithAdvances(List<TestClient> clients, int playerCount, int cash, Advance... advances) {
         try {
             final Lobby lobby = new Lobby(playerCount, 1234);
             final Thread lobbyThread = new Thread(lobby);
@@ -25,6 +26,15 @@ public class Test {
                 client.predefinedResponses.add(new IntegerResponse(20)); // Bid 20 for expansion
                 client.predefinedResponses.add(new IntegerResponse(-1)); // Do not play anything from initial hand
                 client.predefinedResponses.add(new BooleanResponse(true)); // Advance ships
+                final PurchaseAdvancesResponse purchaseAdvancesResponse = new PurchaseAdvancesResponse();
+                int cost = 0;
+                for (Advance advance : advances) {
+                    purchaseAdvancesResponse.addAdvance(advance);
+                    cost += advance.getCost(Collections.emptySet());
+                }
+                client.predefinedResponses.add(purchaseAdvancesResponse);
+                if (cash - cost < 3) client.predefinedResponses.add(new BooleanResponse(false)); // Stabilize using cash
+                clients.add(client);
                 final Thread clientThread = new Thread(client);
                 clientThread.start();
             }
@@ -36,14 +46,16 @@ public class Test {
 
                 @Override
                 protected int getInitialCash() {
-                    return 1000;
+                    return cash;
                 }
             };
-            server.predefinedShuffles = 10;
-            final Thread serverThread = new Thread(server);
-            serverThread.start();
+            server.predefinedShuffles = Integer.MAX_VALUE;
+            return new Thread(server);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void main(String[] args) {
     }
 }
