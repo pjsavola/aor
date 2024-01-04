@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Test {
-    public static Thread initializeTestWithAdvances(List<TestClient> clients, int playerCount, int cash, Advance... advances) {
+    public static TestServer initializeTestWithAdvances(List<TestClient> clients, int playerCount, int cash, Advance... advances) {
         try {
             final Lobby lobby = new Lobby(playerCount, 1234);
             final Thread lobbyThread = new Thread(lobby);
@@ -50,7 +50,7 @@ public class Test {
                 }
             };
             server.predefinedShuffles = Integer.MAX_VALUE;
-            return new Thread(server);
+            return server;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

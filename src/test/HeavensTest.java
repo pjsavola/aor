@@ -1,9 +1,6 @@
 package test;
 
-import aor.Advance;
-import aor.Capital;
-import aor.Card;
-import aor.Lobby;
+import aor.*;
 import message.*;
 
 import javax.swing.*;
@@ -16,7 +13,7 @@ import java.util.Map;
 public class HeavensTest {
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(3);
-        final Thread thread = Test.initializeTestWithAdvances(clients, 3, 60, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 60, Advance.heavens);
         final ExpansionResponse expansionResponseVenice = new ExpansionResponse(20);
         expansionResponseVenice.addTokens("Belgrade", 1);
         expansionResponseVenice.addTokens("Bari", 2);
@@ -33,6 +30,9 @@ public class HeavensTest {
         expansionResponseBarcelona.addTokens("Algers", 1);
         expansionResponseBarcelona.addTokens("Tunis", 1);
         clients.get(2).addReponse(expansionResponseBarcelona, true);
-        thread.start();
+        server.predefinedRandomNumbers.add(0);
+        server.predefinedRandomNumbers.add(1);
+        server.predefinedRandomNumbers.add(0);
+        new Thread(server).start();
     }
 }
