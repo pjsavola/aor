@@ -308,7 +308,10 @@ public class Client extends Board implements Runnable {
             final Map<Capital, Integer> newTokens = newTokenMap.get(node);
             final Point d = new Point(0, 0);
             if (tokens != null) tokens.forEach((capital, count) -> {
-                renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, false, true);
+                for (int i = 0; i < count; ++i) {
+                    renderToken(g, capital, node.getMiddle().x + d.x, node.getMiddle().y + d.y, false, true);
+                    d.setLocation(d.x -3, d.y - 3);
+                }
             });
             if (newTokens != null) newTokens.forEach((capital, count) -> {
                 for (int i = 0; i < count; ++i) {
