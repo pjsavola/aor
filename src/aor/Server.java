@@ -575,26 +575,28 @@ public class Server implements Runnable {
                                 }
                             }
                             if (win) {
-                                final Set<Capital> possibleTargets = new HashSet<>();
                                 final boolean writtenRecord = player.getAdvances().contains(Advance.writtenRecord) && !player.cards.isEmpty();
-                                for (Player p : players) {
-                                    p.removeAllTokens(node);
-                                    if (!p.getAdvances().contains(Advance.writtenRecord) && !p.cards.isEmpty()) {
-                                        possibleTargets.add(p.getCapital());
+                                if (writtenRecord) {
+                                    final Set<Capital> possibleTargets = new HashSet<>();
+                                    for (Player p : players) {
+                                        p.removeAllTokens(node);
+                                        if (!p.getAdvances().contains(Advance.writtenRecord) && !p.cards.isEmpty()) {
+                                            possibleTargets.add(p.getCapital());
+                                        }
                                     }
-                                }
-                                if (!possibleTargets.isEmpty()) {
-                                    final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Trade a card with...", getGameState(), possibleTargets), false).get().getCapital();
-                                    if (capital != null) {
-                                        final int index = new FutureOrDefault<>(player, new SelectCardRequest("Select card to give?", getGameState(),  player.cards, true), false).get().getInt();
-                                        if (index >= 0) {
-                                            players.stream().filter(p -> p.getCapital() == capital).findAny().ifPresent(p -> {
-                                                final int randomCardIdx = getRandomNumber(p.cards.size());
-                                                final Card stolenCard = p.cards.get(randomCardIdx);
-                                                p.cards.set(randomCardIdx, player.cards.get(index));
-                                                player.cards.set(index, stolenCard);
-                                                log(player + " used Written Record against " + p);
-                                            });
+                                    if (!possibleTargets.isEmpty()) {
+                                        final Capital capital = new FutureOrDefault<>(player, new SelectCapitalRequest("Trade a card with...", getGameState(), possibleTargets), false).get().getCapital();
+                                        if (capital != null) {
+                                            final int index = new FutureOrDefault<>(player, new SelectCardRequest("Select card to give?", getGameState(),  player.cards, true), false).get().getInt();
+                                            if (index >= 0) {
+                                                players.stream().filter(p -> p.getCapital() == capital).findAny().ifPresent(p -> {
+                                                    final int randomCardIdx = getRandomNumber(p.cards.size());
+                                                    final Card stolenCard = p.cards.get(randomCardIdx);
+                                                    p.cards.set(randomCardIdx, player.cards.get(index));
+                                                    player.cards.set(index, stolenCard);
+                                                    log(player + " used Written Record against " + p);
+                                                });
+                                            }
                                         }
                                     }
                                 }
