@@ -872,4 +872,9 @@ public class Client extends Board implements Runnable {
     public Capital getCurrent() {
         return gameState == null ? null : gameState.current;
     }
+
+    @Override
+    public String toString() {
+        return myCapital == null ? super.toString() : myCapital.toString();
+    }
 }

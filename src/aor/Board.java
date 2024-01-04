@@ -37,6 +37,10 @@ public class Board extends JPanel {
         final int mapHeight = scale(icon.getIconHeight());
         size = new Dimension(mapWidth + 200, mapHeight);
         mapImage = ImageUtil.getScaledInstance(ImageUtil.toBufferedImage(icon.getImage()), mapWidth, mapHeight, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
+        addMouseListener();
+    }
+
+    protected void addMouseListener() {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {

@@ -20,6 +20,7 @@ public class TestClient extends Client {
     @Override
     protected <T extends Request<U>, U extends Response> U getResponse(T request) {
         if (predefinedResponses.isEmpty()) {
+            getFrame().requestFocus();
             return super.getResponse(request);
         }
         return (U) predefinedResponses.removeFirst();

@@ -473,6 +473,7 @@ public class Server implements Runnable {
                 });
                 final ExpansionResponse response = new FutureOrDefault<>(player, new ExpansionRequest(getGameState(), players.indexOf(player), player.getUsableTokens(), reachableUnlimited, capacityMap, cardAvailable ? cardCost : Integer.MAX_VALUE), false).get();
                 if (response.getTokensDisbanded() > 0) {
+                    log(player + " disbanded " + response.getTokensDisbanded() + " tokens");
                     player.moveTokens(-response.getTokensDisbanded());
                 }
                 if (response.isCardPurchased()) {
