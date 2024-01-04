@@ -74,7 +74,6 @@ public class Advance {
 
     public int getCost(Set<Advance> advances) {
         if (advances.contains(this)) return Integer.MAX_VALUE;
-        if (!advances.containsAll(prerequisites)) return Integer.MAX_VALUE;
 
         int cost = this.cost;
         if (advances.contains(institutionalResearch) && category != Category.CIVICS && category != Category.RELIGION) cost -= 10;
