@@ -86,7 +86,7 @@ public class Player {
         final int old = getTokenCount(area);
         areas.remove(area);
         newAreas.remove(area);
-        if (old < area.getSize()) {
+        if (old < area.getSize() || area.getSize() == 1) {
             remainingTokens += old;
         }
     }
