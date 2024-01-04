@@ -18,7 +18,7 @@ public class HeavensTest {
         final List<TestClient> clients = new ArrayList<>(3);
         final Thread thread = Test.initializeTestWithAdvances(clients, 3, 60, Advance.heavens);
         final ExpansionResponse expansionResponseVenice = new ExpansionResponse(20);
-        expansionResponseVenice.addTokens("Durazzo", 1);
+        expansionResponseVenice.addTokens("Belgrade", 1);
         expansionResponseVenice.addTokens("Bari", 2);
         clients.get(0).predefinedResponses.add(expansionResponseVenice);
         final ExpansionResponse expansionResponseGenoa = new ExpansionResponse(20);
