@@ -50,6 +50,7 @@ public class HeavensTest {
             final TestClient client = clients.get(i);
             client.addReponse(new IntegerResponse(20), true); // Bid 20 for expansion
             if (i == 2) client.addReponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
+
             client.addReponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
             client.addReponse(new BooleanResponse(true), true); // Advance ships
         }
@@ -60,6 +61,9 @@ public class HeavensTest {
         server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 1
         server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 2
         server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 3
+        server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 4
+        server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 5
+        server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 6
         new Thread(server).start();
     }
 }

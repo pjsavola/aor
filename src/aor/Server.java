@@ -677,15 +677,19 @@ public class Server implements Runnable {
             for (Commodity commodity : Commodity.values()) {
                 final int requireedSum = Math.min(commodity.ordinal() + 2, 12);
                 if (roll1 + roll2 == requireedSum) {
-                    if (shortage) shortages.add(commodity);
-                    else surpluses.add(commodity);
+                    if (shortage) {
+                        shortages.add(commodity);
+                        log(commodity + " shortage");
+                    } else {
+                        surpluses.add(commodity);
+                        log(commodity + " surplus");
+                    }
                     final int max = players.stream().map(p -> p.getCommodityCount(commodity)).mapToInt(Integer::intValue).max().orElse(0);
                     if (max > 0) {
                         final List<Player> targets = players.stream().filter(p -> p.getCommodityCount(commodity) == max).toList();
                         if (targets.size() == 1) {
                             final Player player = targets.get(0);
                             if (shortage) {
-                                log(commodity + " shortage");
                                 final Card c = drawCard();
                                 if (c != null) {
                                     log(player + " draws a card");
@@ -694,7 +698,6 @@ public class Server implements Runnable {
                                 }
                             } else {
                                 final int payment = Math.min(player.getCash(), max);
-                                log(commodity + " surplus");
                                 log(player + " loses " + payment + " cash");
                                 player.adjustCash(-payment);
                             }
