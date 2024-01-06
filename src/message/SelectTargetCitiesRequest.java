@@ -13,29 +13,26 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     private static final long serialVersionUID = 1L;
     public final List<String> options;
     public final int count;
-    public final int asiaLimit;
-    public final int newWorldLimit;
+    public final int colonyLimit;
+    public final boolean newWorld;
     public boolean reduce;
 
-    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce) {
-        this(info, gameState, options, count, reduce, 3, 2);
-    }
-
-    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce, int asiaLimit, int newWorldLimit) {
+    public SelectTargetCitiesRequest(String info, GameState gameState, Set<String> options, int count, boolean reduce, int colonyLimit, boolean newWorld) {
         super(info, gameState);
         this.options = new ArrayList<>(options);
         this.count = count;
         this.reduce = reduce;
-        this.asiaLimit = asiaLimit;
-        this.newWorldLimit = newWorldLimit;
+        this.colonyLimit = colonyLimit;
+        this.newWorld = newWorld;
     }
 
     @Override
     public boolean validateResponse(SelectTargetCitiesResponse response) {
+        final long newWorldCount = response.getCities().stream().map(Node::isInNewWorld).count();
         return response.getCities().size() == count &&
                 new HashSet<>(options).containsAll(response.getCities()) &&
-                response.getCities().stream().map(Node::isInAsia).count() <= asiaLimit &&
-                response.getCities().stream().map(Node::isInNewWorld).count() <= newWorldLimit;
+                response.getCities().stream().map(Node::isInAsia).count() + newWorldCount <= colonyLimit &&
+                (newWorldCount == 0 || newWorld);
     }
 
     @Override
@@ -52,10 +49,11 @@ public class SelectTargetCitiesRequest extends Request<SelectTargetCitiesRespons
     public boolean clicked(Response pendingResponse, Node node, Client client) {
         final SelectTargetCitiesResponse response = (SelectTargetCitiesResponse) pendingResponse;
         final List<String> cities = response.getCities();
+        final long newWorldCount = response.getCities().stream().map(Node::isInNewWorld).count();
         if (cities.size() >= count) return false;
         if (cities.contains(node.getName())) return false;
-        if (cities.stream().map(n -> Node.nodeMap.get(n)).filter(Node::isInAsia).count() >= asiaLimit) return false;
-        if (cities.stream().map(n -> Node.nodeMap.get(n)).filter(Node::isInNewWorld).count() >= newWorldLimit) return false;
+        if (cities.stream().map(n -> Node.nodeMap.get(n)).filter(Node::isInAsia).count() + newWorldCount >= colonyLimit) return false;
+        if (node.isInNewWorld() && !newWorld) return false;
 
         if (options.contains(node.getName())) {
             response.addCity(node.getName());

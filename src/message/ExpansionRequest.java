@@ -181,7 +181,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
-                if (!colonies.contains(node)) {
+                if ((node.isInAsia() || node.isInNewWorld()) && !colonies.contains(node)) {
                     if (allowedColonies <= colonies.size()) {
                         return false;
                     }

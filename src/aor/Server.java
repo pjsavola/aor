@@ -454,9 +454,20 @@ public class Server implements Runnable {
 
                 final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
                 if (shipRange == Integer.MAX_VALUE) {
-                    if (shipCapacity == Integer.MAX_VALUE)
+                    if (shipCapacity == Integer.MAX_VALUE) {
+                        final long asiaCount = Node.nodeMap.values().stream().filter(Node::isInAsia).filter(n -> player.getTokenCount(n) > 0).count();
+                        final long newWorldCount = Node.nodeMap.values().stream().filter(Node::isInNewWorld).filter(n -> player.getTokenCount(n) > 0).count();
+                        final int colonyLimit = (int) (player.shipLevel - asiaCount - newWorldCount);
+                        Node.nodeMap.values().stream().filter(Node::isInAsia).filter(n -> player.getTokenCount(n) > 0 || colonyLimit > 0).forEach(reachableUnlimited::add);
+                        final boolean newWorld = player.getAdvances().contains(Advance.newWorld);
+                        if (newWorld) {
+                            Node.nodeMap.values().stream().filter(Node::isInNewWorld).filter(n -> player.getTokenCount(n) > 0 || colonyLimit > 0).forEach(reachableUnlimited::add);
+                        }
                         Node.nodeMap.values().stream().filter(Node::isCoastal).filter(n -> n.isIncluded(playerCount)).filter(n -> n.isAccessible(player.getAdvances())).forEach(reachableUnlimited::add);
-                    else Node.nodeMap.values().stream().filter(Node::isCoastal).filter(n -> n.isIncluded(playerCount)).filter(n -> n.isAccessible(player.getAdvances())).forEach(reachableLimited::add);
+                    }
+                    else {
+                        Node.nodeMap.values().stream().filter(Node::isCoastal).filter(n -> n.isIncluded(playerCount)).filter(n -> n.isAccessible(player.getAdvances())).forEach(reachableLimited::add);
+                    }
                 }
                 final Set<Node> areas = new HashSet<>();
                 player.getAreas().forEach(areas::add);
@@ -805,19 +816,17 @@ public class Server implements Runnable {
             if (roll1 != roll2) {
                 final Player winner =  roll1 > roll2 ? war1 : war2;
                 final Player loser = roll1 > roll2 ? war2 : war1;
-                final int asiaLimit = (int) Math.max(0, winner.shipLevel - winner.getAreas().filter(Node::isInAsia).count());
-                final int newWorldLimit = (int) Math.max(0, winner.shipLevel - winner.getAreas().filter(Node::isInNewWorld).count());
+                final int colonyLimit = (int) Math.max(0, winner.shipLevel - winner.getAreas().filter(Node::isInAsia).count() + winner.getAreas().filter(Node::isInNewWorld).count());
                 final Set<String> options = loser.getCities()
                         .filter(n -> n.isAccessible(winner.getAdvances()))
-                        .filter(n -> !n.isInAsia() || asiaLimit > 0)
-                        .filter(n -> !n.isInNewWorld() || newWorldLimit > 0)
+                        .filter(n -> (!n.isInAsia() && !n.isInNewWorld()) || colonyLimit > 0)
                         .map(Node::getName).collect(Collectors.toSet());
                 final int count = Math.abs(roll1 - roll2);
                 if (!options.isEmpty()) {
                     final List<String> targets;
                     if (options.size() > count) {
                         log(loser + " loses " +  count + " cities");
-                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, false, asiaLimit, newWorldLimit), false).get().getCities();
+                        targets = new FutureOrDefault<>(loser, new SelectTargetCitiesRequest("Choose cities to lose in War!", getGameState(), options, count, false, colonyLimit, winner.getAdvances().contains(Advance.newWorld)), false).get().getCities();
                     } else {
                         targets = new ArrayList<>(options);
                     }

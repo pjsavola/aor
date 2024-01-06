@@ -6,7 +6,7 @@ import message.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OverlandEastTest {
+public class OceanNavigationTest {
 
     private static void testFailure(TestClient client, int tokens, String area) {
         final ExpansionResponse response = new ExpansionResponse(tokens);
@@ -17,7 +17,7 @@ public class OverlandEastTest {
 
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(3);
-        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 200, 2, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 400, 2, Advance.heavens);
 
         ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(2);
         expansionResponseBarcelona.addTokens("Sicily", 2);
@@ -40,6 +40,8 @@ public class OverlandEastTest {
             final PurchaseAdvancesResponse response = new PurchaseAdvancesResponse();
             if (i != 1) response.addAdvance(Advance.overlandEast);
             if (i >= 1) response.addAdvance(Advance.seaworthyVessels);
+            if (i == 2) response.addAdvance(Advance.oceanNavigation);
+
             client.addReponse(response, true);
             client.addReponse(new BooleanResponse(true), true); // Stabilization
         }

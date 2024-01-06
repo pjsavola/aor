@@ -84,7 +84,7 @@ public class EventCard extends Card {
                 final Set<String> options = new HashSet<>();
                 game.players.forEach(p -> p.getCities().filter(Node::isCoastal).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
-                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(Math.min(3, game.getEpoch()), options.size()), true), false).get().getCities();
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose targets for Pirates/Vikings", game.getGameState(), options, Math.min(Math.min(3, game.getEpoch()), options.size()), true, 3, true), false).get().getCities();
                     for (String target : targets) {
                         for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(target)).findAny().ifPresent(p::reduceCity);
                     }
@@ -96,7 +96,7 @@ public class EventCard extends Card {
                 final Set<String> options = new HashSet<>();
                 game.players.stream().filter(p -> p != game.enlightenedRuler).forEach(p -> p.getCities().filter(n -> n.getCapital() == null && !n.isInNewWorld()).map(Node::getName).forEach(options::add));
                 if (!options.isEmpty()) {
-                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Rebellion", game.getGameState(), options, 1, true), false).get().getCities();
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Rebellion", game.getGameState(), options, 1, true, 1, false), false).get().getCities();
                     for (Player p : game.players) p.getCities().filter(n -> n.getName().equals(targets.get(0))).findAny().ifPresent(p::reduceCity);
                 } else {
                     game.log("No suitable targets!");
@@ -106,7 +106,7 @@ public class EventCard extends Card {
             case THE_CRUSADES -> {
                 final Set<String> options = Node.nodeMap.values().stream().filter(n -> n.getRegion() == 6 && player.getCities().noneMatch(c -> c == n)).map(Node::getName).collect(Collectors.toSet());
                 if (!options.isEmpty()) {
-                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1, false), false).get().getCities();
+                    final List<String> targets = new FutureOrDefault<>(player, new SelectTargetCitiesRequest("Choose target for Crusades", game.getGameState(), options, 1, false, 0, false), false).get().getCities();
                     final Node n = Node.nodeMap.get(targets.get(0));
                     if (n != null) {
                         game.log("Crusades at " + n.getName());
