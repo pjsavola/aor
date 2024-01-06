@@ -455,8 +455,8 @@ public class Server implements Runnable {
                 final int turnOrderRollRequirement = getTurnOrderThreshold(i, playerCount);
                 if (shipRange == Integer.MAX_VALUE) {
                     if (shipCapacity == Integer.MAX_VALUE)
-                        Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableUnlimited::add);
-                    else Node.nodeMap.values().stream().filter(Node::isCoastal).forEach(reachableLimited::add);
+                        Node.nodeMap.values().stream().filter(Node::isCoastal).filter(n -> n.isIncluded(playerCount)).filter(n -> n.isAccessible(player.getAdvances())).forEach(reachableUnlimited::add);
+                    else Node.nodeMap.values().stream().filter(Node::isCoastal).filter(n -> n.isIncluded(playerCount)).filter(n -> n.isAccessible(player.getAdvances())).forEach(reachableLimited::add);
                 }
                 final Set<Node> areas = new HashSet<>();
                 player.getAreas().forEach(areas::add);

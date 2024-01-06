@@ -129,10 +129,22 @@ public class Node {
     }
 
     public boolean isAccessible(Set<Advance> advances) {
-        if (region == 5) return advances.contains(Advance.overlandEast);
+        if (isInBlackSea()) return advances.contains(Advance.overlandEast);
         else if (isInAsia()) return advances.contains(Advance.oceanNavigation);
         else if (isInNewWorld()) return advances.contains(Advance.newWorld);
         return true;
+    }
+
+    public boolean isInBlackSea() {
+        return region == 5;
+    }
+
+    public boolean isWater() {
+        return commodity == null && size == 0;
+    }
+
+    public boolean isIncluded(int playerCount) {
+        return isWater() || 6 - region < playerCount;
     }
 
     public boolean needsRemoval(Line line) {
@@ -227,12 +239,11 @@ public class Node {
                 for (Node neighbor : border.nodes) {
                     if (neighbor == node) continue;
 
-                    final boolean water = neighbor.commodity == null && neighbor.size == 0;
-                    if (!water && 6 - neighbor.region >= playerCount) continue;
-                    if (neighbor.region == 5 && !overlandEast) continue;
+                    if (!neighbor.isIncluded(playerCount)) continue;
+                    if (neighbor.isInBlackSea() && !overlandEast) continue;
 
                     boolean heavensUsed = w.heavensUsed;
-                    if (water) {
+                    if (neighbor.isWater()) {
                         if (!useHeavens || w.heavensUsed) continue;
                         heavensUsed = true;
                     }

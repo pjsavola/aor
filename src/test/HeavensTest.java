@@ -21,7 +21,7 @@ public class HeavensTest {
 
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(3);
-        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 60, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 60, 20, Advance.heavens);
 
         ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(20);
         expansionResponseBarcelona.addTokens("Sicily", 2);
@@ -50,7 +50,7 @@ public class HeavensTest {
             final TestClient client = clients.get(i);
             client.addReponse(new IntegerResponse(10), true); // Bid 10 for expansion
             if (i == 2) client.addReponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
-            client.addReponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
+            client.addReponse(new IntegerResponse(-1), true); // Do not play anything
             if (i != 0) client.addReponse(new BooleanResponse(true), true); // Advance ships, Venice doesn't have cash
             client.addReponse(new PurchaseAdvancesResponse(), true);
             if (i == 0) client.addReponse(new BooleanResponse(true), true); // Venice stabilizes using cash
