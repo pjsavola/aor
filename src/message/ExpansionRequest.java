@@ -163,6 +163,17 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         final PlayerState playerState = gameState.players.get(playerIndex);
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         final boolean nationalism = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.nationalism);
+        final boolean oceanNavigation = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.oceanNavigation);
+        final boolean newWorld = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.newWorld);
+        final Set<Node> colonies = new HashSet<>();
+        final int allowedColonies;
+        if (oceanNavigation || newWorld) {
+            playerState.areas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
+            playerState.newAreas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
+            allowedColonies = playerState.shipLevel;
+        } else {
+            allowedColonies = 0;
+        }
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
@@ -170,6 +181,12 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
             final boolean allowed = remainingCapacity >= tokenCount || reachableUnlimited.contains(name);
             if (allowed) {
                 final Node node = Node.nodeMap.get(name);
+                if (!colonies.contains(node)) {
+                    if (allowedColonies <= colonies.size()) {
+                        return false;
+                    }
+                    colonies.add(node);
+                }
                 if (cathedrals[playerIndex] && response.getCathedralused() != null) {
                     for (int i = 0; i < gameState.players.size(); ++i) {
                         if (i == playerIndex) continue;
@@ -245,7 +262,7 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                                 canUseCathedral = false;
                             }
                         }
-                        if (!canUseCathedral) {
+                        if (canUseCathedral) {
                             for (int i = 0; i < gameState.players.size(); ++i) {
                                 if (i == playerIndex) continue;
 
