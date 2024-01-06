@@ -220,6 +220,9 @@ public class Player {
             if (advance.category == Advance.Category.RELIGION) {
                 adjustMisery(1);
             }
+            if (advance == Advance.seaworthyVessels || advance == Advance.oceanNavigation) {
+                shipLevel = 1;
+            }
         }
     }
 
