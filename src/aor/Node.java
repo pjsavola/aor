@@ -106,8 +106,10 @@ public class Node {
     }
 
     public boolean isCoastal() {
-        for (Line line : borders) {
-            if (line.water) return true;
+        if (!isWater()) {
+            for (Line line : borders) {
+                if (line.water) return true;
+            }
         }
         return false;
     }
@@ -140,7 +142,7 @@ public class Node {
     }
 
     public boolean isWater() {
-        return commodity == null && size == 0;
+        return size == 0;
     }
 
     public boolean isIncluded(int playerCount) {
