@@ -134,6 +134,18 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         return false;
     }
 
+    private static int initColonies(Set<Node> colonies, PlayerState playerState) {
+        final boolean oceanNavigation = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.oceanNavigation);
+        final boolean newWorld = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.newWorld);
+        if (oceanNavigation || newWorld) {
+            playerState.areas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
+            playerState.newAreas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
+            return playerState.shipLevel;
+        } else {
+            return 0;
+        }
+    }
+
     @Override
     public boolean validateResponse(ExpansionResponse response) {
         if (response.getTokensDisbanded() < 0) {
@@ -163,17 +175,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
         final PlayerState playerState = gameState.players.get(playerIndex);
         final boolean cosmopolitan = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.cosmopolitan);
         final boolean nationalism = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.nationalism);
-        final boolean oceanNavigation = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.oceanNavigation);
-        final boolean newWorld = Arrays.stream(playerState.advances).mapToObj(i -> Advance.allAdvances.get(i)).anyMatch(a -> a == Advance.newWorld);
         final Set<Node> colonies = new HashSet<>();
-        final int allowedColonies;
-        if (oceanNavigation || newWorld) {
-            playerState.areas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
-            playerState.newAreas.stream().map(name -> Node.nodeMap.get(name)).filter(node -> node.isInAsia() || (newWorld && node.isInNewWorld())).forEach(colonies::add);
-            allowedColonies = playerState.shipLevel;
-        } else {
-            allowedColonies = 0;
-        }
+        final int allowedColonies = initColonies(colonies, playerState);
         return response.getEntryStream().allMatch(e -> {
             final String name = e.getKey();
             final int tokenCount = e.getValue();
@@ -233,6 +236,15 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
 
         final ExpansionResponse response = (ExpansionResponse) pendingResponse;
         final int usedTokens = response.getTokensUsed();
+        if (node.isInAsia() || node.isInNewWorld()) {
+            final Set<Node> colonies = new HashSet<>();
+            final int allowedColonies = initColonies(colonies, gameState.players.get(playerIndex));
+            Node.nodeMap.values().stream().filter(n -> n.isInAsia() || n.isInNewWorld()).filter(n -> response.getTokens(n.getName()) > 0).forEach(colonies::add);
+            if (!colonies.contains(node) && colonies.size() >= allowedColonies) {
+                return false;
+            }
+        }
+
         final int alreadyPlacedTokens = response.getTokens(node.getName());
         final int freeCapacity = node.getSize() - getUsedCapacity(node) - alreadyPlacedTokens;
         final int neededTokens;
