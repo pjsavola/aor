@@ -442,6 +442,7 @@ public class Server implements Runnable {
             final Map<Node, Integer> usedShipping = new HashMap<>();
             final int groundRange = player.getAdvances().contains(Advance.caravan) ? 2 : 1;
             final boolean useHeavens = player.getAdvances().contains(Advance.heavens);
+            final boolean overlandEast = player.getAdvances().contains(Advance.overlandEast);
             final int shipRange = player.getAdvances().contains(Advance.seaworthyVessels) ? Integer.MAX_VALUE : player.shipLevel * 2;
             final int shipCapacity = player.getAdvances().contains(Advance.oceanNavigation) ? Integer.MAX_VALUE : player.shipLevel * 2 + (player.getAdvances().contains(Advance.seaworthyVessels) ? 8 : 0);
 
@@ -462,9 +463,9 @@ public class Server implements Runnable {
                 Node.nodeMap.values().stream().filter(n -> n.getCapital() == player.getCapital()).findAny().ifPresent(areas::add);
                 areas.forEach(node -> {
                     if (!fullAreas.contains(node)) reachableUnlimited.add(node);
-                    reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, fullAreas, playerCount));
+                    reachableUnlimited.addAll(node.getReachableNodes(groundRange, false, false, overlandEast, fullAreas, playerCount));
                     if (shipRange != Integer.MAX_VALUE) {
-                        reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, Collections.emptySet(), playerCount));
+                        reachableLimited.addAll(node.getReachableNodes(shipRange, true, useHeavens, overlandEast, Collections.emptySet(), playerCount));
                     }
                 });
                 final Map<Node, Integer> capacityMap = new HashMap<>();

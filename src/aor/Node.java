@@ -179,7 +179,7 @@ public class Node {
         }
     }
 
-    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens, Set<Node> blockedNodes, int playerCount) {
+    public Set<Node> getReachableNodes(int range, boolean useShips, boolean useHeavens, boolean overlandEast, Set<Node> blockedNodes, int playerCount) {
         final Map<Line, Integer> borderDistances = new HashMap<>();
         final Map<Line, Integer> borderDistancesWithHeavens = new HashMap<>();
         final Deque<Work> work = new ArrayDeque<>();
@@ -229,6 +229,7 @@ public class Node {
 
                     final boolean water = neighbor.commodity == null && neighbor.size == 0;
                     if (!water && 6 - neighbor.region >= playerCount) continue;
+                    if (neighbor.region == 5 && !overlandEast) continue;
 
                     boolean heavensUsed = w.heavensUsed;
                     if (water) {

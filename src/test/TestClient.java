@@ -34,6 +34,7 @@ public class TestClient extends Client {
             if (!expectation && !request.validateResponse(response)) {
                 continue;
             }
+            System.err.println(request);
             throw new RuntimeException("Test failure");
         }
         getFrame().requestFocus();
