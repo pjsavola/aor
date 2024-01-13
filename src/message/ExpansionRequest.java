@@ -294,8 +294,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     if (canUseCathedral) {
                         final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Use Cathedral to attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack using Cathedral?", JOptionPane.YES_NO_CANCEL_OPTION);
                         if (result != JOptionPane.CANCEL_OPTION) {
-                            response.clearDisbandedTokens();
                             response.addTokens(node.getName(), neededTokens);
+                            response.clearDisbandedTokens();
                             if (result == JOptionPane.YES_OPTION) {
                                 response.setCathedralUsed(node.getName());
                             }
@@ -305,8 +305,8 @@ public class ExpansionRequest extends Request<ExpansionResponse> {
                     } else {
                         final int result = JOptionPane.showConfirmDialog(client.getFrame(), "Attack " + node.getName() + " with " + neededTokens + " more tokens?", "Attack?", JOptionPane.YES_NO_OPTION);
                         if (result == JOptionPane.YES_OPTION) {
-                            response.clearDisbandedTokens();
                             response.addTokens(node.getName(), neededTokens);
+                            response.clearDisbandedTokens();
                             client.confirm();
                             return true;
                         }
