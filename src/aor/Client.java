@@ -383,6 +383,19 @@ public class Client extends Board implements Runnable {
                 productionMap.putIfAbsent(count, new HashSet<>());
                 productionMap.get(count).add(playerState.capital);
             }
+            long modifiers = gameState.shortages.stream().filter(c -> c == commodity).count();
+            modifiers -= gameState.surpluses.stream().filter(c -> c == commodity).count();
+            if (modifiers != 0) {
+                StringBuilder res = new StringBuilder();
+                for (int i = 0; i < Math.abs(modifiers); ++i) {
+                    res.append(modifiers > 0 ? "+" : "-");
+                }
+                g.setFont(new Font("Arial", Font.BOLD, 14));
+                g.setColor(modifiers > 0 ? Color.GREEN : Color.RED);
+                final int x = getCommodityTrackLocation().x - 12 - g.getFontMetrics().stringWidth(res.toString());
+                final int y = getCommodityTrackLocation().y + getTokenSize() * 99 / 40 * commodity.ordinal() + getTokenSize() / 2;
+                g.drawString(res.toString(), x, y);
+            }
             productionMap.forEach((count, capitals) -> {
                 int x = getCommodityTrackLocation().x + getTokenSize() * 5 / 2 * count;
                 int y = getCommodityTrackLocation().y + getTokenSize() * 99 / 40 * commodity.ordinal();
