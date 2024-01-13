@@ -197,9 +197,14 @@ public class Player {
         return advances;
     }
 
-    public void research(Advance advance) {
+    public Set<Advance> getAllAdvances() {
         final Set<Advance> allAdvances = new HashSet<>(advances);
         allAdvances.addAll(newAdvances);
+        return allAdvances;
+    }
+
+    public void research(Advance advance) {
+        final Set<Advance> allAdvances = getAllAdvances();
         if (!allAdvances.containsAll(advance.prerequisites)) return;
 
         final int cost = advance.getCost(advances);

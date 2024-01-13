@@ -380,13 +380,14 @@ public class Server implements Runnable {
         gameState = getGameState();
         for (Player player : players) {
             int cost = player.cards.size() * (player.cards.size() + 1) / 2;
-            if (player.getAdvances().contains(Advance.middleClass)) cost = (cost + 1) / 2;
+            if (player.getAllAdvances().contains(Advance.middleClass)) cost = (cost + 1) / 2;
             if (cost > 0 && player.getCash() >= cost) {
                 asyncDecisions.put(player, new FutureOrDefault<>(player, new StabilizationRequest(gameState), true));
             }
         }
         for (Player player : players) {
             int cost = player.cards.size() * (player.cards.size() + 1) / 2;
+            if (player.getAllAdvances().contains(Advance.middleClass)) cost = (cost + 1) / 2;
             if (cost > 0) {
                 final FutureOrDefault<StabilizationRequest, BooleanResponse> response = asyncDecisions.get(player);
                 if (response != null && response.get().getBool()) {
