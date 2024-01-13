@@ -34,8 +34,8 @@ public class MiddleClassTest {
         server.predefinedRandomNumbers.add(0);
         for (int i = 0; i < 10; ++i) {
             server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 1
-            server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 2
-            server.predefinedRandomNumbers.add(0); // Shortage/surplus roll 3
+            server.predefinedRandomNumbers.add(5); // Shortage/surplus roll 2
+            server.predefinedRandomNumbers.add(3); // Shortage/surplus roll 3
         }
         new Thread(server).start();
     }
