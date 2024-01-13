@@ -5,23 +5,27 @@ import aor.Commodity;
 import aor.GameState;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AdjustShortageSurplusRequest extends Request<CommodityResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
-    public final List<Commodity> options;
+    public final Map<Commodity, Integer> options;
 
-    public AdjustShortageSurplusRequest(String info, GameState gameState, Set<Commodity> options) {
+    public AdjustShortageSurplusRequest(String info, GameState gameState, Map<Commodity, Integer> options) {
         super(info, gameState);
-        this.options = new ArrayList<>(options);
+        this.options = new LinkedHashMap<>(options);
     }
 
     @Override
     public boolean validateResponse(CommodityResponse response) {
-        return response.getCommodity() == null || (options.contains(response.getCommodity()) && Math.abs(response.getAdjustment()) == 1);
+        final Commodity commodity = response.getCommodity();
+        if (commodity == null) return true;
+        if (Math.abs(response.getAdjustment()) != 1) return false;
+        if (!options.containsKey(commodity)) return false;
+
+        final Integer allowedAdjustment = options.get(commodity);
+        return allowedAdjustment == null || allowedAdjustment == response.getAdjustment();
     }
 
     @Override

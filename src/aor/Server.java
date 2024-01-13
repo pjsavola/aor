@@ -253,29 +253,48 @@ public class Server implements Runnable {
         queryForRenaissance();
         if (!surpluses.isEmpty() || !shortages.isEmpty()) {
             final Player player = turnOrder.get(0);
-            final Set<Commodity> options = new HashSet<>();
-            for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
-            for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.add(commodity);
+            final Map<Commodity, Integer> options = new LinkedHashMap<>();
+            for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.put(commodity, 1);
+            for (Commodity commodity : shortages) if (player.getCash() >= commodity.getValue()) options.put(commodity, -1);
             if (!options.isEmpty()) {
                 final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options), false).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
                 if (selectedCommodity != null) {
                     player.adjustCash(-selectedCommodity.getValue());
-                    if (commodityReponse.getAdjustment() > 0) surpluses.remove(selectedCommodity);
-                    else shortages.remove(selectedCommodity);
+                    if (commodityReponse.getAdjustment() > 0) {
+                        surpluses.remove(selectedCommodity);
+                        log(player + " pays " + selectedCommodity.getValue() + " to remove " + selectedCommodity + " surplus");
+                    } else {
+                        shortages.remove(selectedCommodity);
+                        log(player + " pays " + selectedCommodity.getValue() + " to remove " + selectedCommodity + " shortage");
+                    }
                 }
             }
         }
         if (turnOrder.get(turnOrder.size() - 1).getAdvances().contains(Advance.windWaterMill)) {
             final Player player = turnOrder.get(turnOrder.size() - 1);
-            final Set<Commodity> options = Set.of(Commodity.GRAIN, Commodity.CLOTH, Commodity.WINE, Commodity.METAL);
-            final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Adjust shortage/surplus?", getGameState(), options), false).get();
+            final Map<Commodity, Integer> options = new LinkedHashMap<>();
+            options.put(Commodity.GRAIN, null);
+            options.put(Commodity.CLOTH, null);
+            options.put(Commodity.WINE, null);
+            options.put(Commodity.METAL, null);
+            final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Add shortage/surplus?", getGameState(), options), false).get();
             final Commodity selectedCommodity = commodityReponse.getCommodity();
             if (selectedCommodity != null) {
                 if (commodityReponse.getAdjustment() > 0) {
-                    if (!surpluses.remove(selectedCommodity)) shortages.add(selectedCommodity);
+                    if (!surpluses.remove(selectedCommodity)) {
+                        shortages.add(selectedCommodity);
+                        log(player + " uses Wind/Watermill to add " + selectedCommodity + " shortage");
+                    } else {
+                        log(player + " uses Wind/Watermill to remove " + selectedCommodity + " surplus");
+                    }
                 } else {
-                    if (!shortages.remove(selectedCommodity)) surpluses.add(selectedCommodity);
+                    if (!shortages.remove(selectedCommodity)) {
+                        surpluses.add(selectedCommodity);
+                        log(player + " uses Wind/Watermill to add " + selectedCommodity + " surplus");
+                    } else {
+                        log(player + " uses Wind/Watermill to remove " + selectedCommodity + " shortage");
+                    }
                 }
             }
         }

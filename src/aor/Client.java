@@ -718,17 +718,33 @@ public class Client extends Board implements Runnable {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final JPanel buttonPanel = new JPanel();
-        final List<Commodity> options = request.options;
-        for (int i = 0; i < options.size(); ++i) {
-            final Commodity commodity = options.get(i);
-            final JButton button = new JButton(commodity.name());
-            button.addActionListener(l -> {
-                dialog.setVisible(false);
-                dialog.dispose();
-                response = new CommodityResponse(commodity);
-            });
-            buttonPanel.add(button);
-        }
+        final Map<Commodity, Integer> options = request.options;
+        options.forEach((commodity, adjustment) -> {
+            if (adjustment != null) {
+                final JButton button = new JButton(commodity.name() + " " + (adjustment > 0 ? "surplus" : "shortage"));
+                button.addActionListener(l -> {
+                    dialog.setVisible(false);
+                    dialog.dispose();
+                    response = new CommodityResponse(commodity, adjustment);
+                });
+                buttonPanel.add(button);
+            } else {
+                final JButton shortageButton = new JButton(commodity.name() + " shortage");
+                shortageButton.addActionListener(l -> {
+                    dialog.setVisible(false);
+                    dialog.dispose();
+                    response = new CommodityResponse(commodity, 1);
+                });
+                buttonPanel.add(shortageButton);
+                final JButton surplusButton = new JButton(commodity.name() + " surplus");
+                surplusButton.addActionListener(l -> {
+                    dialog.setVisible(false);
+                    dialog.dispose();
+                    response = new CommodityResponse(commodity, -1);
+                });
+                buttonPanel.add(surplusButton);
+            }
+        });
         final JButton cancel = new JButton("Do nothing");
         cancel.addActionListener(l -> {
             dialog.setVisible(false);
@@ -741,7 +757,6 @@ public class Client extends Board implements Runnable {
         panel.add(cancel);
         showDialog(dialog, panel, request.getInfo());
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        //response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectAreaRequest request) {
