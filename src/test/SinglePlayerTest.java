@@ -17,7 +17,7 @@ public class SinglePlayerTest {
 
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(1);
-        final TestServer server = Test.initializeTestWithAdvances(clients, 1, 500, 2, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 1, 500, 2, true, Advance.heavens);
 
         final TestClient client = clients.get(0);
         client.addResponse(new ExpansionResponse(2), true);

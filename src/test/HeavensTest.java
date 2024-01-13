@@ -17,7 +17,7 @@ public class HeavensTest {
 
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(3);
-        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 60, 20, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 60, 20, true, Advance.heavens);
 
         ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(20);
         expansionResponseBarcelona.addTokens("Sicily", 2);

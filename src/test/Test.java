@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Test {
-    public static TestServer initializeTestWithAdvances(List<TestClient> clients, int playerCount, int cash, int tokenBid, Advance... advances) {
+    public static TestServer initializeTestWithAdvances(List<TestClient> clients, int playerCount, int cash, int tokenBid, boolean advanceShips, Advance... advances) {
         try {
             final Lobby lobby = new Lobby(playerCount, 1234);
             final Thread lobbyThread = new Thread(lobby);
@@ -25,9 +25,9 @@ public class Test {
                 if (i < playerCount - 1) client.addResponse(new CapitalResponse(Capital.values()[i]), true); // Select capitals
                 client.addResponse(new IntegerResponse(tokenBid), true); // Bid for expansion
                 client.addResponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
-                client.addResponse(new BooleanResponse(true), true); // Advance ships
+                client.addResponse(new BooleanResponse(advanceShips), true); // Advance ships
                 final PurchaseAdvancesResponse purchaseAdvancesResponse = new PurchaseAdvancesResponse();
-                int cost = tokenBid + 10;
+                int cost = tokenBid + (advanceShips ? 10 : 0);
                 for (Advance advance : advances) {
                     purchaseAdvancesResponse.addAdvance(advance);
                     cost += advance.getCost(Collections.emptySet());

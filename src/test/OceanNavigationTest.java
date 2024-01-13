@@ -17,7 +17,7 @@ public class OceanNavigationTest {
 
     public static void main(String[] args) {
         final List<TestClient> clients = new ArrayList<>(3);
-        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 400, 2, Advance.heavens);
+        final TestServer server = Test.initializeTestWithAdvances(clients, 3, 400, 2, true, Advance.heavens);
 
         ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(2);
         expansionResponseBarcelona.addTokens("Sicily", 2);
