@@ -672,7 +672,9 @@ public class Server implements Runnable {
                 winningPlayer = player;
             }
             player.flipTokens();
-            player.adjustCash(player.getIncome(playerCount));
+            final int income = player.getIncome(playerCount);
+            player.adjustCash(income);
+            log(player + " gets " + income + " income");
         }
         if (winningPlayer != null) {
             final Card c = drawCard();

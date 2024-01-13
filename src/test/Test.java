@@ -23,7 +23,7 @@ public class Test {
                 client.addReponse(new IntegerResponse(0), true); // Discard 1st card
                 client.addReponse(new IntegerResponse(0), true); // Bid 0 for capital
                 if (i < playerCount - 1) client.addReponse(new CapitalResponse(Capital.values()[i]), true); // Select capitals
-                client.addReponse(new IntegerResponse(tokenBid), true); // Bid 20 for expansion
+                client.addReponse(new IntegerResponse(tokenBid), true); // Bid for expansion
                 client.addReponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
                 client.addReponse(new BooleanResponse(true), true); // Advance ships
                 final PurchaseAdvancesResponse purchaseAdvancesResponse = new PurchaseAdvancesResponse();
