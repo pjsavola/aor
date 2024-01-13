@@ -295,7 +295,7 @@ public class Server implements Runnable {
     private void buyCardPhase() {
         queryForRenaissance();
         for (Player player : turnOrder) {
-            if (player.getCash() >= 10 && deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
+            if (player.getCash() >= 10 && !deck.isEmpty() && player.getAdvances().contains(Advance.urbanAscendancy)) {
                 if (new FutureOrDefault<>(player, new UseUrbanAscendancyRequest(getGameState()), false).get().getBool()) {
                     final Card c = drawCard();
                     if (c != null) {

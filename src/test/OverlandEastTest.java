@@ -11,7 +11,7 @@ public class OverlandEastTest {
     private static void testFailure(TestClient client, int tokens, String area) {
         final ExpansionResponse response = new ExpansionResponse(tokens);
         response.addTokens(area, tokens);
-        client.addReponse(response, false);
+        client.addResponse(response, false);
 
     }
 
@@ -21,27 +21,27 @@ public class OverlandEastTest {
 
         ExpansionResponse expansionResponseBarcelona = new ExpansionResponse(2);
         expansionResponseBarcelona.addTokens("Sicily", 2);
-        clients.get(2).addReponse(expansionResponseBarcelona, true);
+        clients.get(2).addResponse(expansionResponseBarcelona, true);
 
         ExpansionResponse expansionResponseGenoa = new ExpansionResponse(2);
         expansionResponseGenoa.addTokens("Tunis", 2);
-        clients.get(1).addReponse(expansionResponseGenoa, true);
+        clients.get(1).addResponse(expansionResponseGenoa, true);
 
         ExpansionResponse expansionResponseVenice = new ExpansionResponse(2);
         expansionResponseVenice.addTokens("Belgrade", 2);
-        clients.get(0).addReponse(expansionResponseVenice, true);
+        clients.get(0).addResponse(expansionResponseVenice, true);
 
         for (int i = 0; i < clients.size(); ++i) {
             final TestClient client = clients.get(i);
-            client.addReponse(new IntegerResponse(4), true); // Bid for expansion
-            if (i == 2) client.addReponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
-            client.addReponse(new IntegerResponse(-1), true); // Do not play anything
-            client.addReponse(new BooleanResponse(true), true); // Advance ships
+            client.addResponse(new IntegerResponse(4), true); // Bid for expansion
+            if (i == 2) client.addResponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
+            client.addResponse(new IntegerResponse(-1), true); // Do not play anything
+            client.addResponse(new BooleanResponse(true), true); // Advance ships
             final PurchaseAdvancesResponse response = new PurchaseAdvancesResponse();
             if (i != 1) response.addAdvance(Advance.overlandEast);
             if (i >= 1) response.addAdvance(Advance.seaworthyVessels);
-            client.addReponse(response, true);
-            client.addReponse(new BooleanResponse(true), true); // Stabilization
+            client.addResponse(response, true);
+            client.addResponse(new BooleanResponse(true), true); // Stabilization
         }
 
         server.predefinedRandomNumbers.add(0);

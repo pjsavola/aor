@@ -11,7 +11,7 @@ public class SinglePlayerTest {
     private static void testFailure(TestClient client, int tokens, String area) {
         final ExpansionResponse response = new ExpansionResponse(tokens);
         response.addTokens(area, tokens);
-        client.addReponse(response, false);
+        client.addResponse(response, false);
 
     }
 
@@ -20,7 +20,7 @@ public class SinglePlayerTest {
         final TestServer server = Test.initializeTestWithAdvances(clients, 1, 500, 2, Advance.heavens);
 
         final TestClient client = clients.get(0);
-        client.addReponse(new ExpansionResponse(2), true);
+        client.addResponse(new ExpansionResponse(2), true);
 
         server.predefinedRandomNumbers.add(0);
         server.predefinedRandomNumbers.add(1);

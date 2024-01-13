@@ -20,20 +20,20 @@ public class Test {
             lobbyThread.start();
             for (int i = 0; i < playerCount; ++i) {
                 final TestClient client = new TestClient(new JFrame(), new Socket("localhost", 1234));
-                client.addReponse(new IntegerResponse(0), true); // Discard 1st card
-                client.addReponse(new IntegerResponse(0), true); // Bid 0 for capital
-                if (i < playerCount - 1) client.addReponse(new CapitalResponse(Capital.values()[i]), true); // Select capitals
-                client.addReponse(new IntegerResponse(tokenBid), true); // Bid for expansion
-                client.addReponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
-                client.addReponse(new BooleanResponse(true), true); // Advance ships
+                client.addResponse(new IntegerResponse(0), true); // Discard 1st card
+                client.addResponse(new IntegerResponse(0), true); // Bid 0 for capital
+                if (i < playerCount - 1) client.addResponse(new CapitalResponse(Capital.values()[i]), true); // Select capitals
+                client.addResponse(new IntegerResponse(tokenBid), true); // Bid for expansion
+                client.addResponse(new IntegerResponse(-1), true); // Do not play anything from initial hand
+                client.addResponse(new BooleanResponse(true), true); // Advance ships
                 final PurchaseAdvancesResponse purchaseAdvancesResponse = new PurchaseAdvancesResponse();
                 int cost = tokenBid + 10;
                 for (Advance advance : advances) {
                     purchaseAdvancesResponse.addAdvance(advance);
                     cost += advance.getCost(Collections.emptySet());
                 }
-                client.addReponse(purchaseAdvancesResponse, true);
-                if (cash - cost >= 3) client.addReponse(new BooleanResponse(false), true); // Stabilize using misery
+                client.addResponse(purchaseAdvancesResponse, true);
+                if (cash - cost >= 3) client.addResponse(new BooleanResponse(false), true); // Stabilize using misery
                 clients.add(client);
                 final Thread clientThread = new Thread(client);
                 clientThread.start();

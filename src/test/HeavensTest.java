@@ -3,19 +3,15 @@ package test;
 import aor.*;
 import message.*;
 
-import javax.swing.*;
-import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class HeavensTest {
 
     private static void testFailure(TestClient client, int tokens, String area) {
         final ExpansionResponse response = new ExpansionResponse(tokens);
         response.addTokens(area, tokens);
-        client.addReponse(response, false);
+        client.addResponse(response, false);
 
     }
 
@@ -29,13 +25,13 @@ public class HeavensTest {
         expansionResponseBarcelona.addTokens("Fez", 2);
         expansionResponseBarcelona.addTokens("Algers", 1);
         expansionResponseBarcelona.addTokens("Tunis", 1);
-        clients.get(2).addReponse(expansionResponseBarcelona, true);
+        clients.get(2).addResponse(expansionResponseBarcelona, true);
 
         ExpansionResponse expansionResponseGenoa = new ExpansionResponse(20);
         expansionResponseGenoa.addTokens("Granada", 2);
         expansionResponseGenoa.addTokens("Tunis", 2);
         expansionResponseGenoa.addTokens("Valencia", 2);
-        clients.get(1).addReponse(expansionResponseGenoa, true);
+        clients.get(1).addResponse(expansionResponseGenoa, true);
 
         testFailure(clients.get(0), 1, "Durazzo"); // Durazzo is not reachable
         testFailure(clients.get(0), 1, "Bari"); // Bari is already occupied by Barcelona
@@ -44,16 +40,16 @@ public class HeavensTest {
         ExpansionResponse expansionResponseVenice = new ExpansionResponse(20);
         expansionResponseVenice.addTokens("Belgrade", 1);
         expansionResponseVenice.addTokens("Bari", 2);
-        clients.get(0).addReponse(expansionResponseVenice, true);
+        clients.get(0).addResponse(expansionResponseVenice, true);
 
         for (int i = 0; i < clients.size(); ++i) {
             final TestClient client = clients.get(i);
-            client.addReponse(new IntegerResponse(10), true); // Bid 10 for expansion
-            if (i == 2) client.addReponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
-            client.addReponse(new IntegerResponse(-1), true); // Do not play anything
-            if (i != 0) client.addReponse(new BooleanResponse(true), true); // Advance ships, Venice doesn't have cash
-            client.addReponse(new PurchaseAdvancesResponse(), true);
-            if (i == 0) client.addReponse(new BooleanResponse(true), true); // Venice stabilizes using cash
+            client.addResponse(new IntegerResponse(10), true); // Bid 10 for expansion
+            if (i == 2) client.addResponse(new CommodityResponse(null), true); // Do not remove shortage/surplus
+            client.addResponse(new IntegerResponse(-1), true); // Do not play anything
+            if (i != 0) client.addResponse(new BooleanResponse(true), true); // Advance ships, Venice doesn't have cash
+            client.addResponse(new PurchaseAdvancesResponse(), true);
+            if (i == 0) client.addResponse(new BooleanResponse(true), true); // Venice stabilizes using cash
         }
 
         testFailure(clients.get(2), 1, "Acre"); // Requires usage of two seas
@@ -65,7 +61,7 @@ public class HeavensTest {
         expansionResponseBarcelona.addTokens("Bordeaux", 3);
         expansionResponseBarcelona.addTokens("Cyprus", 3);
         expansionResponseBarcelona.addTokens("Suez", 3);
-        clients.get(2).addReponse(expansionResponseBarcelona, true);
+        clients.get(2).addResponse(expansionResponseBarcelona, true);
 
         /*expansionResponseGenoa = new ExpansionResponse(20);
         expansionResponseGenoa.addTokens("Granada", 2);

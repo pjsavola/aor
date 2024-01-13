@@ -18,7 +18,7 @@ public class TestClient extends Client {
         super(frame, socket, false);
     }
 
-    public void addReponse(Response r, boolean expectation) {
+    public void addResponse(Response r, boolean expectation) {
         predefinedResponses.add(r);
         predefinedResponseResults.add(expectation);
     }
