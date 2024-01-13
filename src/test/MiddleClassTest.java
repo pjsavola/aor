@@ -28,6 +28,7 @@ public class MiddleClassTest {
         client.addResponse(new PurchaseAdvancesResponse(List.of(Advance.windWaterMill, Advance.middleClass)), true);
         client.addResponse(new BooleanResponse(true), true); // Pay only 3 because stabilization costs are halved
         client.addResponse(new IntegerResponse(26), true); // Extra 10 income.
+
         server.predefinedRandomNumbers.add(0);
         server.predefinedRandomNumbers.add(1);
         server.predefinedRandomNumbers.add(0);

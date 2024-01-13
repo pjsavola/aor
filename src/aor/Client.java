@@ -715,7 +715,33 @@ public class Client extends Board implements Runnable {
     }
 
     public void handleRequest(AdjustShortageSurplusRequest request) {
-        response = request.getDefaultResponse();
+        final JDialog dialog = new JDialog(frame, false);
+        final JPanel panel = new JPanel();
+        final JPanel buttonPanel = new JPanel();
+        final List<Commodity> options = request.options;
+        for (int i = 0; i < options.size(); ++i) {
+            final Commodity commodity = options.get(i);
+            final JButton button = new JButton(commodity.name());
+            button.addActionListener(l -> {
+                dialog.setVisible(false);
+                dialog.dispose();
+                response = new CommodityResponse(commodity);
+            });
+            buttonPanel.add(button);
+        }
+        final JButton cancel = new JButton("Do nothing");
+        cancel.addActionListener(l -> {
+            dialog.setVisible(false);
+            dialog.dispose();;
+            response = new CommodityResponse(null);
+        });
+        cancel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(buttonPanel);
+        panel.add(cancel);
+        showDialog(dialog, panel, request.getInfo());
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        //response = request.getDefaultResponse();
     }
 
     public void handleRequest(SelectAreaRequest request) {

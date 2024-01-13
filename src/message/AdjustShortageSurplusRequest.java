@@ -12,7 +12,7 @@ import java.util.Set;
 public class AdjustShortageSurplusRequest extends Request<CommodityResponse> {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final List<Commodity> options;
+    public final List<Commodity> options;
 
     public AdjustShortageSurplusRequest(String info, GameState gameState, Set<Commodity> options) {
         super(info, gameState);
