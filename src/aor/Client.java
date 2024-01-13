@@ -298,6 +298,9 @@ public class Client extends Board implements Runnable {
                     newTokenMap.get(node).put(gameState.current, e.getValue());
                 } else {
                     renderCity(g, gameState.current, node.getMiddle().x, node.getMiddle().y, sz, true, true);
+                    if (tokens > 0) {
+                        tokenMap.put(node, Collections.emptyMap());
+                    }
                 }
             });
         }
