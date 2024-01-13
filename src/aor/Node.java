@@ -146,7 +146,7 @@ public class Node {
     }
 
     public boolean isIncluded(int playerCount) {
-        return isWater() || 6 - region < playerCount;
+        return isWater() || 6 - region < playerCount || region >= 5;
     }
 
     public boolean needsRemoval(Line line) {
