@@ -495,9 +495,6 @@ public class Client extends Board implements Runnable {
         final JDialog dialog = new JDialog(frame, false);
         final JPanel panel = new JPanel();
         final List<Card> cards = request.getCards();
-        if (this.cards.isEmpty()) {
-            this.cards.addAll(cards);
-        }
         panel.setLayout(new GridLayout(cards.size() / 5 + 1, Math.min(5, cards.size())));
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 0));
         final Rectangle bounds = getDrawDeckBounds();

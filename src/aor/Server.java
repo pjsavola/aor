@@ -160,6 +160,7 @@ public class Server implements Runnable {
                     deck.add(card);
                 } else {
                     players.get(i).addCard(card);
+                    players.get(i).notify(new CardNotification(card));
                 }
             }
         }
