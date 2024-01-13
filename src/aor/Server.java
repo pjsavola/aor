@@ -15,7 +15,7 @@ public class Server implements Runnable {
     private final List<Card> epoch3;
     private List<Card> deck;
     final List<LeaderCard> patronageQueue = new ArrayList<>();
-    final Set<Card> playedCards = new HashSet<>();
+    final Set<Card> playedCards = new LinkedHashSet<>();
     final Set<Card> unplayableCards = new HashSet<>();
     private final List<Commodity> shortages = new ArrayList<>();
     private final List<Commodity> surpluses = new ArrayList<>();
