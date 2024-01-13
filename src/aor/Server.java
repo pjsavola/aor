@@ -251,7 +251,7 @@ public class Server implements Runnable {
 
     private void drawCardPhase() {
         queryForRenaissance();
-        while (!surpluses.isEmpty() || !shortages.isEmpty()) {
+        if (!surpluses.isEmpty() || !shortages.isEmpty()) {
             final Player player = turnOrder.get(0);
             final Set<Commodity> options = new HashSet<>();
             for (Commodity commodity : surpluses) if (player.getCash() >= commodity.getValue()) options.add(commodity);
@@ -259,9 +259,7 @@ public class Server implements Runnable {
             if (!options.isEmpty()) {
                 final CommodityResponse commodityReponse = new FutureOrDefault<>(player, new AdjustShortageSurplusRequest("Pay off shortage/surplus?", getGameState(), options), false).get();
                 final Commodity selectedCommodity = commodityReponse.getCommodity();
-                if (selectedCommodity == null) {
-                    break;
-                } else {
+                if (selectedCommodity != null) {
                     player.adjustCash(-selectedCommodity.getValue());
                     if (commodityReponse.getAdjustment() > 0) surpluses.remove(selectedCommodity);
                     else shortages.remove(selectedCommodity);
